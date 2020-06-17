@@ -29,6 +29,7 @@ namespace System.Collections.Tests
 
         [Theory]
         [MemberData(nameof(StructuralComparer_Compare_TestData))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void StructuralComparer_Compare(object x, object y, int expected)
         {
             Assert.Equal(expected, StructuralComparisons.StructuralComparer.Compare(x, y));

@@ -126,6 +126,7 @@ namespace System.Xml.Tests
         //TEST DEFAULT VALUE FOR SCHEMA COMPILATION
         //[Variation(Desc = "v1- Test Default value of ProhibitDTD for Add(URL) of schema with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1()
         {
             Initialize();
@@ -145,6 +146,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v2- Test Default value of ProhibitDTD for Add(XmlReader) of schema with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             Initialize();
@@ -165,6 +167,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v3- Test Default value of ProhibitDTD for Add(URL) containing xs:import for schema with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             Initialize();
@@ -185,6 +188,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v4- Test Default value of ProhibitDTD for Add(XmlReader) containing xs:import for scehma with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             Initialize();
@@ -261,6 +265,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v7- Test Default value of ProhibitDTD for Add(XmlReader) for schema with DTD", Priority = 1, Params = new object[] { "bug356711_a.xsd" })]
         [InlineData("bug356711_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7(object param0)
         {
             Initialize();
@@ -284,6 +289,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v8- Test Default value of ProhibitDTD for Add(XmlReader) with xs:import for schema with DTD", Priority = 1, Params = new object[] { "bug356711.xsd" })]
         [InlineData("bug356711.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v8(object param0)
         {
             Initialize();
@@ -310,6 +316,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v10.2- Test Custom value of ProhibitDTD for SchemaSet.Add(XmlReader) for schema with DTD", Priority = 1, Params = new object[] { "bug356711_a.xsd" })]
         [InlineData("bug356711_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v10(object param0)
         {
             Initialize();
@@ -336,6 +343,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v11.1- Test Custom value of ProhibitDTD for XmlSchema.Add(XmlReader) with an xs:import for schema with DTD", Priority = 1, Params = new object[] { "bug356711.xsd" })]
         [InlineData("bug356711.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v11(object param0)
         {
             Initialize();
@@ -360,6 +368,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v12- Test with underlying reader with ProhibitDTD=true, and new Setting with True for schema with DTD", Priority = 1, Params = new object[] { "bug356711_a.xsd" })]
         [InlineData("bug356711_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v12(object param0)
         {
             Initialize();
@@ -383,6 +392,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v13- Test with underlying reader with ProhibitDTD=true, and new Setting with True for a schema with xs:import for schema with DTD", Priority = 1, Params = new object[] { "bug356711.xsd" })]
         [InlineData("bug356711.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v13(object param0)
         {
             Initialize();
@@ -409,6 +419,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v14 - SchemaSet.Add(XmlReader) with pDTD False ,then a SchemaSet.Add(URL) for schema with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v14()
         {
             Initialize();
@@ -434,6 +445,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v15 - SchemaSet.Add(XmlReader) with pDTD True ,then a SchemaSet.Add(XmlReader) with pDTD False with DTD", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v15()
         {
             Initialize();
@@ -475,6 +487,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v20.4- Test Default value of ProhibitDTD for XML containing Inline schema containing xs:import of a schema which has a xs:import of schema with DTD", Priority = 1, Params = new object[] { "bug356711_4.xml" })]
         [InlineData("bug356711_4.xml")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v20(object param0)
         {
             Initialize();
@@ -498,6 +511,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v21- Underlying XmlReader with ProhibitDTD=False and Create new Reader with ProhibitDTD=True", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v21()
         {
             Initialize();
@@ -532,6 +546,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v22.4- Test Default value of ProhibitDTD for XML containing Inline schema containing xs:import of a schema which has a xs:import of schema with DTD", Priority = 1, Params = new object[] { "bug356711_4.xml" })]
         [InlineData("bug356711_4.xml")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v22(object param0)
         {
             Initialize();
@@ -555,6 +570,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v23- Underlying XmlReader with ProhibitDTD=True and Create new Reader with ProhibitDTD=False", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v23()
         {
             Initialize();

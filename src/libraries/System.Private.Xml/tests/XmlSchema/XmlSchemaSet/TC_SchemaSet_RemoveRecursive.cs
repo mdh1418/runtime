@@ -60,6 +60,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v2 - RemoveRecursive with just added schema", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -83,6 +84,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v3 - RemoveRecursive first added schema, check the rest")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -111,6 +113,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v4.1 - RemoveRecursive: A with NS includes B with no NS", Params = new object[] { "include_v1_a.xsd", })]
         [InlineData("include_v1_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4(string fileName)
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -150,6 +153,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v5.1 - Remove: A with NS imports B with no NS", Priority = 1, Params = new object[] { "import_v1_a.xsd", 1 })]
         [InlineData("import_v1_a.xsd", 1)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5(object param0, object param1)
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -185,6 +189,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v6 - Remove: Add B(NONS) to a namespace, Add A(ns-a) which imports B, Remove B(ns-b) then A(ns-a)", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -238,6 +243,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v7.1 - Remove: A(ns-a) imports B(ns-b) imports C (ns-c)", Priority = 1, Params = new object[] { "import_v9_a.xsd", "ns-a", "ns-b", "ns-c" })]
         [InlineData("import_v9_a.xsd", "ns-a", "ns-b", "ns-c")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7(object param0, object param1, object param2, object param3)
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -276,6 +282,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v8 - Remove: A imports B and B and C, B imports C and D, C imports D and A", Priority = 1, Params = new object[] { "import_v13_a.xsd" })]
         [InlineData("import_v13_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v8(object param0)
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -315,6 +322,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v9 - Import: B(ns-b) added, A(ns-a) imports B's NS", Priority = 2)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v9()
         {
             try
@@ -362,6 +370,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v10.1 - Remove: A imports B and B and C, B imports C and D, C imports D and A, E imports B, Remove A", Priority = 1, Params = new object[] { "import_v13_a.xsd", "remove_v10_e1.xsd" })]
         [InlineData("import_v13_a.xsd", "remove_v10_e1.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v10(object param0, object param1)
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -411,6 +420,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v11 - Remove: A imports B and C, B imports C, C imports B and D, Remove A", Priority = 1, Params = new object[] { "remove_v11_a.xsd" })]
         [InlineData("remove_v11_a.xsd")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v11(object param0)
         {
             XmlSchemaSet sc = new XmlSchemaSet();

@@ -25,6 +25,7 @@ namespace System.Globalization.Tests
         [InlineData("en-IE", "IE", "en-IE")]
         [InlineData("en-US", "US", "en-US")]
         [InlineData("zh-CN", "CN", "zh-CN")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void Ctor(string name, string expectedName, string windowsDesktopName)
         {
             var regionInfo = new RegionInfo(name);
@@ -47,6 +48,7 @@ namespace System.Globalization.Tests
         [Theory]
         [InlineData("no-such-culture")]
         [InlineData("en")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void Ctor_InvalidName_ThrowsArgumentException(string name)
         {
             AssertExtensions.Throws<ArgumentException>("name", () => new RegionInfo(name));
@@ -95,6 +97,7 @@ namespace System.Globalization.Tests
         [InlineData("GB", "United Kingdom")]
         [InlineData("SE", "Sverige")]
         [InlineData("FR", "France")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void NativeName(string name, string expected)
         {
             Assert.Equal(expected, new RegionInfo(name).NativeName);
@@ -105,6 +108,7 @@ namespace System.Globalization.Tests
         [InlineData("US", new string[] { "United States" })]
         [InlineData("zh-CN", new string[] { "China", "People's Republic of China", "China mainland" })]
         [InlineData("CN", new string[] { "China", "People's Republic of China", "China mainland" })]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void EnglishName(string name, string[] expected)
         {
             string result = new RegionInfo(name).EnglishName;
@@ -114,6 +118,7 @@ namespace System.Globalization.Tests
         [Theory]
         [InlineData("en-US", false)]
         [InlineData("zh-CN", true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void IsMetric(string name, bool expected)
         {
             Assert.Equal(expected, new RegionInfo(name).IsMetric);
@@ -124,6 +129,7 @@ namespace System.Globalization.Tests
         [InlineData("zh-CN", "CNY")]
         [InlineData("de-DE", "EUR")]
         [InlineData("it-IT", "EUR")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void ISOCurrencySymbol(string name, string expected)
         {
             Assert.Equal(expected, new RegionInfo(name).ISOCurrencySymbol);
@@ -132,6 +138,7 @@ namespace System.Globalization.Tests
         [Theory]
         [InlineData("en-US", new string[] { "$" })]
         [InlineData("zh-CN", new string[] { "\u00A5", "\uffe5" })] // \u00A5 is Latin-1 Supplement(Windows), \uffe5 is Halfwidth and Fullwidth Forms(ICU)
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void CurrencySymbol(string name, string[] expected)
         {
             string result = new RegionInfo(name).CurrencySymbol;
@@ -143,6 +150,7 @@ namespace System.Globalization.Tests
         [InlineData("zh-CN", "CN")]
         [InlineData("de-DE", "DE")]
         [InlineData("it-IT", "IT")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void TwoLetterISORegionName(string name, string expected)
         {
             Assert.Equal(expected, new RegionInfo(name).TwoLetterISORegionName);
@@ -164,6 +172,7 @@ namespace System.Globalization.Tests
 
         [Theory]
         [MemberData(nameof(RegionInfo_TestData))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void MiscTest(int lcid, int geoId, string currencyEnglishName, string alternativeCurrencyEnglishName, string currencyNativeName, string threeLetterISORegionName, string threeLetterWindowsRegionName)
         {
             RegionInfo ri = new RegionInfo(lcid); // create it with lcid
@@ -186,6 +195,7 @@ namespace System.Globalization.Tests
 
         [Theory]
         [MemberData(nameof(Equals_TestData))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36883", TestPlatforms.iOS)]
         public void EqualsTest(RegionInfo regionInfo1, object obj, bool expected)
         {
             Assert.Equal(expected, regionInfo1.Equals(obj));

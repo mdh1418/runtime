@@ -1334,6 +1334,7 @@ namespace System.Collections.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void Item_Get_DifferentCulture()
         {
             var sortList = new SortedList();

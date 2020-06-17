@@ -201,6 +201,7 @@ namespace System.Reflection.Tests
 
         [Theory]
         [MemberData(nameof(Methods))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36892", TestPlatforms.iOS)]
         public void ResolveMethod(MethodInfo t)
         {
             Assert.Equal(t, Module.ResolveMethod(t.MetadataToken));
@@ -229,6 +230,7 @@ namespace System.Reflection.Tests
 
         [Theory]
         [MemberData(nameof(Fields))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36892", TestPlatforms.iOS)]
         public void ResolveField(FieldInfo t)
         {
             Assert.Equal(t, Module.ResolveField(t.MetadataToken));

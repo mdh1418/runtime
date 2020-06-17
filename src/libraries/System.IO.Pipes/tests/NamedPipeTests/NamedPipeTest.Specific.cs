@@ -29,6 +29,7 @@ namespace System.IO.Pipes.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task ConnectToNonExistentServer_Throws_TimeoutException()
         {
             using (NamedPipeClientStream client = new NamedPipeClientStream(".", "notthere"))
@@ -80,6 +81,7 @@ namespace System.IO.Pipes.Tests
         [Theory]
         [InlineData(1)]
         [InlineData(3)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task MultipleWaitingClients_ServerServesOneAtATime(int numClients)
         {
             string name = GetUniquePipeName();
@@ -115,6 +117,7 @@ namespace System.IO.Pipes.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void MaxNumberOfServerInstances_TooManyServers_Throws()
         {
             string name = GetUniquePipeName();
@@ -152,6 +155,7 @@ namespace System.IO.Pipes.Tests
         [Theory]
         [InlineData(1)]
         [InlineData(4)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task MultipleServers_ServeMultipleClientsConcurrently(int numServers)
         {
             string name = GetUniquePipeName();
@@ -348,6 +352,7 @@ namespace System.IO.Pipes.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Uses P/Invoke to verify the user name
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task Unix_GetImpersonationUserName_Succeed()
         {
             string pipeName = GetUniquePipeName();
@@ -378,6 +383,7 @@ namespace System.IO.Pipes.Tests
         [InlineData(PipeDirection.Out)]
         [InlineData(PipeDirection.InOut)]
         [PlatformSpecific(TestPlatforms.AnyUnix)] // Unix implementation uses bidirectional sockets
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public static void Unix_BufferSizeRoundtripping(PipeDirection direction)
         {
             int desiredBufferSize = 0;
@@ -441,6 +447,7 @@ namespace System.IO.Pipes.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void PipeTransmissionMode_Returns_Byte()
         {
             using (ServerClientPair pair = CreateServerClientPair())
@@ -493,6 +500,7 @@ namespace System.IO.Pipes.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix)] // Unix doesn't currently support message mode
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void Unix_SetReadModeTo__PipeTransmissionModeByte()
         {
             string pipeName = GetUniquePipeName();
@@ -533,6 +541,7 @@ namespace System.IO.Pipes.Tests
         [Theory]
         [InlineData(PipeDirection.Out, PipeDirection.In)]
         [InlineData(PipeDirection.In, PipeDirection.Out)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void InvalidReadMode_Throws_ArgumentOutOfRangeException(PipeDirection serverDirection, PipeDirection clientDirection)
         {
             string pipeName = GetUniquePipeName();
@@ -594,6 +603,7 @@ namespace System.IO.Pipes.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ClientConnect_Throws_Timeout_When_Pipe_Not_Found()
         {
             string pipeName = GetUniquePipeName();
@@ -605,6 +615,7 @@ namespace System.IO.Pipes.Tests
 
         [Theory]
         [MemberData(nameof(GetCancellationTokens))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task ClientConnectAsync_Throws_Timeout_When_Pipe_Not_Found(CancellationToken cancellationToken)
         {
             string pipeName = GetUniquePipeName();

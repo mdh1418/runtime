@@ -11,6 +11,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
     public static class ExtensionsTests
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void ReadExtensions()
         {
             using (X509Certificate2 c = new X509Certificate2(TestData.MsCertificate))
@@ -385,6 +386,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SubjectKeyIdentifierExtension_PublicKey()
         {
             PublicKey pk;
@@ -405,6 +407,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SubjectKeyIdentifierExtension_PublicKeySha1()
         {
             TestSubjectKeyIdentifierExtension(
@@ -416,6 +419,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SubjectKeyIdentifierExtension_PublicKeyShortSha1()
         {
             TestSubjectKeyIdentifierExtension(
@@ -427,6 +431,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SubjectKeyIdentifierExtension_PublicKeyCapiSha1()
         {
             TestSubjectKeyIdentifierExtension(

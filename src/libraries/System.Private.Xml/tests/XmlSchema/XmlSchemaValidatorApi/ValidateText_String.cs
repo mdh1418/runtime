@@ -42,6 +42,7 @@ namespace System.Xml.Tests
 
         [Fact]
         //[Variation(Desc = "Top level text", id = 2, Pri = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaValidator val = CreateValidator(XSDFILE_VALIDATE_TEXT);
@@ -61,6 +62,7 @@ namespace System.Xml.Tests
         [Theory]
         [InlineData("single")]
         [InlineData("multiple")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void SanityTestForSimpleType_MultipleCallInOneContext(string param)
         {
             XmlSchemaValidator val = CreateValidator(XSDFILE_VALIDATE_TEXT);
@@ -93,6 +95,7 @@ namespace System.Xml.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void MixedContent()
         {
             XmlSchemaValidator val = CreateValidator(XSDFILE_VALIDATE_TEXT);
@@ -124,6 +127,7 @@ namespace System.Xml.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void ElementOnlyContent()
         {
             XmlSchemaValidator val = CreateValidator(XSDFILE_VALIDATE_TEXT);
@@ -149,6 +153,7 @@ namespace System.Xml.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void EmptyContent()
         {
             XmlSchemaValidator val = CreateValidator(XSDFILE_VALIDATE_TEXT);

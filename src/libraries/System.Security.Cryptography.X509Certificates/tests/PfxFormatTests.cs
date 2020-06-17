@@ -118,6 +118,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_NoKeys_EncryptedNullPassword_NoMac()
         {
             using (X509Certificate2 cert = new X509Certificate2(TestData.MsCertificate))
@@ -135,6 +136,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_NoKeys_EncryptedEmptyPassword_NoMac()
         {
             using (X509Certificate2 cert = new X509Certificate2(TestData.MsCertificate))
@@ -360,6 +362,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_ExtraKeyWithUnknownAlgorithm()
         {
             string pw = nameof(OneCert_ExtraKeyWithUnknownAlgorithm);
@@ -405,6 +408,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_ExtraKeyBadEncoding(bool badTag)
         {
             string pw = nameof(OneCert_ExtraKeyBadEncoding);
@@ -463,6 +467,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_NoKey_WithLocalKeyId()
         {
             string pw = nameof(OneCert_NoKey_WithLocalKeyId);
@@ -484,6 +489,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void OneCert_TwentyKeys_NoMatches()
         {
             string pw = nameof(OneCert_NoKey_WithLocalKeyId);
@@ -522,6 +528,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void TwoCerts_TwentyKeys_NoMatches(bool msCertFirst)
         {
             string pw = nameof(OneCert_NoKey_WithLocalKeyId);
@@ -621,6 +628,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void SameCertTwice_NoKeys(bool addLocalKeyId)
         {
             string pw = nameof(SameCertTwice_NoKeys);

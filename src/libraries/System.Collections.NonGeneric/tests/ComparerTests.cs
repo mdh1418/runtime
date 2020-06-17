@@ -38,6 +38,7 @@ namespace System.Collections.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void DefaultInvariant_Compare()
         {
             var cultureNames = new string[]
@@ -106,6 +107,7 @@ namespace System.Collections.Tests
         [InlineData(null, 1, -1)]
         [InlineData(null, null, 0)]
         [MemberData(nameof(CompareTestData))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void Default_Compare(object a, object b, int expected)
         {
             Assert.Equal(expected, Math.Sign(Comparer.Default.Compare(a, b)));

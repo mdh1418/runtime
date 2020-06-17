@@ -37,6 +37,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v2 - Schemas on non empty collection, all members of ICollection", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -52,6 +53,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v3 - Schemas on non empty collection, use in foreach", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -76,6 +78,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v4 - Schemas on non empty collection,call Schemas,Edit check all members of ICollection")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();

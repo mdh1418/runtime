@@ -468,6 +468,7 @@ namespace System.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36901", TestPlatforms.iOS)]
         public static void TestCompareTo()
         {
             ValueTupleTestDriver<short, int, long, string, char, float, double, DateTime, ValueTuple<bool, object>, TimeSpan> ValueTupleDriverA, ValueTupleDriverB, ValueTupleDriverC;

@@ -18,6 +18,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.CertificateCreatio
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void PublicKeyEncoding()
         {
             using (RSA rsa = RSA.Create())
@@ -60,6 +61,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.CertificateCreatio
         [InlineData("SHA256")]
         [InlineData("SHA384")]
         [InlineData("SHA512")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignatureAlgorithm_StableNotSame(string hashAlgorithmName)
         {
             using (RSA rsa = RSA.Create())
@@ -83,6 +85,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.CertificateCreatio
         [InlineData("MD5")]
         [InlineData("SHA1")]
         [InlineData("Potato")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignatureAlgorithm_NotSupported(string hashAlgorithmName)
         {
             using (RSA rsa = RSA.Create())
@@ -104,6 +107,7 @@ namespace System.Security.Cryptography.X509Certificates.Tests.CertificateCreatio
         [InlineData("SHA256")]
         [InlineData("SHA384")]
         [InlineData("SHA512")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignatureAlgorithm_Encoding(string hashAlgorithmName)
         {
 

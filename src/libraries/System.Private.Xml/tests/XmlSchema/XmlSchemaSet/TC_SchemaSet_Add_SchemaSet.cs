@@ -53,6 +53,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v3 - sc = non empty SchemaSet, add with duplicate schemas", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -70,6 +71,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v4 - sc = self", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -85,6 +87,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v5 - sc = scnew, scnew as some duplicate but some unique schemas")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -103,6 +106,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v6 - sc = add second set with all new schemas")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -120,6 +124,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v7 - sc = add second set with a conflicting schema")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -146,6 +151,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v8 - sc = add second set with a conflicting schema to compiled set")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v8()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -174,6 +180,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v9 - sc = add compiled second set with a conflicting schema to compiled set")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v9()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -201,6 +208,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v10 - set1 added to set2 with set1 containing an invalid schema")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v10()
         {
             XmlSchemaSet schemaSet1 = new XmlSchemaSet();
@@ -236,6 +244,7 @@ namespace System.Xml.Tests
 
         [Fact]
         //[Variation(Desc = "v11 - Add three XmlSchema to Set1 then add Set1 to uncompiled Set2")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v11()
         {
             XmlSchemaSet schemaSet1 = new XmlSchemaSet();

@@ -10,6 +10,7 @@ namespace System.Security.Cryptography.Dsa.Tests
     public partial class DSASignatureFormatterTests : AsymmetricSignatureFormatterTests
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void VerifySignature_SHA1()
         {
             using (DSA dsa = DSAFactory.Create())
@@ -50,6 +51,7 @@ namespace System.Security.Cryptography.Dsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void VerifyKnownSignature()
         {
             using (DSA dsa = DSAFactory.Create())

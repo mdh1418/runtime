@@ -22,6 +22,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(IXPathNavigable = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var1()
         {
             try
@@ -44,6 +45,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(XmlReader = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var2()
         {
             try
@@ -66,6 +68,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(IXPathNavigable = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var3()
         {
             try
@@ -88,6 +91,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(XmlReader = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var4()
         {
             try
@@ -110,6 +114,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(IXPathNavigable = null, XmlResolver = null, Evidence = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var5()
         {
             /*try
@@ -132,6 +137,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(XmlReader = null, XmlResolver = null, Evidence = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var6()
         {
             /*try
@@ -154,6 +160,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var7()
         {
             try
@@ -176,6 +183,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var8()
         {
             try
@@ -198,6 +206,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, TextWriter = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var9()
         {
             try
@@ -220,6 +229,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, TextWriter = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var10()
         {
             try
@@ -242,6 +252,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, Stream = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var11()
         {
             try
@@ -264,6 +275,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, Stream = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var12()
         {
             try
@@ -286,6 +298,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, XmlWriter = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var13()
         {
             try
@@ -308,6 +321,7 @@ namespace System.Xml.Tests
 
         //[Variation("Transform(IXPathNavigable = null, XsltArgumentList = null, XmlWriter = null, XmlResolver = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var14()
         {
             try
@@ -367,6 +381,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver1(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             using (new AllowDefaultResolverContext())
@@ -411,6 +426,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver2(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result></result>";
@@ -449,6 +465,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_Xslt_Document_Function_Use_XmlUrlResolver(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             // "xmlResolver_document_function.xsl" contains
@@ -516,6 +533,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric1(InputType inputType, ReaderType readerType)
         {
             try
@@ -545,6 +563,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric2(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             if (LoadXSL("showParam.xsl", inputType, readerType) == 1)
@@ -588,6 +607,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric3(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -628,6 +648,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric4(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -680,6 +701,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric5(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -711,6 +733,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric6(InputType inputType, ReaderType readerType)
         {
             try
@@ -739,6 +762,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric7(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             using (new AllowDefaultResolverContext())
@@ -778,6 +802,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric9(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             using (new AllowDefaultResolverContext())
@@ -817,6 +842,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric11(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><Book>
@@ -847,6 +873,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric12(InputType inputType, ReaderType readerType)
         {
             Stream strmTemp;
@@ -904,6 +931,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric1(InputType inputType, ReaderType readerType)
         {
             try
@@ -924,6 +952,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric2(InputType inputType, ReaderType readerType)
         {
             try
@@ -953,6 +982,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric3(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -985,6 +1015,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric4(InputType inputType, ReaderType readerType)
         {
             try
@@ -1014,6 +1045,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_Resolver_Null_Should_Not_Break_Transform(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1043,6 +1075,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_CustomNullResover_Then_XmlUrlResolver(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             CustomNullResolver myResolver = new CustomNullResolver(_output);
@@ -1072,6 +1105,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_No_Explicit_Resolver_Prohibits_External_Url(InputType inputType, ReaderType readerType)
         {
             AppContext.TryGetSwitch("Switch.System.Xml.AllowDefaultResolver", out bool isEnabled);
@@ -1095,6 +1129,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric9(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             using (new AllowDefaultResolverContext())
@@ -1132,6 +1167,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric10(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1163,6 +1199,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric11(InputType inputType, ReaderType readerType)
         {
             try
@@ -1191,6 +1228,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric12(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             if (LoadXSL_Resolver("showParam.xsl", null, inputType, readerType) == 1)
@@ -1245,6 +1283,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.Writer, DocType.XPathDocument)]
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrlResolver1(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><out>Red50Orange25</out>";
@@ -1264,6 +1303,7 @@ namespace System.Xml.Tests
         //[Variation("Load XSL that needs cred. with null resolver, should fail")]
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrlResolver2(InputType inputType, ReaderType readerType)
         {
             try
@@ -1282,6 +1322,7 @@ namespace System.Xml.Tests
         //[Variation("Call Load with null source value")]
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrlResolver3(InputType inputType, ReaderType readerType)
         {
             try
@@ -1314,6 +1355,7 @@ namespace System.Xml.Tests
         //[Variation("Call Load with an invalid uri")]
         [InlineData(ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrl1(ReaderType readerType)
         {
             try
@@ -1331,6 +1373,7 @@ namespace System.Xml.Tests
         //[Variation("Load file with empty string")]
         [InlineData(ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrl2(ReaderType readerType)
         {
             try
@@ -1349,6 +1392,7 @@ namespace System.Xml.Tests
         //[Variation("Load with \".\"")]
         [InlineData(ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrl3(ReaderType readerType)
         {
             try
@@ -1366,6 +1410,7 @@ namespace System.Xml.Tests
         //[Variation("Load with \"..\"")]
         [InlineData(ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadUrl(ReaderType readerType)
         {
             try
@@ -1416,6 +1461,7 @@ namespace System.Xml.Tests
         //[Variation("Basic Verification Test")]
         [InlineData(TransformType.Stream, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadNavigator1(TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1452,6 +1498,7 @@ namespace System.Xml.Tests
         //[Variation("Create Navigator and navigate away from root")]
         [InlineData(TransformType.Stream, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadNavigator2(TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1484,6 +1531,7 @@ namespace System.Xml.Tests
         //[Variation("Basic check for usage of credentials on resolver, load XSL that needs cred. with correct resolver")]
         [InlineData(TransformType.Stream, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadNavigator3(TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><out>Red50Orange25</out>";
@@ -1524,6 +1572,7 @@ namespace System.Xml.Tests
         //[Variation("Basic Verification Test")]
         [InlineData(TransformType.Stream, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader1(TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1567,6 +1616,7 @@ namespace System.Xml.Tests
 
         //[Variation("Calling with a closed reader, should throw exception")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader2()
         {
 #pragma warning disable 0618
@@ -1593,6 +1643,7 @@ namespace System.Xml.Tests
 
         //[Variation("Verify Reader isn""t closed after Load")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader3()
         {
             bool fTEST_FAIL = false;
@@ -1628,6 +1679,7 @@ namespace System.Xml.Tests
 
         //[Variation("Verify position of node in Reader is at EOF after Load")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader4()
         {
             bool fTEST_FAIL = false;
@@ -1663,6 +1715,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load with reader position at EOF, should throw exception")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader5()
         {
             bool fTEST_FAIL = false;
@@ -1694,6 +1747,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load with NULL reader, should throw System.ArgumentNullException")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader6()
         {
 #pragma warning disable 0618
@@ -1717,6 +1771,7 @@ namespace System.Xml.Tests
         //[Variation("Basic check for usage of credentials on resolver, load XSL that needs cred. with correct resolver")]
         [InlineData(TransformType.Stream, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadXmlReader7(TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><out>Red50Orange25</out>";
@@ -1777,6 +1832,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric1(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1810,6 +1866,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric2(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1843,6 +1900,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric3(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -1875,6 +1933,7 @@ namespace System.Xml.Tests
         [InlineData(TransformType.Writer, DocType.XPathDocument)]
         [InlineData(TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric4(TransformType transformType, DocType docType)
         {
 #pragma warning disable 0618
@@ -1907,6 +1966,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric5(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             FileStream s2;
@@ -1939,6 +1999,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric7(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             try
@@ -1995,6 +2056,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver1(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             using (new AllowDefaultResolverContext())
@@ -2037,6 +2099,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver2(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result></result>";
@@ -2074,6 +2137,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_Xslt_Document_Function_Use_XmlUrlResolver(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             // "xmlResolver_document_function.xsl" contains
@@ -2130,6 +2194,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr1(InputType inputType, ReaderType readerType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -2156,6 +2221,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr2(InputType inputType, ReaderType readerType)
         {
             if (LoadXSL("showParam.xsl", inputType, readerType) == 1)
@@ -2176,6 +2242,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr3(InputType inputType, ReaderType readerType)
         {
             string szFullFilename = FullFilePath("fruits.xml");
@@ -2200,6 +2267,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr4(InputType inputType, ReaderType readerType)
         {
             if (LoadXSL("showParam.xsl", inputType, readerType) == 1)
@@ -2247,6 +2315,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr6(InputType inputType, ReaderType readerType)
         {
             if (LoadXSL("showParam.xsl", inputType, readerType) == 1)
@@ -2269,6 +2338,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr7(InputType inputType, ReaderType readerType)
         {
             string szFullFilename = FullFilePath("fruits.xml");
@@ -2293,6 +2363,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr8(InputType inputType, ReaderType readerType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result>
@@ -2326,6 +2397,7 @@ namespace System.Xml.Tests
 
         //[Variation("Call without loading")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr9()
         {
 #pragma warning disable 0618
@@ -2349,6 +2421,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr10(InputType inputType, ReaderType readerType)
         {
             if (LoadXSL("showParam.xsl", inputType, readerType) == 1)
@@ -2372,6 +2445,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr11(InputType inputType, ReaderType readerType)
         {
             int iCount = 0;
@@ -2417,6 +2491,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr12(InputType inputType, ReaderType readerType)
         {
             string szFullFilename = FullFilePath("fruits.xml");
@@ -2474,6 +2549,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStr13(InputType inputType, ReaderType readerType)
         {
             string szFullFilename = FullFilePath("fruits.xml");
@@ -2521,6 +2597,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStrResolver1(InputType inputType, ReaderType readerType)
         {
             using (new AllowDefaultResolverContext())
@@ -2551,6 +2628,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStrResolver2(InputType inputType, ReaderType readerType)
         {
             // "xmlResolver_document_function.xsl" contains
@@ -2577,6 +2655,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_Xslt_Document_Function_Use_XmlUrlResolver(InputType inputType, ReaderType readerType)
         {
             // "xmlResolver_document_function.xsl" contains
@@ -2603,6 +2682,7 @@ namespace System.Xml.Tests
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void var1(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><out>
@@ -2626,6 +2706,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void var2(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><out>
@@ -2649,6 +2730,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TC_XPathNodeIterator_From_ExtensionObject(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             m_xsltArg = new XsltArgumentList();
@@ -2664,6 +2746,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         [InlineData(InputType.URI, ReaderType.XmlValidatingReader, TransformType.Stream, DocType.XPathDocument)]
         [InlineData(InputType.Navigator, ReaderType.XmlValidatingReader, TransformType.TextWriter, DocType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void var4(InputType inputType, ReaderType readerType, TransformType transformType, DocType docType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?>

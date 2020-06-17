@@ -135,6 +135,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v1.1- Sequence on element with same name and type", Priority = 1, id = 1, Params = new object[] { "v1-1.xml", "v1.xsd", 0 })]
         [InlineData("v1-1.xml", "v1.xsd", 0, new int[] { })]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1(object param0, object param1, object param2, int[] expectedErrorLineNumbers)
         {
             string xmlFile = param0.ToString();

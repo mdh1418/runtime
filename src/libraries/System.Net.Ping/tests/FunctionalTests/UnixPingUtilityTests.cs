@@ -25,6 +25,7 @@ namespace System.Net.NetworkInformation.Tests
         [InlineData(1000)]
         [InlineData(1500)]
         [PlatformSpecific(TestPlatforms.AnyUnix)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS)]
         public static void TimeoutIsRespected(int timeout)
         {
             Process p = ConstructPingProcess(IPAddress.Parse(TestSettings.UnreachableAddress), 50, timeout);
@@ -47,6 +48,7 @@ namespace System.Net.NetworkInformation.Tests
         [InlineData(50)]
         [InlineData(1000)]
         [PlatformSpecific(TestPlatforms.AnyUnix)] // Tests un-priviledged Ping support on Unix
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS)]
         public static async Task PacketSizeIsRespected(int payloadSize)
         {
             var stdOutLines = new List<string>();

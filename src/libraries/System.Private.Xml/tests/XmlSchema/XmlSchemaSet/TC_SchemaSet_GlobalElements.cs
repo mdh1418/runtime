@@ -167,6 +167,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v4.2 - GlobalElements with set having one which imports another, remove one", Priority = 1, Params = new object[] { "import_v2_a.xsd", "ns-a", "e1", "ns-b", "e2" })]
         [InlineData("import_v2_a.xsd", "ns-a", "e1", "ns-b", "e2")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4(object param0, object param1, object param2, object param3, object param4)
         {
             string uri1 = param0.ToString();
@@ -203,6 +204,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v5.2 - GlobalElements with set having one which imports another, then removerecursive", Priority = 1, Params = new object[] { "import_v2_a.xsd", "ns-a", "e1", "ns-b", "e2" })]
         [InlineData("import_v2_a.xsd", "ns-a", "e1", "ns-b", "e2")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5(object param0, object param1, object param2, object param3, object param4)
         {
             string uri1 = param0.ToString();
@@ -232,6 +234,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v6 - GlobalElements with set with two schemas, second schema will fail to compile, no elements from it should be added", Params = new object[] { "", "e1", "e2" })]
         [InlineData("", "e1", "e2")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6(object param0, object param1, object param2)
         {
             string ns1 = param0.ToString();

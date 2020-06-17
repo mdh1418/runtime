@@ -63,6 +63,7 @@ namespace System.Xml.Tests
 
         [Fact]
         //[Variation(Desc = "v2 - Compile after error in Add")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();

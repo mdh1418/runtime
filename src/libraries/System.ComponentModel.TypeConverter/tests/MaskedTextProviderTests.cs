@@ -41,6 +41,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void Ctor_Mask_Culture()
         {
             var maskedTextProvider = new MaskedTextProvider(TestSimpleDigitMask, new CultureInfo("en-US"));
@@ -49,6 +50,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void Ctor_Mask_Culture__RestrictToAscii()
         {
             var maskedTextProvider = new MaskedTextProvider(TestSimpleDigitMask, new CultureInfo("en-US"), true);
@@ -67,6 +69,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void Ctor_Mask_Culture_PasswordChar_AllowPromptAsInput()
         {
             var maskedTextProvider = new MaskedTextProvider(TestSimpleDigitMask, new CultureInfo("en-US"), TestPasswordChar, false);
@@ -77,6 +80,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void Ctor_Mask_Culture_AllowPromptAsInput_PromptChar_PasswordChar_RestrictToAscii()
         {
             var maskedTextProvider = new MaskedTextProvider(TestSimpleDigitMask, new CultureInfo("en-US"), false, TestPromptChar, TestPasswordChar, false);
@@ -544,6 +548,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void ComplexDigitMaskTest()
         {
             var maskedTextProvider = new MaskedTextProvider(TestComplexDigitMask, new CultureInfo("en-US"));

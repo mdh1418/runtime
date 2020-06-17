@@ -45,6 +45,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void UseAfterDispose(bool importKey)
         {
             RSA rsa = importKey ? RSAFactory.Create(TestData.RSA2048Params) : RSAFactory.Create(1024);
@@ -61,6 +62,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptSavedAnswer()
         {
             byte[] cipherBytes =
@@ -95,6 +97,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptWithPublicKey_Fails()
         {
             byte[] cipherBytes =
@@ -134,6 +137,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptSavedAnswer_OaepSHA256()
         {
             byte[] cipherBytes = (
@@ -169,6 +173,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptSavedAnswer_OaepSHA384()
         {
             byte[] cipherBytes =
@@ -230,6 +235,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptSavedAnswer_OaepSHA512()
         {
             byte[] cipherBytes = (
@@ -265,6 +271,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void DecryptSavedAnswerUnusualExponent()
         {
             byte[] cipherBytes =
@@ -299,17 +306,21 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaCryptRoundtrip_OaepSHA1() => RsaCryptRoundtrip(RSAEncryptionPadding.OaepSHA1);
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaCryptRoundtrip_OaepSHA256() =>
             RsaCryptRoundtrip(RSAEncryptionPadding.OaepSHA256, RSAFactory.SupportsSha2Oaep);
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaCryptRoundtrip_OaepSHA384() =>
             RsaCryptRoundtrip(RSAEncryptionPadding.OaepSHA384, RSAFactory.SupportsSha2Oaep);
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaCryptRoundtrip_OaepSHA512() =>
             RsaCryptRoundtrip(RSAEncryptionPadding.OaepSHA512, RSAFactory.SupportsSha2Oaep);
 
@@ -338,6 +349,7 @@ namespace System.Security.Cryptography.Rsa.Tests
 
         [Fact]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RoundtripEmptyArray()
         {
             using (RSA rsa = RSAFactory.Create(TestData.RSA2048Params))
@@ -363,6 +375,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaPkcsEncryptMaxSize()
         {
             RSAParameters rsaParameters = TestData.RSA2048Params;
@@ -389,6 +402,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaOaepMaxSize()
         {
             RSAParameters rsaParameters = TestData.RSA2048Params;
@@ -426,6 +440,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptOaep_ExpectFailure()
         {
             // This particular byte pattern, when decrypting under OAEP-SHA-2-384 has
@@ -448,6 +463,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [ConditionalFact(nameof(SupportsSha2Oaep))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptOaepWrongAlgorithm()
         {
             using (RSA rsa = RSAFactory.Create(TestData.RSA2048Params))
@@ -461,6 +477,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptOaepWrongData()
         {
             using (RSA rsa = RSAFactory.Create(TestData.RSA2048Params))
@@ -484,6 +501,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptPkcs1LeadingZero()
         {
             // The first search for an encrypted value with a leading 0x00 turned up one with
@@ -506,6 +524,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptPkcs1Deficient()
         {
             // This value is gibberish, but it happens to be true that if it is preceded
@@ -537,6 +556,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptPkcs1WrongDataLength()
         {
             using (RSA rsa = RSAFactory.Create(TestData.RSA2048Params))
@@ -562,6 +582,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptOaepWrongDataLength()
         {
             using (RSA rsa = RSAFactory.Create(TestData.RSA2048Params))
@@ -602,6 +623,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void RsaDecryptAfterExport()
         {
             byte[] output;
@@ -619,6 +641,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void LargeKeyCryptRoundtrip()
         {
             byte[] output;
@@ -646,6 +669,7 @@ namespace System.Security.Cryptography.Rsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void UnusualExponentCryptRoundtrip()
         {
             byte[] crypt;

@@ -54,6 +54,7 @@ namespace System.Security.Cryptography.Xml.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public void SignedXmlHasVerifiableSignature()
         {
             using (RSA key = RSA.Create())

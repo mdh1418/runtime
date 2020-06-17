@@ -33,6 +33,7 @@ namespace System.IO.Tests
         {
             Assert.Throws<ArgumentNullException>(() => Write(null, new string[] { "Text" }));
             Assert.Throws<ArgumentException>(() => Write(string.Empty, new string[] { "Text" }));
+            [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
             Assert.Throws<ArgumentNullException>(() => Read(null));
             Assert.Throws<ArgumentException>(() => Read(string.Empty));
         }

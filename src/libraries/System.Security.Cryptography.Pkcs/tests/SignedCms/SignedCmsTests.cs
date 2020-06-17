@@ -125,6 +125,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignedCms_SignerInfos_UniquePerCall()
         {
             SignedCms cms = new SignedCms();
@@ -143,6 +144,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignedCms_Certificates_UniquePerCall()
         {
             SignedCms cms = new SignedCms();
@@ -189,6 +191,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignature_ExtraStore_IsAdditional()
         {
             SignedCms cms = new SignedCms();
@@ -202,6 +205,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void Decode_IgnoresExtraData()
         {
             byte[] basis = SignedDocuments.RsaPkcs1OneSignerIssuerAndSerialNumber;
@@ -248,6 +252,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void RemoveSignature_MatchesIssuerAndSerialNumber()
         {
             SignedCms cms = new SignedCms();
@@ -264,6 +269,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void RemoveSignature_MatchesSubjectKeyIdentifier()
         {
             SignedCms cms = new SignedCms();
@@ -294,6 +300,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void RemoveSignature_WithNoMatch()
         {
             SignedCms cms = new SignedCms();
@@ -308,6 +315,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void RemoveSignature_Null()
         {
             SignedCms cms = new SignedCms();
@@ -322,6 +330,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void RemoveSignature_OutOfRange()
         {
             SignedCms cms = new SignedCms();
@@ -456,6 +465,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData(SubjectIdentifierType.IssuerAndSerialNumber, true)]
         [InlineData(SubjectIdentifierType.SubjectKeyIdentifier, false)]
         [InlineData(SubjectIdentifierType.SubjectKeyIdentifier, true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddFirstSigner_RSA(SubjectIdentifierType identifierType, bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -502,6 +512,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSignerWithNegativeSerial()
         {
             const string expectedSerial = "FD319CB1514B06AF49E00522277E43C8";
@@ -536,6 +547,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(SubjectIdentifierType.IssuerAndSerialNumber, false)]
         [InlineData(SubjectIdentifierType.IssuerAndSerialNumber, true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddFirstSigner_DSA(SubjectIdentifierType identifierType, bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -608,6 +620,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData(SubjectIdentifierType.SubjectKeyIdentifier, false, Oids.Sha384)]
         [InlineData(SubjectIdentifierType.IssuerAndSerialNumber, false, Oids.Sha512)]
         [InlineData(SubjectIdentifierType.SubjectKeyIdentifier, true, Oids.Sha512)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddFirstSigner_ECDSA(SubjectIdentifierType identifierType, bool detached, string digestOid)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -675,6 +688,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData(false, true)]
         [InlineData(true, false)]
         [InlineData(true, true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddFirstSigner_NoSignature(bool detached, bool includeExtraCert)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -777,6 +791,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSecondSigner_NoSignature(bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -807,6 +822,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSecondSigner_NoSignature_AfterRemove(bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -848,6 +864,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSecondSigner_NoSignature_LoadUnsigned(bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -905,6 +922,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData(false, true)]
         [InlineData(true, true)]
         [InlineData(true, false)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSigner_DuplicateCert_RSA(bool skidFirst, bool detached)
         {
             ContentInfo contentInfo = new ContentInfo(new byte[] { 9, 8, 7, 6, 5 });
@@ -977,6 +995,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CannotSignEmptyContent()
         {
             SignedCms cms = new SignedCms();
@@ -1025,6 +1044,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void EnsureExtraCertsAdded(bool newDocument)
         {
             SignedCms cms;
@@ -1124,6 +1144,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void UntrustedCertFails_WhenTrustChecked()
         {
             SignedCms cms = new SignedCms();
@@ -1138,6 +1159,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void EnsureDataIsolation_NewDocument(bool detached)
         {
             byte[] contentBytes = { 9, 8, 7, 6, 5 };
@@ -1205,6 +1227,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignWithImplicitSubjectKeyIdentifier()
         {
             byte[] contentBytes = { 9, 8, 7, 6, 5 };
@@ -1241,6 +1264,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(SubjectIdentifierType.IssuerAndSerialNumber)]
         [InlineData(SubjectIdentifierType.SubjectKeyIdentifier)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignEnveloped(SubjectIdentifierType signerType)
         {
             using (X509Certificate2 cert = Certificates.RSAKeyTransferCapi1.TryGetCertificateWithPrivateKey())
@@ -1283,6 +1307,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData("0.0", "010100", false)]
         [InlineData(Oids.Pkcs7Hashed, "010100", false)]
         [InlineData(Oids.Pkcs7Hashed, "3000", false)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignIdentifiedContent(string oidValue, string contentHex, bool netfxProblem)
         {
             SignedCms signedCms = new SignedCms(
@@ -1315,6 +1340,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void VerifyUnsortedAttributeSignature()
         {
             SignedCms cms = new SignedCms();
@@ -1325,6 +1351,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void VerifyUnsortedAttributeSignature_ImportExportImport()
         {
             SignedCms cms = new SignedCms();
@@ -1342,6 +1369,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void AddSignerToUnsortedAttributeSignature()
         {
             SignedCms cms = new SignedCms();
@@ -1375,6 +1403,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignature_Pkcs1_RsaWithSha256()
         {
             SignedCms signedCms = new SignedCms();
@@ -1385,6 +1414,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignature_Pkcs1_Sha1_Declared_Sha256WithRsa()
         {
             SignedCms signedCms = new SignedCms();
@@ -1402,6 +1432,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [InlineData(" 1.1", "010100", null)]
         [InlineData("1.1 ", "010100", null)]
         [InlineData("1 1", "010100", null)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void SignIdentifiedContent_BadOid(string oidValueIn, string contentHex, string oidValueOut)
         {
             SignedCms signedCms = new SignedCms(
@@ -1431,6 +1462,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignedEncrypted_IssuerSerial_FromNetFx()
         {
             CheckSignedEncrypted(
@@ -1439,6 +1471,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignedEncrypted_SKID_FromNetFx()
         {
             CheckSignedEncrypted(
@@ -1447,6 +1480,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignedEncrypted_IssuerSerial_FromCoreFx()
         {
             CheckSignedEncrypted(
@@ -1455,6 +1489,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void CheckSignedEncrypted_SKID_FromCoreFx()
         {
             CheckSignedEncrypted(
@@ -1465,6 +1500,7 @@ namespace System.Security.Cryptography.Pkcs.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36878", TestPlatforms.iOS)]
         public static void ReadAndWriteDocumentWithIndefiniteLengthContent(bool checkSignature)
         {
             SignedCms cms = new SignedCms();

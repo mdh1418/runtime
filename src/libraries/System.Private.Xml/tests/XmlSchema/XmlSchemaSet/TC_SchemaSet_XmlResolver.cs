@@ -67,6 +67,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v2 - Resolver=NULL, add schema which imports schema on internet", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -79,6 +80,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v3 - Resolver=Default, add schema which imports schema on internet", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -90,6 +92,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v4 - schema(Local)->schema(Local)", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -105,6 +108,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v5 - schema(Local)->schema(Local)->schema(Local)", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5()
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -120,6 +124,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v6 - schema(Local)->schema(Local), but resolving external URI is not allowed", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             // Make sure the switch has its default value

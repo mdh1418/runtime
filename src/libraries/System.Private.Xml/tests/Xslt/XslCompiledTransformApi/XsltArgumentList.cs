@@ -76,6 +76,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "Dictionary.XsltArgumentList.AddParam/AddExtensionObject", Param = 4)]
         [InlineData(4)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetParam_Tuple(object param)
         {
             WriteXmlAndXslFiles();
@@ -268,6 +269,7 @@ namespace System.Xml.Tests
 
         //[Variation("Invalid Namespace URI")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetParam11()
         {
             m_xsltArg = new XsltArgumentList();
@@ -576,6 +578,7 @@ namespace System.Xml.Tests
         //DCR : 298350 - XsltArgumentList no longer reports the same type on the GetParam methods
         //[Variation(id = 20, Desc = "Add Parameter other than XSLT Data Type and verify the type, expected same as added", Pri = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetParam20()
         {
             m_xsltArg = new XsltArgumentList();
@@ -611,6 +614,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "Basic Verification Test", Pri = 1)]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject1(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             MyObject obj = new MyObject(1, _output);
@@ -638,6 +642,7 @@ namespace System.Xml.Tests
 
         //[Variation("Namespace URI = null")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject2()
         {
             m_xsltArg = new XsltArgumentList();
@@ -657,6 +662,7 @@ namespace System.Xml.Tests
         //[Variation("Namespace URI is empty string", Param = "showParam.txt")]
         [InlineData("showParam.txt", XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject3(object param, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             string Baseline = Path.Combine("baseline", (string)param);
@@ -684,6 +690,7 @@ namespace System.Xml.Tests
         //[Variation("Namespace URI non-existent")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject4(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             m_xsltArg = new XsltArgumentList();
@@ -711,6 +718,7 @@ namespace System.Xml.Tests
         //[Variation("Very long namespace System.Xml.Tests")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject5(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             m_xsltArg = new XsltArgumentList();
@@ -737,6 +745,7 @@ namespace System.Xml.Tests
 
         //[Variation("Invalid namespace System.Xml.Tests")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject6()
         {
             m_xsltArg = new XsltArgumentList();
@@ -750,6 +759,7 @@ namespace System.Xml.Tests
 
         //[Variation("Different Data Types")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject7()
         {
             m_xsltArg = new XsltArgumentList();
@@ -811,6 +821,7 @@ namespace System.Xml.Tests
         //[Variation("Case sensitivity")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject8(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             MyObject obj = new MyObject(8, _output);
@@ -859,6 +870,7 @@ namespace System.Xml.Tests
         //[Variation("Whitespace")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject9(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             int i = 1;
@@ -894,6 +906,7 @@ namespace System.Xml.Tests
         //[Variation("Call after object has been removed")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject10(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             MyObject obj = new MyObject(10, _output);
@@ -925,6 +938,7 @@ namespace System.Xml.Tests
         //[Variation("Call multiple times")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject11(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             MyObject obj = new MyObject(11, _output);
@@ -953,6 +967,7 @@ namespace System.Xml.Tests
 
         //[Variation("Using XSL Namespace")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void GetExtObject12()
         {
             m_xsltArg = new XsltArgumentList();
@@ -1190,6 +1205,7 @@ namespace System.Xml.Tests
 
         //[Variation("Invalid Namespace URI")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddParam9()
         {
             m_xsltArg = new XsltArgumentList();
@@ -2511,6 +2527,7 @@ namespace System.Xml.Tests
 
         //[Variation("Invalid namespace System.Xml.Tests")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddExtObject5()
         {
             MyObject obj = new MyObject(5, _output);
@@ -3252,6 +3269,7 @@ namespace System.Xml.Tests
         [InlineData("sort.xsl", "sort.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
 
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddExtObject33(object param0, object param1, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             ExObj obj = new ExObj(0, _output);
@@ -3331,6 +3349,7 @@ namespace System.Xml.Tests
         [InlineData("param4.xsl", "param4.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData("param4.xsl", "param4.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddExtObject41(object param0, object param1, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             /*
@@ -4515,6 +4534,7 @@ namespace System.Xml.Tests
         //[Variation(id = 10, Desc = "OnQueryEvent Exists - xsl:message with template content and  terminate='yes'", Priority = 1, Params = new object[] { "Message10.xsl", "yes", "yes", "Message10.txt" })]
         [InlineData("Message10.xsl", "yes", "yes", "Message10.txt")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void EventsTests(object param0, object param1, object param2, object param3)
         {
             XslCompiledTransform xslt = new XslCompiledTransform();
@@ -4602,6 +4622,7 @@ namespace System.Xml.Tests
 
         //[Variation(id = 1, Desc = "Call Current without MoveNext")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void NodeIter1()
         {
             var e = Assert.ThrowsAny<XsltException>(() =>
@@ -4621,6 +4642,7 @@ namespace System.Xml.Tests
 
         //[Variation(id = 2, Desc = "Call Current after MoveNext")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void NodeIter2()
         {
             var e = Assert.ThrowsAny<XsltException>(() =>

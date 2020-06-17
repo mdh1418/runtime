@@ -158,6 +158,7 @@ namespace System.Diagnostics.Tests
 
         [Fact]
         [PlatformSpecific(~TestPlatforms.OSX)] // On OSX, ProcessName returns the script interpreter.
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void ProcessNameMatchesScriptName()
         {
             string scriptName = GetTestFileName();

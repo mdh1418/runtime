@@ -110,6 +110,7 @@ namespace System.Collections.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void Ctor_CultureInfo_GetHashCodeCompare_TurkishI()
         {
             var cultureNames = new string[]
@@ -172,6 +173,7 @@ namespace System.Collections.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void Default_Compare_TurkishI()
         {
             // Turkish has lower-case and upper-case version of the dotted "i", so the upper case of "i" (U+0069) isn't "I" (U+0049)

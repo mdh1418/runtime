@@ -29,6 +29,7 @@ namespace System.ComponentModel.Tests
         public virtual bool CanConvertToString => true;
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void ConvertTo_DestinationType_Success()
         {
             Assert.All(ConvertToTestData(), convertTest =>
@@ -95,6 +96,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public void ConvertFrom_DestinationType_Success()
         {
             Assert.All(ConvertFromTestData(), convertTest =>

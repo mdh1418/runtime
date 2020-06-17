@@ -21,6 +21,7 @@ namespace System.Diagnostics.Tests
 
         [PlatformSpecific(TestPlatforms.AnyUnix)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void Symlink_ValidFile_Succeeds()
         {
             string filePath = Path.Combine(Directory.GetCurrentDirectory(), TestAssemblyFileName);
@@ -64,6 +65,7 @@ namespace System.Diagnostics.Tests
 
         [PlatformSpecific(TestPlatforms.AnyUnix)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void Symlink_InvalidFile_Throws()
         {
             string sourcePath = Path.Combine(Directory.GetCurrentDirectory(), TestAssemblyFileName);

@@ -31,6 +31,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v1 - ValidationEventHandler, add invalid XDR schema")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -47,6 +48,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v2 - ValidationEventHandler, add invalid XSD schema", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -63,6 +65,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v3 - ValidationEventArgs accuracy")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -82,6 +85,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v4 - Add(XmlSchema) and verify handler is called")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -102,6 +106,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v5 - Add(XmlSchema) and verify handler is called")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -123,6 +128,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v6 - Add(URL) and verify handler is called")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -142,6 +148,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v7 - remove ValidationEventHandler")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7()
         {
             XmlSchemaSet sc = new XmlSchemaSet();

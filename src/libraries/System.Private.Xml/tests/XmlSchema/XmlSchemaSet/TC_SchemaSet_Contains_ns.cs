@@ -33,6 +33,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v2 - Contains with non existing ns", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -44,6 +45,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v3 - Contains with existing schema, Remove it, Contains again")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -60,6 +62,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v4 - Contains for 2 existing schemas, Remove one, Contains again", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();

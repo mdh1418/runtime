@@ -17,6 +17,7 @@ namespace System.IO.Compression.Tests
         [InlineData("appended.zip", "small")]
         [InlineData("prepended.zip", "small")]
         [InlineData("noexplicitdir.zip", "explicitdir")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ExtractToDirectoryNormal(string file, string folder)
         {
             string zipFileName = zfile(file);
@@ -35,6 +36,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ExtractToDirectoryUnicode()
         {
             string zipFileName = zfile("unicode.zip");
@@ -70,6 +72,7 @@ namespace System.IO.Compression.Tests
         [InlineData("NullCharFileName_FromWindows")]
         [InlineData("NullCharFileName_FromUnix")]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Checks Unix-specific invalid file path
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void Unix_ZipWithInvalidFileNames_ThrowsArgumentException(string zipName)
         {
             AssertExtensions.Throws<ArgumentException>("path", () => ZipFile.ExtractToDirectory(compat(zipName) + ".zip", GetTestFilePath()));
@@ -81,6 +84,7 @@ namespace System.IO.Compression.Tests
         [InlineData("WindowsInvalid_FromUnix", "aa<b>d")]
         [InlineData("WindowsInvalid_FromWindows", "aa<b>d")]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Checks Unix-specific invalid file path
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void Unix_ZipWithOSSpecificFileNames(string zipName, string fileName)
         {
             string tempDir = GetTestFilePath();
@@ -120,6 +124,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ExtractToDirectoryOverwrite()
         {
             string zipFileName = zfile("normal.zip");
@@ -137,6 +142,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ExtractToDirectoryOverwriteEncoding()
         {
             string zipFileName = zfile("normal.zip");
@@ -154,6 +160,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ExtractToDirectoryZipArchiveOverwrite()
         {
             string zipFileName = zfile("normal.zip");

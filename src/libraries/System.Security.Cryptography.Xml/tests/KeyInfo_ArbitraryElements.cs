@@ -9,6 +9,7 @@ namespace System.Security.Cryptography.Xml.Tests
     public class KeyInfo_ArbitraryElements
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void ExtraData()
         {
             string arbitraryData = @"<a:foo xmlns:a=""mynamespace"">lol</a:foo>";

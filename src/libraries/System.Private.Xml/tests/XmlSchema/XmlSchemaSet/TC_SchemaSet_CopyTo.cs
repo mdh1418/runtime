@@ -23,6 +23,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v1 - CopyTo with array = null")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1()
         {
             try
@@ -42,6 +43,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v2 - ICollection.CopyTo with array = null")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             try
@@ -62,6 +64,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v3 - ICollection.CopyTo with array smaller than source", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -84,6 +87,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v4 - CopyTo with index < 0")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -105,6 +109,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v5 - ICollection.CopyTo with index < 0")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -127,6 +132,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v6 - Filling last two positions of array", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -145,6 +151,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         [Fact]
         //[Variation(Desc = "v7 - Copy all to array of the same size", Priority = 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7()
         {
             XmlSchemaSet sc = new XmlSchemaSet();

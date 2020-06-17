@@ -680,6 +680,7 @@ namespace System.Tests
                 return "{" + _value.ToString() + "}";
             }
 
+            [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS)]
             public int CompareTo(object x)
             {
                 TestClass tmp = x as TestClass;

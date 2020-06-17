@@ -61,6 +61,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v1 - Bug110823 - SchemaSet.Add is holding onto some of the schema files after adding", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1()
         {
             XmlSchemaSet xss = new XmlSchemaSet();
@@ -73,6 +74,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v2 - Bug115049 - XSD: content model validation for an invalid root element should be abandoned", Priority = 2)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             Initialize();
@@ -139,6 +141,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v11 - DCR 264908 - XSD: Support user specified schema for http://www.w3.org/XML/1998/namespace System.Xml.Tests", Priority = 1, Params = new object[] { "bug264908_v1.xsd", 3, true })]
         [InlineData("bug264908_v1.xsd", 3, true)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v10(object param0, object param1, object param2)
         {
             string xmlFile = param0.ToString();
@@ -170,6 +173,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v21 - Bug 319346 - Chameleon add of a schema into the xml namespace", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v20()
         {
             string xmlns = @"http://www.w3.org/XML/1998/namespace";
@@ -196,6 +200,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v22 - Bug 338038 - Component should be additive into the Xml namespace", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v21()
         {
             string xmlns = @"http://www.w3.org/XML/1998/namespace";
@@ -222,6 +227,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v23 - Bug 338038 - Conflicting components in custome xml namespace System.Xml.Tests be caught", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v22()
         {
             string xmlns = @"http://www.w3.org/XML/1998/namespace";
@@ -245,6 +251,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v24 - Bug 338038 - Change type of xml:lang to decimal in custome xml namespace System.Xml.Tests", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v24()
         {
             string attName = "lang";
@@ -273,6 +280,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v25 - Bug 338038 - Conflicting definitions for xml attributes in two schemas", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v25()
         {
             XmlSchemaSet ss = new XmlSchemaSet();
@@ -298,6 +306,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v26 - Bug 338038 - Change type of xml:lang to decimal and xml:base to short in two steps", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v26()
         {
             XmlSchemaSet ss = new XmlSchemaSet();
@@ -327,6 +336,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v27 - Bug 338038 - Add new attributes to the already present xml namespace System.Xml.Tests", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v27()
         {
             XmlSchemaSet ss = new XmlSchemaSet();
@@ -351,6 +361,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v28 - Bug 338038 - Add new attributes to the already present xml namespace System.Xml.Tests, remove default ns schema", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v28()
         {
             string xmlns = @"http://www.w3.org/XML/1998/namespace";
@@ -434,6 +445,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v102 - Bug 337850 - XmlSchemaSet: Type already declared error when redefined schema is added to the set before the redefining schema.", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v102()
         {
             Initialize();
@@ -453,6 +465,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v103 - CodeCoverage- XmlSchemaSet: add precompiled subs groups, global elements, attributes and types to another compiled set.", Priority = 1, Params = new object[] { true })]
         [InlineData(true)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v103(object param0)
         {
             bool addset = (bool)param0;
@@ -507,6 +520,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v103 - Reference to a component from no namespace System.Xml.Tests an explicit import of no namespace System.Xml.Tests throw a validation warning", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v105()
         {
             Initialize();
@@ -521,6 +535,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v106 - Adding a compiled SoS(schema for schema) to a set causes type collision error", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v106()
         {
             Initialize();
@@ -554,6 +569,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v107 - XsdValidatingReader: InnerException not set on validation warning of a schemaLocation not loaded.", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v107()
         {
             string strXml = @"<root xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='a bug356711_a.xsd' xmlns:a='a'></root>";
@@ -667,6 +683,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v109 - 386243, Adding a chameleon schema against to no namespace throws unexpected warnings", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v109()
         {
             Initialize();
@@ -684,6 +701,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v110 - 386246,  ArgumentException 'item arleady added' error on a chameleon add done twice", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v110()
         {
             Initialize();
@@ -701,6 +719,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v111 - 380805,  Chameleon include compiled in one set added to another", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v111()
         {
             Initialize();
@@ -728,6 +747,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v112 - 382035,  schema set tables not cleared as expected on reprocess", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v112()
         {
             Initialize();
@@ -856,6 +876,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v118 - 424904 Not getting unhandled attributes on particle", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v118()
         {
             using (XmlReader r = new XmlTextReader(Path.Combine(TestData._Root, "Bug424904.xsd")))
@@ -877,6 +898,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v120 - 397633 line number and position not set on the validation error for an invalid xsi:type value", Priority = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v120()
         {
             using (XmlReader schemaReader = XmlReader.Create(Path.Combine(TestData._Root, "Bug397633.xsd")))
@@ -912,6 +934,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v120a.XmlDocument.Load non-validating reader.Expect IOE.")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v120a()
         {
             XmlReaderSettings readerSettings = new XmlReaderSettings();
@@ -1008,6 +1031,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "Dev10_40561 Redefine Chameleon: Unexpected qualified name on local particle")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Dev10_40561()
         {
             Initialize();
@@ -1061,6 +1085,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "Dev10_40509 Assert and NRE when validate the XML against the XSD")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Dev10_40509()
         {
             Initialize();

@@ -107,6 +107,7 @@ namespace System.Xml.Tests
 
         //[Variation("Multiple GetParam for same parameter name")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void proc1()
         {
             CThreads rThreads = new CThreads(_output);
@@ -125,6 +126,7 @@ namespace System.Xml.Tests
 
         //[Variation("Multiple GetParam for different parameter name")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void proc2()
         {
             CThreads rThreads = new CThreads(_output);
@@ -191,6 +193,7 @@ namespace System.Xml.Tests
 
         //[Variation("Multiple GetExtensionObject for same namespace System.Xml.Tests")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void proc1()
         {
             CThreads rThreads = new CThreads(_output);
@@ -209,6 +212,7 @@ namespace System.Xml.Tests
 
         //[Variation("Multiple GetExtensionObject for different namespace System.Xml.Tests")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void proc2()
         {
             CThreads rThreads = new CThreads(_output);
@@ -277,6 +281,7 @@ namespace System.Xml.Tests
         ////////////////////////////////////////////////////////////////
         //[Variation("Multiple transforms using shared ArgumentList")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void proc1()
         {
             CThreads rThreads = new CThreads(_output);

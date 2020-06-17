@@ -73,6 +73,7 @@ namespace System.Collections.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36876", TestPlatforms.iOS)]
         public void Ctor_CultureInfo_Compare_TurkishI()
         {
             var cultureNames = new string[]

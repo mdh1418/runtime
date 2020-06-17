@@ -22,6 +22,7 @@ namespace System.IO.Compression
         /// </summary>
         [Theory]
         [MemberData(nameof(UncompressedTestFiles))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task DecompressFailsWithRealGzStream(string uncompressedPath)
         {
             string fileName = Path.Combine("GZipTestData", Path.GetFileName(uncompressedPath) + ".gz");
@@ -124,6 +125,7 @@ namespace System.IO.Compression
             internal DerivedDeflateStream(Stream stream, CompressionMode mode) : base(stream, mode) { }
             internal DerivedDeflateStream(Stream stream, CompressionMode mode, bool leaveOpen) : base(stream, mode, leaveOpen) { }
 
+            [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
             public override int Read(byte[] array, int offset, int count)
             {
                 ReadArrayInvoked = true;

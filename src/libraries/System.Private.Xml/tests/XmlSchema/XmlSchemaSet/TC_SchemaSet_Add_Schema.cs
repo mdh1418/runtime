@@ -49,6 +49,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v2 - sc = valid schema")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -65,6 +66,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v3 - sc = valid schema, add twice, second add should be ignored.", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v3()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -89,6 +91,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v4 - sc = valid schema, add url for same schema, call compile", Priority = 0)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -125,6 +128,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v5 - sc = schema without ns, add url for same schema with ns, call compile")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -152,6 +156,7 @@ namespace System.Xml.Tests
         //-----------------------------------------------------------------------------------
         //[Variation(Desc = "v6 - sc = schema without ns, add url for same schema, call compile")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v6()
         {
             XmlSchemaSet sc = new XmlSchemaSet();
@@ -186,6 +191,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v7 - 430164_import Add(XmlSchema) does not check if location already exists")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v7()
         {
             Assert.Equal(0, AddSchema(Path.Combine(TestData._Root, "Bug430164_c_import.xsd"), Path.Combine(TestData._Root, "Bug430164.xsd"), 2));
@@ -193,6 +199,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v8 - 430164_include Add(XmlSchema)")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v8()
         {
             Assert.Equal(0, AddSchema(Path.Combine(TestData._Root, "Bug430164_b_include.xsd"), Path.Combine(TestData._Root, "Bug430164.xsd"), 1));
@@ -200,6 +207,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "v9 - 430164_redefine Add(XmlSchema)")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v9()
         {
             Assert.Equal(0, AddSchema(Path.Combine(TestData._Root, "Bug430164_a_redefine.xsd"), Path.Combine(TestData._Root, "Bug430164.xsd"), 1));
@@ -248,6 +256,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "525477a: XSD Redefine doesn't work")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v10()
         {
             XmlCachedSchemaSetResolver resolver = new XmlCachedSchemaSetResolver();
@@ -317,6 +326,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "525477b: XSD Redefine doesn't work")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v11()
         {
             XmlCachedSchemaSetResolver resolver = new XmlCachedSchemaSetResolver();
@@ -398,6 +408,7 @@ namespace System.Xml.Tests
 
         //[Variation(Desc = "649967a.XmlSchemaSet.Reprocess() fix is changing a collection where schemas are stored")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v12a()
         {
             using (XmlReader r = XmlReader.Create(Path.Combine(TestData._Root, @"bug264908_v1.xsd")))

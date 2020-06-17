@@ -513,6 +513,7 @@ namespace System.IO.Tests
         [InlineData(0, true)]
         [InlineData(1, false)]
         [InlineData(1, true)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task ReadAsync_Canceled_ThrowsException(int method, bool precanceled)
         {
             Func<StreamReader, CancellationToken, Task<int>> func = method switch

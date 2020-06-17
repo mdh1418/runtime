@@ -265,6 +265,7 @@ namespace System.Security.Cryptography.Encoding.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Uses P/Invokes to search Oid in the lookup table
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void LookupOidByValue_Method_UnixOnly()
         {
             // This needs to be an OID not in the static lookup table.  The purpose is to verify the
@@ -299,6 +300,7 @@ namespace System.Security.Cryptography.Encoding.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Uses P/Invokes to search Oid in the lookup table
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void LookupOidByFriendlyName_Method_UnixOnly()
         {
             // This needs to be a name not in the static lookup table.  The purpose is to verify the

@@ -11,6 +11,7 @@ namespace System.Diagnostics.SymbolStore.Tests
     public class StackTraceSymbolsTests
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void StackTraceSymbolsDoNotLockFile()
         {
             var asmPath = typeof(StackTraceSymbolsTests).Assembly.Location;

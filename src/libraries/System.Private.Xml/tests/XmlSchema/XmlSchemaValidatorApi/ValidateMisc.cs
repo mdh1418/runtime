@@ -35,6 +35,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064.xsd", 1, 1, 1, 0)]
         [InlineData("Wildcards", "wildG007.xsd", 1, 1, 2, 0)]
         [InlineData("Wildcards", "wildG010.xsd", 3, 1, 5, 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1(string testDir, string testFile, int expCount, int expCountGT, int expCountGE, int expCountGA)
         {
             Initialize();
@@ -89,6 +90,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064", 1, 1, 1, 0)]
         [InlineData("Wildcards", "wildG007", 1, 1, 2, 0)]
         [InlineData("Wildcards", "wildG010", 3, 1, 5, 0)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2(string testDir, string testFile, int expCount, int expCountGT, int expCountGE, int expCountGA)
         {
             Initialize();
@@ -154,6 +156,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064.xsd", 1, 1, 1, 0, 0, 0)]
         [InlineData("Wildcards", "wildG007.xsd", 1, 1, 2, 0, 0, 0)]
         [InlineData("Wildcards", "wildG010.xsd", 3, 1, 5, 0, 3, 1)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1(string testDir, string testFile, int expCount, int expCountGT, int expCountGE, int expCountGA, int expCountGER, int expCountGERC)
         {
             Initialize();
@@ -218,6 +221,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064", 1, 1, 1, 0, 0, 0)]
         [InlineData("Wildcards", "wildG007", 1, 1, 2, 0, 0, 0)]
         [InlineData("Wildcards", "wildG010", 3, 1, 5, 0, 3, 1)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2(string testDir, string testFile, int expCount, int expCountGT, int expCountGE, int expCountGA, int expCountGER, int expCountGERC)
         {
             Initialize();
@@ -290,6 +294,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064.xsd", 1)]
         [InlineData("Wildcards", "wildG007.xsd", 1)]
         [InlineData("Wildcards", "wildG010.xsd", 3)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v1(string testDir, string TestFile, int expCount)
         {
             Initialize();
@@ -355,6 +360,7 @@ namespace System.Xml.Tests
         [InlineData("simpleType", "stE064", 1)]
         [InlineData("Wildcards", "wildG007", 1)]
         [InlineData("Wildcards", "wildG010", 3)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v2(string testDir, string testFile, int expCount)
         {
             Initialize();
@@ -423,6 +429,7 @@ namespace System.Xml.Tests
         [InlineData("SCHEMA", "schB1_a.xsd", 1, 3, 3)]
         [InlineData("SCHEMA", "schM2_a.xsd", 1, 3, 3)]
         [InlineData("SCHEMA", "schH2_a.xsd", 1, 3, 3)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddValid_Import_Include_Redefine(string testDir, string testFile, int expCount, int expCountGT, int expCountGE)
         {
             string xsd = Path.Combine(path, testDir, testFile);
@@ -450,6 +457,7 @@ namespace System.Xml.Tests
         [Theory]
         [InlineData("SCHEMA", "schE9.xsd", 1, 1)]
         [InlineData("SCHEMA", "schA7_a.xsd", 2, 2)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddEditInvalidImport(string testDir, string testFile, int expCountGT, int expCountGE)
         {
             string xsd = Path.Combine(path, testDir, testFile);
@@ -504,6 +512,7 @@ namespace System.Xml.Tests
         [Theory]
         [InlineData("include_v7_a.xsd", 4, 7)]
         [InlineData("include_v1_a.xsd", 3, 3)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddEditInvalidIncludeSchema(string testFile, int expCountGT, int expCountGE)
         {
             string xsd = Path.Combine(testData, testFile);
@@ -561,6 +570,7 @@ namespace System.Xml.Tests
         [InlineData("SCHEMA", "schE1i.xsd")]
         [InlineData("SCHEMA", "schB4_a.xsd")]
         [InlineData("SCHEMA", "schB1i.xsd")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void AddInvalid_Import_Include(string testDir, string testFile)
         {
             Initialize();

@@ -90,6 +90,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(MethodInfo = null, ByteArray, TypeArray)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var1()
         {
             XslCompiledTransform xslt = new XslCompiledTransform();
@@ -111,6 +112,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(MethodInfo, ByteArray = null, TypeArray)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var2()
         {
             XslCompiledTransform xslt = new XslCompiledTransform();
@@ -142,6 +144,7 @@ namespace System.Xml.Tests
 
         //[Variation("Load(string = null)", Pri = 1)]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Var0()
         {
             try
@@ -554,6 +557,7 @@ namespace System.Xml.Tests
         [InlineData("DefaultResolver.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData("DefaultResolver.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver3(object param, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -587,6 +591,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver7(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -1110,6 +1115,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric5(XslInputType xslInputType, ReaderType readerType)
         {
             CustomNullResolver myResolver = new CustomNullResolver(_output);
@@ -1160,6 +1166,7 @@ namespace System.Xml.Tests
         [InlineData("showParam.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData("showParam.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric6(object param, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             string Baseline = Path.Combine("baseline", (string)param);
@@ -1206,6 +1213,7 @@ namespace System.Xml.Tests
         [InlineData("XmlResolverTestMain.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData("XmlResolverTestMain.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric7(object param, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><result><fruit>Apple</fruit><fruit>orange</fruit></result>";
@@ -1296,6 +1304,7 @@ namespace System.Xml.Tests
         [InlineData("XmlResolverTestMain.txt", XslInputType.Reader, ReaderType.XmlValidatingReader)]
         [InlineData("XmlResolverTestMain.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadGeneric8(object param, XslInputType xslInputType, ReaderType readerType)
         {
             string Baseline = Path.Combine("baseline", (string)param);
@@ -1690,6 +1699,7 @@ namespace System.Xml.Tests
 
         //[Variation("Regression case for bug 80768")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void LoadNavigator4()
         {
             var e = Assert.ThrowsAny<XsltException>(() =>
@@ -1935,6 +1945,7 @@ namespace System.Xml.Tests
 
         //[Variation("bug 380138 NRE during XSLT compilation")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void Bug380138()
         {
             string xsl = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -2272,6 +2283,7 @@ namespace System.Xml.Tests
 
         //[Variation("Bug382506 - Loading stylesheet from custom navigator with enableDebug = true causes ArgumentOutOfRangeException")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric8()
         {
             xslt = new XslCompiledTransform();
@@ -2291,6 +2303,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric9(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             try
@@ -2309,6 +2322,7 @@ namespace System.Xml.Tests
 
         //[Variation("Bug349757 - document() function does not work when stylesheet was loaded from a stream or reader or constructed DOM")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric10()
         {
             xslt = new XslCompiledTransform();
@@ -2330,6 +2344,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformGeneric11(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             try
@@ -2453,6 +2468,7 @@ namespace System.Xml.Tests
         [InlineData("DefaultResolver.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData("DefaultResolver.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver3(object param, XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -2487,6 +2503,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver5(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -2547,6 +2564,7 @@ namespace System.Xml.Tests
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.Writer, NavType.XPathDocument)]
         [InlineData(XslInputType.Navigator, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void XmlResolver7(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             LoadXSL("Bug382198.xsl", xslInputType, readerType);
@@ -3002,6 +3020,7 @@ namespace System.Xml.Tests
         [InlineData("xmlResolver_document_function.txt", XslInputType.URI, ReaderType.XmlValidatingReader)]
         [InlineData("xmlResolver_document_function.txt", XslInputType.Navigator, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void TransformStrStrResolver3(object param, XslInputType xslInputType, ReaderType readerType)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -3061,6 +3080,7 @@ namespace System.Xml.Tests
         [InlineData("XmlResolver_Main.xsl", "fruits.xml", "xmlResolver_main.txt", "NullResolver", false, "IXPathNavigable")]
         [InlineData("XmlResolver_Main.xsl", "fruits.xml", "xmlResolver_main.txt", "NullResolver", false, "XmlReader")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void ValidCases_ExternalURI(object param0, object param1, object param2, object param3, object param4, object param5)
         {
             AppContext.SetSwitch("Switch.System.Xml.AllowDefaultResolver", true);
@@ -3090,6 +3110,7 @@ namespace System.Xml.Tests
         [InlineData("Bug382198.xsl", "fruits.xml", "bug382198.txt", "NullResolver", true, "IXPathNavigable")]
         [InlineData("Bug382198.xsl", "fruits.xml", "bug382198.txt", "NullResolver", true, "XmlReader")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void ValidCases(object param0, object param1, object param2, object param3, object param4, object param5)
         {
             string xslFile = FullFilePath(param0 as string);
@@ -3185,6 +3206,7 @@ namespace System.Xml.Tests
         [InlineData(4, true, "IXPathNavigable")]
         [InlineData(4, true, "XmlReader")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void InValidCases(object param0, object param1, object param2)
         {
             int argumentNumber = (int)param0;
@@ -3285,6 +3307,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         //[Variation("Subclassed XPathNodeIterator returned from an extension object or XsltFunction is not accepted by XPath", Pri = 1)]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.TextWriter, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void var3(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             string expected = @"<?xml version=""1.0"" encoding=""utf-8""?><distinct-countries>France, Spain, Austria, Germany</distinct-countries>";
@@ -3334,6 +3357,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         //[Variation("Bug398968 - Globalization is broken for document() function")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader, OutputType.Stream, NavType.XPathDocument)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest1(XslInputType xslInputType, ReaderType readerType, OutputType outputType, NavType navType)
         {
             // <SQL BU Defect Tracking 410060>
@@ -3356,6 +3380,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
         //[Variation("Bug412703 - Off-by-one errors for XSLT loading error column")]
         [InlineData(XslInputType.URI, ReaderType.XmlValidatingReader)]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest3(XslInputType xslInputType, ReaderType readerType)
         {
             try
@@ -3375,6 +3400,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
 
         //[Variation("Bug423641 - XslCompiledTransform.Load() [retail] throws a NullReferenceException when scripts are prohibited")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest4()
         {
             XslCompiledTransform xslt = new XslCompiledTransform();
@@ -3385,6 +3411,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
 
         //[Variation("Bug423641 - XslCompiledTransform.Load() [debug] throws a NullReferenceException when scripts are prohibited")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest5()
         {
             XslCompiledTransform xslt = new XslCompiledTransform(true);
@@ -3395,6 +3422,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
 
         //[Variation("Bug469781 - Replace shouldn't relax original type 'assertion failure'")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest7()
         {
             string xslString = "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:user=\"urn:user\">"
@@ -3423,6 +3451,7 @@ param2 (correct answer is 'local-param2-arg'): local-param2-arg
 
         //[Variation("Bug737816 - Dynamic method will have declaring type == null")]
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void RegressionTest8()
         {
             try

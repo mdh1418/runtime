@@ -24,6 +24,7 @@ namespace System.Diagnostics.Tests
     public class ProcessStartInfoTests : ProcessTestBase
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void TestEnvironmentProperty()
         {
             Assert.NotEqual(0, new Process().StartInfo.Environment.Count);
@@ -645,6 +646,7 @@ namespace System.Diagnostics.Tests
 
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Test case is specific to Unix
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36882", TestPlatforms.iOS)]
         public void TestEnvironmentVariablesPropertyUnix()
         {
             ProcessStartInfo psi = new ProcessStartInfo();

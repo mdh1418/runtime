@@ -12,6 +12,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
     {
 #if NETCOREAPP
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void DiminishedCoordsRoundtrip()
         {
             ECParameters toImport = EccTestData.GetNistP521DiminishedCoordsParameters();
@@ -57,6 +58,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
 
         [Theory]
         [MemberData(nameof(TestCurvesFull))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestNamedCurves(CurveDef curveDef)
         {
             if (!curveDef.Curve.IsNamed)
@@ -79,6 +81,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [Theory, MemberData(nameof(TestInvalidCurves))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestNamedCurvesNegative(CurveDef curveDef)
         {
             if (!curveDef.Curve.IsNamed)
@@ -89,6 +92,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [ConditionalTheory(nameof(ECExplicitCurvesSupported)), MemberData(nameof(TestCurvesFull))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestExplicitCurves(CurveDef curveDef)
         {
             using (ECDsa ec1 = ECDsaFactory.Create(curveDef.Curve))
@@ -108,6 +112,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [ConditionalTheory(nameof(ECExplicitCurvesSupported)), MemberData(nameof(TestCurves))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestExplicitCurvesSignVerify(CurveDef curveDef)
         {
             using (ECDsa ec1 = ECDsaFactory.Create(curveDef.Curve))
@@ -168,6 +173,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestKeySizeCreateKey()
         {
             using (ECDsa ec = ECDsaFactory.Create(ECCurve.NamedCurves.nistP256))
@@ -185,6 +191,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [ConditionalFact(nameof(ECExplicitCurvesSupported))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestExplicitImportValidationNegative()
         {
             unchecked
@@ -263,6 +270,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [ConditionalFact(nameof(ECExplicitCurvesSupported))]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void TestGeneralExportWithExplicitParameters()
         {
             using (ECDsa ecdsa = ECDsaFactory.Create())
@@ -292,6 +300,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void ExportIncludingPrivateOnPublicOnlyKey()
         {
             ECParameters iutParameters = new ECParameters
@@ -321,6 +330,7 @@ namespace System.Security.Cryptography.EcDsa.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36897", TestPlatforms.iOS)]
         public static void ImportFromPrivateOnlyKey()
         {
             byte[] expectedX = "00d45615ed5d37fde699610a62cd43ba76bedd8f85ed31005fe00d6450fbbd101291abd96d4945a8b57bc73b3fe9f4671105309ec9b6879d0551d930dac8ba45d255".HexToByteArray();

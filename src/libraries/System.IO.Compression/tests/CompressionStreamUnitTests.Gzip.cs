@@ -348,6 +348,7 @@ namespace System.IO.Compression
             internal DerivedGZipStream(Stream stream, CompressionMode mode) : base(stream, mode) { }
             internal DerivedGZipStream(Stream stream, CompressionMode mode, bool leaveOpen) : base(stream, mode, leaveOpen) { }
 
+            [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
             public override int Read(byte[] array, int offset, int count)
             {
                 ReadArrayInvoked = true;

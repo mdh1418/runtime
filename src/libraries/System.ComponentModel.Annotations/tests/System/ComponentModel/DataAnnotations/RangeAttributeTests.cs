@@ -169,6 +169,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalRanges))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void ParseDotSeparatorExtremaInCommaSeparatorCultures(Type type, string min, string max)
         {
             using (new ThreadCultureChange("en-US"))
@@ -210,6 +211,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalRanges))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void ParseCommaSeparatorExtremaInCommaSeparatorCultures(Type type, string min, string max)
         {
             using (new ThreadCultureChange("en-US"))
@@ -227,6 +229,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalRanges))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void ParseCommaSeparatorInvariantExtremaInCommaSeparatorCultures(Type type, string min, string max)
         {
             using (new ThreadCultureChange("en-US"))
@@ -243,6 +246,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
 
         [Theory][MemberData(nameof(DotDecimalValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndValues(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -260,6 +264,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndValuesInvariantParse(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -284,6 +289,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndValuesInvariantConvert(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -333,6 +339,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalNonStringValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndNonStringValues(Type type, string min, string max, object value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -373,6 +380,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
 
         [Theory]
         [MemberData(nameof(DotDecimalNonStringValidValues))][SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndNonStringValuesInvariantConvert(Type type, string min, string max, object value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -422,6 +430,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalNonStringValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void CommaDecimalExtremaAndNonStringValues(Type type, string min, string max, object value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -463,6 +472,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalNonStringValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void CommaDecimalExtremaAndNonStringValuesInvariantConvert(Type type, string min, string max, object value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -514,6 +524,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalInvalidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndInvalidValues(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -531,6 +542,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalInvalidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndInvalidValuesInvariantParse(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -555,6 +567,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(DotDecimalInvalidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void DotDecimalExtremaAndInvalidValuesInvariantConvert(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -605,6 +618,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalValidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void CommaDecimalExtremaAndValues(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))
@@ -696,6 +710,7 @@ namespace System.ComponentModel.DataAnnotations.Tests
         [Theory]
         [MemberData(nameof(CommaDecimalInvalidValues))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "2648 not fixed on NetFX")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36877", TestPlatforms.iOS)]
         public static void CommaDecimalExtremaAndInvalidValues(Type type, string min, string max, string value)
         {
             using (new ThreadCultureChange("en-US"))

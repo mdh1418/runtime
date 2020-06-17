@@ -13,6 +13,7 @@ namespace System.IO.Compression.Tests
     public class ZipFile_Create : ZipFileTestBase
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task CreateFromDirectoryNormal()
         {
             string folderName = zfolder("normal");
@@ -23,6 +24,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void CreateFromDirectory_IncludeBaseDirectory()
         {
             string folderName = zfolder("normal");
@@ -47,6 +49,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void CreateFromDirectoryUnicode()
         {
             string folderName = zfolder("unicode");
@@ -123,6 +126,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void InvalidInstanceMethods()
         {
             using (TempFile testArchive = CreateTempCopyFile(zfile("normal.zip"), GetTestFilePath()))
@@ -149,6 +153,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void InvalidFiles()
         {
             Assert.Throws<InvalidDataException>(() => ZipFile.OpenRead(bad("EOCDmissing.zip")));
@@ -228,6 +233,7 @@ namespace System.IO.Compression.Tests
         [Theory]
         [InlineData("LZMA.zip", true)]
         [InlineData("invalidDeflate.zip", false)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void UnsupportedCompressionRoutine(string zipName, bool throwsOnOpen)
         {
             string filename = bad(zipName);
@@ -276,6 +282,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void InvalidDates()
         {
             using (ZipArchive archive = ZipFile.OpenRead(bad("invaliddate.zip")))
@@ -324,6 +331,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void ReadStreamOps()
         {
             using (ZipArchive archive = ZipFile.OpenRead(zfile("normal.zip")))
@@ -349,12 +357,14 @@ namespace System.IO.Compression.Tests
         [InlineData("NullCharFileName_FromWindows")]
         [InlineData("NullCharFileName_FromUnix")]
         [PlatformSpecific(TestPlatforms.AnyUnix)]  // Checks Unix-specific invalid file path
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void Unix_ZipWithInvalidFileNames_ThrowsArgumentException(string zipName)
         {
             Assert.Throws<ArgumentException>(() => ZipFile.ExtractToDirectory(compat(zipName) + ".zip", GetTestFilePath()));
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public void UpdateReadTwice()
         {
             using (TempFile testArchive = CreateTempCopyFile(zfile("small.zip"), GetTestFilePath()))
@@ -375,6 +385,7 @@ namespace System.IO.Compression.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36884", TestPlatforms.iOS)]
         public async Task UpdateAddFile()
         {
             //add file

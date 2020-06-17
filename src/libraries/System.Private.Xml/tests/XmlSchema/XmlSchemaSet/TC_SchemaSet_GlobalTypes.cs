@@ -171,6 +171,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v4.2 - GlobalTypes with set having one which imports another, remove one", Priority = 1, Params = new object[] { "import_v2_a.xsd", "ns-a", "ct-A", "ns-b", "ct-B" })]
         [InlineData("import_v2_a.xsd", "ns-a", "ct-A", "ns-b", "ct-B")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v4(object param0, object param1, object param2, object param3, object param4)
         {
             string uri1 = param0.ToString();
@@ -207,6 +208,7 @@ namespace System.Xml.Tests
         //[Variation(Desc = "v5.2 - GlobalTypes with set having one which imports another, then removerecursive", Priority = 1, Params = new object[] { "import_v2_a.xsd", "ns-a", "ct-A", "ns-b", "ct-B" })]
         [InlineData("import_v2_a.xsd", "ns-a", "ct-A", "ns-b", "ct-B")]
         [Theory]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36903", TestPlatforms.iOS)]
         public void v5(object param0, object param1, object param2, object param3, object param4)
         {
             string uri1 = param0.ToString();

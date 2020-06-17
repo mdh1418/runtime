@@ -2888,6 +2888,7 @@ Assert.False(true);
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36879", TestPlatforms.iOS)]
         public void ReadXmlSchema_2()
         {
             DataTable dt = new DataTable();
@@ -3112,6 +3113,7 @@ Assert.False(true);
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36879", TestPlatforms.iOS)]
         public void WriteXmlSchema()
         {
             using (new ThreadCultureChange("en-GB"))
