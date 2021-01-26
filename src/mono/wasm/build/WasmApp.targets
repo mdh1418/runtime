@@ -68,7 +68,7 @@
         <AotArguments>@(MonoAOTCompilerDefaultAotArguments, ';')</AotArguments>
         <ProcessArguments>@(MonoAOTCompilerDefaultProcessArguments, ';')</ProcessArguments>
       </_AotInputAssemblies>
-      <_AotInputAssemblies Condition="'%(Filename)' == 'System.Private.CoreLib'" Remove="%(Identity)" />
+      <_AotInputAssemblies Condition="'%(Filename)' == 'System.Private.CoreLib' and '%(_AotInputAssemblies.ForceCompile)' != 'true'" Remove="%(Identity)" />
       <_WasmAssemblies Remove="@(_WasmAssemblies)" />
     </ItemGroup>
     <PropertyGroup>
@@ -229,6 +229,8 @@
       <_WasmObjects Include="driver.o"/>
       <_WasmObjects Include="pinvoke.o"/>
       <_WasmObjects Include="corebindings.o"/>
+
+      <_WasmAssemblies Condition="'%(Filename)' == 'System.Private.CoreLib'" Remove="%(Identity)" />
     </ItemGroup>
 
     <PropertyGroup>
