@@ -67,14 +67,17 @@
       <MonoAOTCompilerDefaultAotArguments Include="direct-icalls" />
       <MonoAOTCompilerDefaultAotArguments Include="deterministic" />
     </ItemGroup>
+
     <ItemGroup>
       <_AotInputAssemblies Include="@(_WasmAssemblies->Distinct())">
         <AotArguments>@(MonoAOTCompilerDefaultAotArguments, ';')</AotArguments>
         <ProcessArguments>@(MonoAOTCompilerDefaultProcessArguments, ';')</ProcessArguments>
       </_AotInputAssemblies>
-      <_AotInputAssemblies Condition="'%(Filename)' == '%(_WasmAOTCache.Filename)'" Remove="%(Identity)" />
+      <_AllWasmAssemblies Include="@(_AotInputAssemblies)" />
+      <_AotInputAssemblies Condition="'%(Filename)' != '' and '@(_WasmAOTCache)' != ''" Remove="@(_AotInputAssemblies)" />
       <_WasmAssemblies Remove="@(_WasmAssemblies)" />
     </ItemGroup>
+
     <PropertyGroup>
       <AOTMode Condition="'$(AOTMode)' == '' and '$(AOTProfilePath)' != ''">AotInterp</AOTMode>
       <AOTMode Condition="'$(AOTMode)' == ''">LLVMOnly</AOTMode>
@@ -276,14 +279,14 @@
     <!--This pinvoke-table.h will be used instead of the one in the runtime pack because of -I$(_WasmIntermediateOutputPath) -->
     <PInvokeTableGenerator
      Modules="@(_WasmPInvokeModules)"
-     Assemblies="@(_WasmAssemblies)"
+     Assemblies="@(_AllWasmAssemblies)"
      OutputPath="$(_WasmIntermediateOutputPath)pinvoke-table.h" />
 
    <!-- ICall table generation -->
    <Exec Condition="'$(WasmLinkIcalls)' == 'true'" Command="$(MonoAotCrossCompilerPath) --print-icall-table > $(_WasmIntermediateOutputPath)/runtime-icall-table.h" />
    <IcallTableGenerator Condition="'$(WasmLinkIcalls)' == 'true'"
      RuntimeIcallTableFile="$(_WasmIntermediateOutputPath)/runtime-icall-table.h"
-     Assemblies="@(_WasmAssemblies)"
+     Assemblies="@(_AllWasmAssemblies)"
      OutputPath="$(_WasmIntermediateOutputPath)/icall-table.h" />
    <PropertyGroup>
      <EmccFlags Condition="'$(WasmLinkIcalls)' == 'true'">$(EmccFlags) -DLINK_ICALLS=1</EmccFlags>
