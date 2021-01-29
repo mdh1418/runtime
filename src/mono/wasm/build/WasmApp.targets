@@ -236,7 +236,7 @@
       <Output TaskParameter="FileWrites" ItemName="FileWrites" />
     </MonoAOTCompiler>
 
-    <Exec Command="bash -c '$(_EmccCommand) %(_WasmCacheAssemblies.LlvmBitcodeFile) -c -o %(_WasmCacheAssemblies.Filename).o'" IgnoreStandardErrorWarningFormat="true" WorkingDirectory="$(WasmBuildDir)" StandardOutputImportance="Low" />
+    <Exec Command="bash -c '$(_EmccCommand) %(_WasmCacheAssemblies.LlvmBitcodeFile) -c -o $(MSBuildThisFileDirectory)%(_WasmCacheAssemblies.Filename).o'" IgnoreStandardErrorWarningFormat="true" WorkingDirectory="$(WasmBuildDir)" StandardOutputImportance="Low" />
 
     <ItemGroup>
       <_WasmAOTCache Include="$(MSBuildThisFileDirectory)%(_WasmCacheAssemblies.Filename).o" />
