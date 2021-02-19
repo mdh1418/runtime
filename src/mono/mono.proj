@@ -61,7 +61,7 @@
     <MonoThreadSuspend Condition="'$(MonoThreadSuspend)' == ''">hybrid</MonoThreadSuspend>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetsBrowser)' == 'true'">
+  <ItemGroup Condition="'$(TargetsBrowser)' == 'true' or '$(TargetsiOS)' == 'true' or '$(TargetstvOS)' == 'true'">
     <PackageReference Include="Microsoft.NETCore.Runtime.ICU.Transport" PrivateAssets="all" Version="$(MicrosoftNETCoreRuntimeICUTransportVersion)" GeneratePathProperty="true" />
   </ItemGroup>
 
@@ -248,6 +248,7 @@
       <_MonoCMakeSystemName Condition="'$(TargetstvOS)' == 'true'">tvOS</_MonoCMakeSystemName>
       <_MonoCMakeVersionMin Condition="'$(TargetsiOS)' == 'true'">$(iOSVersionMin)</_MonoCMakeVersionMin>
       <_MonoCMakeVersionMin Condition="'$(TargetstvOS)' == 'true'">$(tvOSVersionMin)</_MonoCMakeVersionMin>
+      <_IcuLibdir>$(PkgMicrosoft_NETCore_Runtime_ICU_Transport)/runtimes/ios-$(Platform)/native/lib</_IcuLibdir>
     </PropertyGroup>
     <ItemGroup Condition="('$(TargetsOSX)' == 'true' or '$(TargetsMacCatalyst)' == 'true') and '$(Platform)' == 'arm64'">
       <_MonoCMakeArgs Include="-DCMAKE_OSX_ARCHITECTURES=arm64"/>
@@ -260,7 +261,9 @@
       <_MonoCMakeArgs Condition="'$(Platform)' == 'x86'" Include="-DCMAKE_OSX_ARCHITECTURES=i386"/>
       <_MonoCMakeArgs Condition="'$(Platform)' == 'arm64'" Include="-DCMAKE_OSX_ARCHITECTURES=arm64"/>
       <_MonoCMakeArgs Condition="'$(Platform)' == 'arm'" Include="&quot;-DCMAKE_OSX_ARCHITECTURES=armv7%3Barmv7s&quot;"/>
+      <_MonoCMakeArgs Condition="'$(TargetsiOS)' == 'true'" Include="ICU_LIBDIR=$(_IcuLibdir)"/>
       <_MonoCFLAGS Include="-Wl,-application_extension" />
+      <_MonoCFLAGS Include="-I$(PkgMicrosoft_NETCore_Runtime_ICU_Transport)/runtimes/$(TargetOS)-$(TargetArchitecture)/native/include" />
       <_MonoCXXFLAGS Include="-Wl,-application_extension" />
     </ItemGroup>
     <!-- iOS simulator specific options -->

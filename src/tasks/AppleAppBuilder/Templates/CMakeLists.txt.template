@@ -5,6 +5,7 @@ enable_language(OBJC ASM)
 
 set(APP_RESOURCES
 %AppResources%
+/Users/mdhwang/.nuget/packages/microsoft.netcore.runtime.icu.transport/6.0.0-preview.2.21108.1/runtimes/ios-x64/native/lib/icudt.dat
 )
 
 add_executable(
@@ -40,6 +41,7 @@ target_link_libraries(
     "-framework UIKit"
     %FrameworksToLink%
     "-lz"
+    "-lc++"
     "-liconv"
 %NativeLibrariesToLink%
 )
