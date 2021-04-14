@@ -39,6 +39,7 @@ namespace System.Net.NetworkInformation.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void IPv4GatewayAddressParsing()
         {
             string fileName = GetTestFilePath();
@@ -60,6 +61,7 @@ namespace System.Net.NetworkInformation.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void IPv6GatewayAddressParsing()
         {
             string fileName = GetTestFilePath();
@@ -87,6 +89,7 @@ namespace System.Net.NetworkInformation.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void DhcpServerAddressParsing()
         {
             string fileName = GetTestFilePath();
@@ -98,6 +101,7 @@ namespace System.Net.NetworkInformation.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void WinsServerAddressParsing()
         {
             string fileName = GetTestFilePath();

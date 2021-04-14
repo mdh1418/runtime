@@ -6,6 +6,7 @@ using Xunit;
 
 namespace System.Net.NetworkInformation.Tests
 {
+    [ActiveIssue("https://github.com/dotnet/runtime/issues/36890", TestPlatforms.iOS | TestPlatforms.tvOS)]
     public class StatisticsParsingTests : FileCleanupTestBase
     {
         [Fact]
