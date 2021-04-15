@@ -176,6 +176,9 @@
 
     <!-- PNSE https://github.com/dotnet/runtime/issues/36878 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Console/tests/System.Console.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/36897 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Security.Cryptography.X509Certificates/tests/System.Security.Cryptography.X509Certificates.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(TargetOS)' == 'tvOS' or '$(TargetOS)' == 'tvOSSimulator') and '$(RunDisablediOSTests)' != 'true'">
