@@ -182,6 +182,9 @@
 
     <!-- PNSE https://github.com/dotnet/runtime/issues/38032 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Threading.Thread/tests/System.Threading.Thread.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/51330 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Security.Cryptography.Pkcs/tests/System.Security.Cryptography.Pkcs.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(TargetOS)' == 'tvOS' or '$(TargetOS)' == 'tvOSSimulator') and '$(RunDisablediOSTests)' != 'true'">
