@@ -207,6 +207,9 @@
     <!-- Crashes -->
     <!-- https://github.com/dotnet/runtime/issues/36885 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Memory/tests/System.Memory.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/36891 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Uri/tests/FunctionalTests/System.Private.Uri.Functional.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
