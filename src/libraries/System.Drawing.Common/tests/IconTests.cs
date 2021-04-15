@@ -51,6 +51,7 @@ namespace System.Drawing.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/38031", TestPlatforms.iOS)]
         public void Unix_OverflowException_CorruptIcon()
         {
             Assert.Throws<OverflowException>(() => new Icon(Helpers.GetTestBitmapPath("overflowicon.ico")));
