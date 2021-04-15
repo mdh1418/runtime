@@ -194,6 +194,9 @@
 
     <!-- https://github.com/dotnet/runtime/issues/51333 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Xml/tests/Xslt/XslTransformApi/System.Xml.Xsl.XslTransformApi.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/51334 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Xml/tests/XmlSchema/XmlSchemaSet/System.Xml.XmlSchemaSet.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="('$(TargetOS)' == 'tvOS' or '$(TargetOS)' == 'tvOSSimulator') and '$(RunDisablediOSTests)' != 'true'">
