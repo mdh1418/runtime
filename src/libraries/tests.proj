@@ -219,6 +219,9 @@
 
     <!-- https://github.com/dotnet/runtime/issues/36901 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ValueTuple/tests/System.ValueTuple.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/36903 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Xml/tests/XmlSerializer/System.Xml.XmlSerializer.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
