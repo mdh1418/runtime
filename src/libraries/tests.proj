@@ -217,6 +217,8 @@
     <!-- https://github.com/dotnet/runtime/issues/36898 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ServiceModel.Syndication/tests/System.ServiceModel.Syndication.Tests.csproj" />
 
+    <!-- https://github.com/dotnet/runtime/issues/36901 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ValueTuple/tests/System.ValueTuple.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
