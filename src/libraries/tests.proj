@@ -213,6 +213,10 @@
 
     <!-- https://github.com/dotnet/runtime/issues/36891 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Uri/tests/FunctionalTests/System.Private.Uri.Functional.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/36898 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ServiceModel.Syndication/tests/System.ServiceModel.Syndication.Tests.csproj" />
+
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
