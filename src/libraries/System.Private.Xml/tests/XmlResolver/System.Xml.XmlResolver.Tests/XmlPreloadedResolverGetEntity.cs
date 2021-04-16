@@ -65,6 +65,7 @@ namespace System.Xml.XmlResolver.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51389", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void XmlResolverGetKnownEntity()
         {
             var xmlResolver = new XmlPreloadedResolver(XmlKnownDtds.All);
@@ -119,6 +120,7 @@ namespace System.Xml.XmlResolver.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51389", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public async Task XmlResolverGetKnownEntityAsync()
         {
             var xmlResolver = new XmlPreloadedResolver(XmlKnownDtds.All);
