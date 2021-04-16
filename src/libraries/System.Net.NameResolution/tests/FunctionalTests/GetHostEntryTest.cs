@@ -25,6 +25,7 @@ namespace System.Net.NameResolution.Tests
         [ConditionalTheory(typeof(PlatformDetection), nameof(PlatformDetection.IsNotArm64Process))] // [ActiveIssue("https://github.com/dotnet/runtime/issues/27622")]
         [InlineData("")]
         [InlineData(TestSettings.LocalHost)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51377", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public async Task Dns_GetHostEntry_HostString_Ok(string hostName)
         {
             if (PlatformDetection.IsSLES)
@@ -81,6 +82,7 @@ namespace System.Net.NameResolution.Tests
         [ConditionalTheory(typeof(PlatformDetection), nameof(PlatformDetection.IsNotArm64Process))] // [ActiveIssue("https://github.com/dotnet/runtime/issues/27622")]
         [InlineData("")]
         [InlineData(TestSettings.LocalHost)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51377", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public async Task Dns_GetHostEntryAsync_HostString_Ok(string hostName)
         {
             if (PlatformDetection.IsSLES)
