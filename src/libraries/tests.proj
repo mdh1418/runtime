@@ -264,6 +264,9 @@
 
     <!-- https://github.com/dotnet/runtime/issues/51382 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Diagnostics.Tracing/tests/System.Diagnostics.Tracing.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/51392 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)Microsoft.VisualBasic.Core/tests/Microsoft.VisualBasic.Core.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
