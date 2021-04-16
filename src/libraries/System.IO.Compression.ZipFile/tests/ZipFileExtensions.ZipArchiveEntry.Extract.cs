@@ -8,6 +8,7 @@ namespace System.IO.Compression.Tests
     public class ZipFile_ZipArchiveEntry_Extract : ZipFileTestBase
     {
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51378", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void ExtractToFileExtension()
         {
             using (ZipArchive archive = ZipFile.Open(zfile("normal.zip"), ZipArchiveMode.Read))
