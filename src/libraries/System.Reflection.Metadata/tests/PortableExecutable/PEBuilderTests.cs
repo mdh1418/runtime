@@ -135,6 +135,7 @@ namespace System.Reflection.PortableExecutable.Tests
 
         [Fact]
         [SkipOnPlatform(TestPlatforms.Browser, "System.Security.Cryptography isn't supported on browser")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51383", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void BasicValidationSigned()
         {
             using (var peStream = new MemoryStream())
@@ -656,6 +657,7 @@ namespace System.Reflection.PortableExecutable.Tests
 
         [Fact]
         [SkipOnPlatform(TestPlatforms.Browser, "System.Security.Cryptography isn't supported on browser")]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51383", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void Checksum()
         {
             Assert.True(TestChecksumAndAuthenticodeSignature(new MemoryStream(Misc.Signed), Misc.KeyPair));
