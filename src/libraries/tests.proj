@@ -270,6 +270,10 @@
 
     <!-- https://github.com/dotnet/runtime/issues/51393 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.IO.FileSystem.Watcher/tests/System.IO.FileSystem.Watcher.Tests.csproj" />
+
+    <!-- https://github.com/dotnet/runtime/issues/51395 -->
+    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Net.Ping/tests/FunctionalTests/System.Net.Ping.Functional.Tests.csproj" />
+
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
