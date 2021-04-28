@@ -406,6 +406,7 @@ namespace Microsoft.VisualBasic.CompilerServices.Tests
 
         [Theory]
         [InlineData(null, "*")]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void StrLike_NullReferenceException(string source, string pattern)
         {
             Assert.Throws<NullReferenceException>(() => StringType.StrLike(source, pattern, CompareMethod.Binary));

@@ -180,6 +180,7 @@ namespace Microsoft.VisualBasic.FileIO.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void CopyFile_FileSourceFileName_DestinationFileName_OverwriteFalse()
         {
             var testFileSource = GetTestFilePath();
@@ -733,6 +734,7 @@ namespace Microsoft.VisualBasic.FileIO.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void MoveFile_SourceFileName_DestinationFileName_OverwriteFalse()
         {
             var SourceFileNameWithPath = CreateTestFile(SourceData, TestFileName: GetTestFileName());

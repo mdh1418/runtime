@@ -311,6 +311,7 @@ namespace Microsoft.VisualBasic.CompilerServices.Tests
 
         [Theory]
         [MemberData(nameof(LikeObj_NullReference_TestData))]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void LikeObj_NullReference(object left, object right)
         {
             Assert.Throws<NullReferenceException>(() => ObjectType.LikeObj(left, right, CompareMethod.Binary));

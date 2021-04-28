@@ -113,6 +113,7 @@ namespace Microsoft.VisualBasic.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void CreateObject()
         {
             Assert.Throws<NullReferenceException>(() => Interaction.CreateObject(null));
