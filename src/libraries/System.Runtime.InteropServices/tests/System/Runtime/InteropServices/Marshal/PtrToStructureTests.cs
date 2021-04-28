@@ -117,6 +117,7 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void PtrToStructure_ZeroPointerWithType_ReturnsNull()
         {
             Assert.Null(Marshal.PtrToStructure(IntPtr.Zero, typeof(SomeTestStruct)));

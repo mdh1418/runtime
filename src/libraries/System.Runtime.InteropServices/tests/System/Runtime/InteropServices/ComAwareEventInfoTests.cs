@@ -30,6 +30,7 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullType_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new ComAwareEventInfo(null, "EventName"));
@@ -42,6 +43,7 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Properties_NoSuchEvent_ThrowsNullReferenceException()
         {
             var attribute = new ComAwareEventInfo(typeof(NonComObject), string.Empty);
@@ -52,6 +54,7 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Methods_NoSuchEvent_ThrowsNullReferenceException()
         {
             var attribute = new ComAwareEventInfo(typeof(NonComObject), string.Empty);
