@@ -50,6 +50,7 @@ namespace System.Diagnostics.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void HasILOffset_NullStackFrame_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => StackFrameExtensions.HasILOffset(null));
@@ -63,6 +64,7 @@ namespace System.Diagnostics.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void HasMethod_NullStackFrame_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => StackFrameExtensions.HasMethod(null));
@@ -83,6 +85,7 @@ namespace System.Diagnostics.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void HasSource_NullStackFrame_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => StackFrameExtensions.HasSource(null));
