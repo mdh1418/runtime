@@ -530,6 +530,7 @@ namespace Microsoft.Extensions.Hosting.Internal
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public async Task HostShutsDownWhenTokenTriggers()
         {
             FakeHostedService service;
