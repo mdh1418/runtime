@@ -24,6 +24,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void RemoveAddedEventHandler()
         {
             var component = new DescriptorTestComponent();

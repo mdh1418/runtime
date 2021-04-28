@@ -369,6 +369,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Category_GetWithNullAttributes_ThrowsNullReferenceException()
         {
             var descriptor = new NullAttributesMemberDescriptor("Name");
@@ -456,6 +457,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Description_GetWithNullAttributes_ThrowsNullReferenceException()
         {
             var descriptor = new NullAttributesMemberDescriptor("Name");
@@ -502,6 +504,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void DesignTimeOnly_GetWithNullAttributes_ThrowsNullReferenceException()
         {
             var descriptor = new NullAttributesMemberDescriptor("Name");
@@ -591,6 +594,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void DisplayName_GetWithNullAttributes_ThrowsNullReferenceException()
         {
             var descriptor = new NullAttributesMemberDescriptor("Name");
@@ -637,6 +641,7 @@ namespace System.ComponentModel.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void IsBrowsable_GetWithNullAttributes_ThrowsNullReferenceException()
         {
             var descriptor = new NullAttributesMemberDescriptor("Name");
