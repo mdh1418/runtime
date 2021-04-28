@@ -26,24 +26,34 @@ namespace System.Numerics.Tests
         #region Constructor Tests
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorByte() { TestConstructor<byte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorSByte() { TestConstructor<sbyte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorUInt16() { TestConstructor<ushort>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorInt16() { TestConstructor<short>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorUInt32() { TestConstructor<uint>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorInt32() { TestConstructor<int>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorUInt64() { TestConstructor<ulong>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorInt64() { TestConstructor<long>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorSingle() { TestConstructor<float>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorDouble() { TestConstructor<double>(); }
 
         private void TestConstructor<T>() where T : struct
@@ -61,24 +71,34 @@ namespace System.Numerics.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetByte() { TestConstructorWithOffset<byte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetSByte() { TestConstructorWithOffset<sbyte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetUInt16() { TestConstructorWithOffset<ushort>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetInt16() { TestConstructorWithOffset<short>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetUInt32() { TestConstructorWithOffset<uint>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetInt32() { TestConstructorWithOffset<int>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetUInt64() { TestConstructorWithOffset<ulong>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetInt64() { TestConstructorWithOffset<long>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetSingle() { TestConstructorWithOffset<float>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void ConstructorWithOffsetDouble() { TestConstructorWithOffset<double>(); }
         private void TestConstructorWithOffset<T>() where T : struct
         {
@@ -560,24 +580,34 @@ namespace System.Numerics.Tests
 
         #region CopyTo (array) Tests
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToByte() { TestCopyTo<byte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToSByte() { TestCopyTo<sbyte>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToUInt16() { TestCopyTo<ushort>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToInt16() { TestCopyTo<short>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToUInt32() { TestCopyTo<uint>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToInt32() { TestCopyTo<int>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToUInt64() { TestCopyTo<ulong>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToInt64() { TestCopyTo<long>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToSingle() { TestCopyTo<float>(); }
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51999", TestPlatforms.tvOS)]
         public void CopyToDouble() { TestCopyTo<double>(); }
         private void TestCopyTo<T>() where T : struct
         {
