@@ -678,6 +678,7 @@ namespace System.Net.NetworkInformation.Tests
 
         [ConditionalFact(typeof(PlatformDetection), nameof(PlatformDetection.IsThreadingSupported))]
         [ActiveIssue("https://github.com/dotnet/runtime/issues/51395", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51997", TestPlatforms.tvOS)]
         public async Task SendAsyncs_ReuseInstance_Hostname()
         {
             IPAddress[] localIpAddresses = await TestSettings.GetLocalIPAddressesAsync();
