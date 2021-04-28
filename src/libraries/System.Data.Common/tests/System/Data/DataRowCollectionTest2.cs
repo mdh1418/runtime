@@ -171,6 +171,7 @@ namespace System.Data.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void DataRowCollection_Add_O4()
         {
             Assert.Throws<NullReferenceException>(() =>

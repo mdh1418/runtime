@@ -43,6 +43,7 @@ namespace System.Data.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void CtorExceptions()
         {
             //UniqueConstraint(string name, DataColumn column, bool isPrimaryKey)

@@ -302,6 +302,7 @@ namespace System.Data.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void Creation4()
         {
             DataRelation relation = new DataRelation("Rel", "Mom", "Child",

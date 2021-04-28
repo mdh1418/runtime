@@ -171,6 +171,7 @@ namespace System.Data.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void TestCtor5()
         {
             DataTable table1 = new DataTable("Table1");
@@ -246,6 +247,7 @@ namespace System.Data.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void CtorExceptions()
         {
             ForeignKeyConstraint fkc;
