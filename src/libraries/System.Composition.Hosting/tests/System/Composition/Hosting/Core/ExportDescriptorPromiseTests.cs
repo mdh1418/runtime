@@ -61,6 +61,7 @@ namespace System.Composition.Hosting.Core.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Dependencies_GetWhenNull_ThrowsNullReferenceException()
         {
             var descriptor = ExportDescriptor.Create(Activator, new Dictionary<string, object>());
@@ -85,6 +86,7 @@ namespace System.Composition.Hosting.Core.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void GetDescriptor_GetWhenNull_ThrowsNullReferenceException()
         {
             var descriptor = ExportDescriptor.Create(Activator, new Dictionary<string, object>());

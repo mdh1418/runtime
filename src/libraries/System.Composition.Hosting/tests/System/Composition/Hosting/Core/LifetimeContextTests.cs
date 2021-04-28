@@ -34,6 +34,7 @@ namespace System.Composition.Hosting.Core.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void AddBoundInstance_NullInstance_ThrowsNullReferenceExceptionOnDisposal()
         {
             CompositionHost host = CompositionHost.CreateCompositionHost(new ExportDescriptorProvider[0]);
@@ -115,6 +116,7 @@ namespace System.Composition.Hosting.Core.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void GetOrCreate_NullActivator_ThrowsNullReferenceException()
         {
             using (CompositionHost host = CompositionHost.CreateCompositionHost(new ExportDescriptorProvider[0]))
@@ -133,6 +135,7 @@ namespace System.Composition.Hosting.Core.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void GetOrCreate_NullOperation_ThrowsNullReferenceException()
         {
             using (CompositionHost host = CompositionHost.CreateCompositionHost(new ExportDescriptorProvider[0]))
