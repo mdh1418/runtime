@@ -85,6 +85,7 @@ namespace System.Globalization.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void MonthNames_FormatWithNull_ThrowsNullReferenceException()
         {
             var value = new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" };
