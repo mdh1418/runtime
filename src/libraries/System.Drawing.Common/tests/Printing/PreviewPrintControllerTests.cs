@@ -35,6 +35,7 @@ namespace System.Drawing.Printing.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void OnStartPage_InvokeNullDocument_ThrowsNullReferenceException()
         {
             var controller = new PreviewPrintController();
@@ -43,6 +44,7 @@ namespace System.Drawing.Printing.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void OnStartPage_InvokeNullEventArgs_ThrowsNullReferenceException()
         {
             using (var document = new PrintDocument())
@@ -66,6 +68,7 @@ namespace System.Drawing.Printing.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void OnStartPage_PrintNotStarted_ThrowsNullReferenceException()
         {
             using (var document = new PrintDocument())
@@ -124,6 +127,7 @@ namespace System.Drawing.Printing.Tests
         }
 
         [Fact]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void OnStartPrint_InvokeNullDocument_ThrowsNullReferenceException()
         {
             var controller = new PreviewPrintController();
