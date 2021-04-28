@@ -36,6 +36,7 @@ namespace System.CodeDom.Tests
         [InlineData(null)]
         [InlineData("")]
         [InlineData("FieldName")]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void EventName_Set_Get_ReturnsExpected(string value)
         {
             var fieldReference = new CodeFieldReferenceExpression();

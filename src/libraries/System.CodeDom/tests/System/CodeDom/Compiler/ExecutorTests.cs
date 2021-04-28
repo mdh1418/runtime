@@ -23,6 +23,7 @@ namespace System.CodeDom.Compiler.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void NullTempFileCollection_Required_Throws()
         {
             string outputName = null, errorName = null;

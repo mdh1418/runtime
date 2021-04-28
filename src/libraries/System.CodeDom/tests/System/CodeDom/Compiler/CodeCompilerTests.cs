@@ -467,6 +467,7 @@ namespace System.CodeDom.Compiler.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void GetResponseFileCmdArgs_NullOptions_ThrowsNullReferenceException()
         {
             var compiler = new Compiler();

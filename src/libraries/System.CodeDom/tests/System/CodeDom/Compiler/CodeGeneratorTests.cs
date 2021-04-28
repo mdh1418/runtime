@@ -12,6 +12,7 @@ using Xunit;
 
 namespace System.CodeDom.Compiler.Tests
 {
+    [ActiveIssue("", TestPlatforms.tvOS)]
     public class CodeGeneratorTests : CodeGenerator
     {
         [Fact]

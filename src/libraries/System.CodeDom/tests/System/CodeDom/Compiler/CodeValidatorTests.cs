@@ -910,6 +910,7 @@ namespace System.CodeDom.Compiler.Tests
 
         [Theory]
         [MemberData(nameof(ValidateIdentifiers_Valid_TestData))]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void ValidateIdentifiers_InvokeValid_Nop(CodeObject e)
         {
             CodeGenerator.ValidateIdentifiers(e);
@@ -2625,6 +2626,7 @@ namespace System.CodeDom.Compiler.Tests
         [MemberData(nameof(ValidateIdentifiers_Invalid_TestData))]
         [MemberData(nameof(ValidIdentifier_InvalidMemberInType_TestData))]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "Fixed incorrect param name in some situations")]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void ValidateIdentifiers_InvalidE_ThrowsArgumentException(CodeObject e)
         {
             AssertExtensions.Throws<ArgumentException>("e", () => CodeGenerator.ValidateIdentifiers(e));
