@@ -28,6 +28,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void SelectEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.Select<int, bool>(s_emptyDefault, null));
@@ -42,6 +43,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void SelectMany()
         {
             Func<int, IEnumerable<int>> collectionSelector = i => Enumerable.Range(i, 10);
@@ -68,6 +70,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void WhereEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.Where(s_emptyDefault, null));
@@ -92,6 +95,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void AnyEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.Any(s_emptyDefault));
@@ -116,6 +120,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void AllEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.All(s_emptyDefault, n => true));
@@ -159,6 +164,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void SequenceEqualEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.SequenceEqual(s_oneElement, s_emptyDefault));
@@ -191,6 +197,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void AggregateEmptyDefault()
         {
             Assert.Throws<NullReferenceException>(() => ImmutableArrayExtensions.Aggregate(s_emptyDefault, (a, b) => a + b));
@@ -207,6 +214,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void ElementAt()
         {
             // Basis for some assertions that follow
@@ -221,6 +229,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void ElementAtOrDefault()
         {
             Assert.Equal(Enumerable.ElementAtOrDefault(s_manyElements, -1), ImmutableArrayExtensions.ElementAtOrDefault(s_manyElements, -1));
@@ -263,6 +272,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void FirstEmptyDefault()
         {
             Assert.Throws<NullReferenceException>(() => ImmutableArrayExtensions.First(s_emptyDefault));
@@ -298,6 +308,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void FirstOrDefaultEmptyDefault()
         {
             Assert.Throws<NullReferenceException>(() => ImmutableArrayExtensions.FirstOrDefault(s_emptyDefault));
@@ -331,6 +342,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void LastEmptyDefault()
         {
             Assert.Throws<NullReferenceException>(() => ImmutableArrayExtensions.Last(s_emptyDefault));
@@ -366,6 +378,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void LastOrDefaultEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.LastOrDefault(s_emptyDefault));
@@ -393,6 +406,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void SingleEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.Single(s_emptyDefault));
@@ -420,6 +434,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void SingleOrDefaultEmptyDefault()
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => ImmutableArrayExtensions.SingleOrDefault(s_emptyDefault));
@@ -428,6 +443,8 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
+
         public void ToDictionary()
         {
             AssertExtensions.Throws<ArgumentNullException>("keySelector", () => ImmutableArrayExtensions.ToDictionary(s_manyElements, (Func<int, int>)null));
@@ -455,6 +472,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void ToArray()
         {
             Assert.Equal(0, ImmutableArrayExtensions.ToArray(s_empty).Length);

@@ -14,6 +14,7 @@ using Xunit;
 
 namespace System.Collections.Immutable.Tests
 {
+    [ActiveIssue("", TestPlatforms.tvOS)]
     public class ImmutableArrayTest : SimpleElementImmutablesTestBase
     {
         private static readonly ImmutableArray<int> s_emptyDefault = default; // init explicitly to avoid CS0649
@@ -619,6 +620,7 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void IsEmptyInvalid()
         {
             Assert.Throws<NullReferenceException>(() => s_emptyDefault.IsEmpty);
@@ -1086,6 +1088,7 @@ namespace System.Collections.Immutable.Tests
         [InlineData(-1)]
         [InlineData(1)]
         [InlineData(0)]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void InsertDefaultInvalid(int index)
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => s_emptyDefault.Insert(index, 10));
@@ -1205,6 +1208,7 @@ namespace System.Collections.Immutable.Tests
         [InlineData(-1)]
         [InlineData(0)]
         [InlineData(1)]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void RemoveAtDefaultInvalid(int index)
         {
             TestExtensionsMethods.ValidateDefaultThisBehavior(() => s_emptyDefault.RemoveAt(index));
@@ -1350,6 +1354,7 @@ namespace System.Collections.Immutable.Tests
 
         [Theory]
         [MemberData(nameof(Int32EnumerableData))]
+        [ActiveIssue("", TestPlatforms.tvOS)]
         public void RemoveRangeEnumerableInvalid(IEnumerable<int> source)
         {
             var array = source.ToImmutableArray();
