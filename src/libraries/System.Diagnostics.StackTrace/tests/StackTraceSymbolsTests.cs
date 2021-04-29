@@ -10,7 +10,7 @@ namespace System.Diagnostics.SymbolStore.Tests
     public class StackTraceSymbolsTests
     {
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51399", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51399", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void StackTraceSymbolsDoNotLockFile()
         {
             var asmPath = AssemblyPathHelper.GetAssemblyLocation(typeof(StackTraceSymbolsTests).Assembly);
