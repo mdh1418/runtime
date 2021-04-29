@@ -99,7 +99,7 @@ namespace System.Xml.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51412", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51412", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void TestResolveDTD_Default()
         {
             XmlReaderSettings settings = new XmlReaderSettings();
@@ -108,7 +108,7 @@ namespace System.Xml.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51412", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/51412", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void TestResolveDTD_AllowDTDProcessing()
         {
             XmlReaderSettings settings = new XmlReaderSettings();
