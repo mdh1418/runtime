@@ -127,7 +127,6 @@ namespace System.Collections.Immutable.Tests
         }
 
         [Fact]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void AddRangeImmutableArray()
         {
             var builder1 = new ImmutableArray<int>.Builder(2);
