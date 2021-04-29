@@ -36,7 +36,6 @@ namespace ManagedTests.DynamicCSharp.Conformance.dynamic.statements.Null.null002
     public class Test
     {
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51996", TestPlatforms.tvOS)]
         public static void DynamicCSharpRunTest()
         {
             Assert.Equal(0, MainMethod(null));
