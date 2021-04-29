@@ -144,35 +144,14 @@
 
   <ItemGroup Condition="('$(TargetOS)' == 'tvOS' or '$(TargetOS)' == 'tvOSSimulator') and '$(RunDisablediOSTests)' != 'true'">
     <!-- Crashes -->
-    <!-- https://github.com/dotnet/runtime/issues/36885 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Memory/tests/System.Memory.Tests.csproj" />
-
     <!-- https://github.com/dotnet/runtime/issues/36891 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Uri/tests/FunctionalTests/System.Private.Uri.Functional.Tests.csproj" />
 
     <!-- https://github.com/dotnet/runtime/issues/36898 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ServiceModel.Syndication/tests/System.ServiceModel.Syndication.Tests.csproj" />
 
-    <!-- https://github.com/dotnet/runtime/issues/36901 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.ValueTuple/tests/System.ValueTuple.Tests.csproj" />
-
-    <!-- https://github.com/dotnet/runtime/issues/36903 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Xml/tests/XmlSerializer/System.Xml.XmlSerializer.Tests.csproj" />
-
-    <!-- https://github.com/dotnet/runtime/issues/38031 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Drawing.Common/tests/System.Drawing.Common.Tests.csproj" />
-
     <!-- https://github.com/dotnet/runtime/issues/51392 -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)Microsoft.VisualBasic.Core/tests/Microsoft.VisualBasic.Core.Tests.csproj" />
-
-    <!-- https://github.com/dotnet/runtime/issues/51393 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.IO.FileSystem.Watcher/tests/System.IO.FileSystem.Watcher.Tests.csproj" />
-
-    <!-- https://github.com/dotnet/runtime/issues/51395 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Net.Ping/tests/FunctionalTests/System.Net.Ping.Functional.Tests.csproj" />
-
-    <!-- https://github.com/dotnet/runtime/issues/51399 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Diagnostics.StackTrace/tests/System.Diagnostics.StackTrace.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
