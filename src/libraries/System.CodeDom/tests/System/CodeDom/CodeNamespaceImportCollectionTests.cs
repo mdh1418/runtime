@@ -49,7 +49,6 @@ namespace System.CodeDom.Tests
         }
 
         [Fact]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void Add_Null_ThrowsNullReferenceException()
         {
             var collection = new CodeNamespaceImportCollection();
@@ -84,7 +83,6 @@ namespace System.CodeDom.Tests
         }
 
         [Fact]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void AddRange_NullObjectInValue_ThrowsNullReferenceException()
         {
             var collection = new CodeNamespaceImportCollection();

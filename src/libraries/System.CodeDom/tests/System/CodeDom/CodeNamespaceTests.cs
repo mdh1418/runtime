@@ -31,7 +31,6 @@ namespace System.CodeDom.Tests
 
         [Theory]
         [MemberData(nameof(String_TestData))]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void Name_Set_Get_ReturnsExpected(string value)
         {
             var codeNamespace = new CodeNamespace();
