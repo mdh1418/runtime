@@ -66,7 +66,6 @@ namespace System.ComponentModel.Design.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullProperties_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new NullPropertiesDesignerVerb("Text", new EventHandler(EventHandler)));
@@ -93,7 +92,6 @@ namespace System.ComponentModel.Design.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Description_GetWithNullProperties_ThrowsNullReferenceException()
         {
             var verb = new NullPropertiesAfterConstructionDesignerVerb("Text", new EventHandler(EventHandler));
@@ -120,7 +118,6 @@ namespace System.ComponentModel.Design.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Description_SetWithNullProperties_ThrowsNullReferenceException()
         {
             var verb = new NullPropertiesAfterConstructionDesignerVerb("Text", new EventHandler(EventHandler));
@@ -147,7 +144,6 @@ namespace System.ComponentModel.Design.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Text_GetWithNullProperties_ThrowsNullReferenceException()
         {
             var verb = new NullPropertiesAfterConstructionDesignerVerb("Text", new EventHandler(EventHandler));
