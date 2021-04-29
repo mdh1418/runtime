@@ -24,7 +24,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullSourceInterfaceType1_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new ComSourceInterfacesAttribute((Type)null));
@@ -41,7 +40,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullSourceInterfaceType2_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new ComSourceInterfacesAttribute(typeof(int), null));
@@ -57,7 +55,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullSourceInterfaceType3_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new ComSourceInterfacesAttribute(typeof(int), typeof(string), null));
@@ -72,7 +69,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullSourceInterfaceType4_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new ComSourceInterfacesAttribute(typeof(int), typeof(string), typeof(bool), null));

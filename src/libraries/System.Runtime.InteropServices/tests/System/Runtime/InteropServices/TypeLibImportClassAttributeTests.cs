@@ -15,7 +15,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void Ctor_NullImportClass_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => new TypeLibImportClassAttribute(null));

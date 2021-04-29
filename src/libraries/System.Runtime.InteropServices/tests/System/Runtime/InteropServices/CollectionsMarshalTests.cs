@@ -145,7 +145,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void GetValueRefOrNullRefValueType()
         {
             var dict = new Dictionary<int, Struct>
@@ -202,7 +201,6 @@ namespace System.Runtime.InteropServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void GetValueRefOrNullRefClass()
         {
             var dict = new Dictionary<int, IntAsObject>
