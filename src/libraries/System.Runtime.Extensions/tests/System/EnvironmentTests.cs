@@ -19,7 +19,6 @@ namespace System.Tests
     public class EnvironmentTests : FileCleanupTestBase
     {
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void CurrentDirectory_Null_Path_Throws_ArgumentNullException()
         {
             AssertExtensions.Throws<ArgumentNullException>("value", () => Environment.CurrentDirectory = null);
@@ -174,7 +173,7 @@ namespace System.Tests
         [InlineData("nelknet 4.15.0-24201807041620-generic", 4, 15, 0, int.MaxValue)] // integer overflow
         [InlineData("", 0, 0, 0, 0)]
         [InlineData("1abc", 1, 0, 0, 0)]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void OSVersion_ParseVersion(string input, int major, int minor, int build, int revision)
         {
             var getOSMethod = typeof(Environment).GetMethod("GetOperatingSystem", BindingFlags.Static | BindingFlags.NonPublic);
@@ -339,7 +338,7 @@ namespace System.Tests
 
         [Fact]
         [PlatformSpecific(TestPlatforms.AnyUnix | TestPlatforms.Browser)]  // Tests OS-specific environment
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public void GetFolderPath_Unix_PersonalIsHomeAndUserProfile()
         {
             Assert.Equal(Environment.GetEnvironmentVariable("HOME"), Environment.GetFolderPath(Environment.SpecialFolder.Personal));
