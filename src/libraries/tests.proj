@@ -142,12 +142,6 @@
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Threading.Timer/tests/System.Threading.Timer.Tests.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="('$(TargetOS)' == 'tvOS' or '$(TargetOS)' == 'tvOSSimulator') and '$(RunDisablediOSTests)' != 'true'">
-    <!-- Crashes -->
-    <!-- https://github.com/dotnet/runtime/issues/36891 -->
-    <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Private.Uri/tests/FunctionalTests/System.Private.Uri.Functional.Tests.csproj" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetOS)' == 'Browser' and '$(RunDisabledWasmTests)' != 'true'">
     <!-- Mono-Browser ignores runtimeconfig.template.json (e.g. for this it has "System.Globalization.EnforceJapaneseEraYearRanges": true) -->
     <ProjectExclusions Include="$(MSBuildThisFileDirectory)System.Globalization.Calendars\tests\CalendarTestWithConfigSwitch\System.Globalization.CalendarsWithConfigSwitch.Tests.csproj" />
