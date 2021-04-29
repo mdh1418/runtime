@@ -24,7 +24,6 @@ namespace BasicEventSourceTests
         /// to a manifest based eventSource
         /// </summary>
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51948", TestPlatforms.tvOS)]
         public void Test_BadTypes_Manifest_UserClass()
         {
             var badEventSource = new BadEventSource_Bad_Type_UserClass();
