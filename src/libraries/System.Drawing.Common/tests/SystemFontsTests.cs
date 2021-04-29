@@ -130,7 +130,6 @@ namespace System.Drawing.Tests
         [InlineData(null)]
         [InlineData("")]
         [InlineData("captionfont")]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void GetFontByName_NoSuchName_ReturnsNull(string systemFontName)
         {
             Assert.Null(SystemFonts.GetFontByName(systemFontName));
