@@ -289,7 +289,6 @@ namespace System.Data.Tests
 
         [Theory]
         [MemberData(nameof(AllowedTypes))]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void DataSet_ReadXml_AllowsKnownTypes(Type type)
         {
             // Arrange

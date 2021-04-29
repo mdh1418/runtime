@@ -449,7 +449,6 @@ namespace System.Data.Tests
         }
 
         [Fact]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void Ctor_DclmDclm1()
         {
             Assert.Throws<NullReferenceException>(() =>

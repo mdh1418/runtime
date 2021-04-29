@@ -128,7 +128,6 @@ namespace System.Data.Tests.SqlTypes
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51947", TestPlatforms.tvOS)]
         public void DivideMethod()
         {
             SqlByte testByte13 = new SqlByte(13);
