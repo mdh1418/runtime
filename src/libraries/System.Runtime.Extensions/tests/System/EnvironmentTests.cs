@@ -175,7 +175,6 @@ namespace System.Tests
         [InlineData("", 0, 0, 0, 0)]
         [InlineData("1abc", 1, 0, 0, 0)]
         [ActiveIssue("https://github.com/dotnet/runtime/issues/36896", TestPlatforms.iOS)]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/52001", TestPlatforms.tvOS)]
         public void OSVersion_ParseVersion(string input, int major, int minor, int build, int revision)
         {
             var getOSMethod = typeof(Environment).GetMethod("GetOperatingSystem", BindingFlags.Static | BindingFlags.NonPublic);
