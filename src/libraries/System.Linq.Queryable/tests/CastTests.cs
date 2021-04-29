@@ -193,7 +193,6 @@ namespace System.Linq.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public void CastingNullToNonnullableIsNullReferenceException()
         {
             int?[] source = new int?[] { -4, 1, null, 3 };
