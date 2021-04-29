@@ -59,7 +59,6 @@ namespace Microsoft.VisualBasic.CompilerServices.Tests
         }
 
         [Fact]
-        [ActiveIssue("", TestPlatforms.tvOS)]
         public void CopyArray_NullDestinationArray_ThrowsNullReferenceException()
         {
             Assert.Throws<NullReferenceException>(() => Utils.CopyArray(new int[1], null));
