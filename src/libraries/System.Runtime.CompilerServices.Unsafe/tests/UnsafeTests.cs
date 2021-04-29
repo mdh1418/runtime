@@ -1052,7 +1052,6 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/51949", TestPlatforms.tvOS)]
         public static unsafe void NullRef()
         {
             // Validate that calling with a primitive type works.
