@@ -44,7 +44,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Write_RSS_Feed()
         {
             string path = Path.GetTempFileName();
@@ -78,7 +78,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Write_RSS_Feed_()
         {
             string path = Path.GetTempFileName();
@@ -113,7 +113,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Write_Atom_Feed()
         {
             string path = Path.GetTempFileName();
@@ -147,7 +147,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Write_Atom_Feed_()
         {
             string path = Path.GetTempFileName();
@@ -236,7 +236,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Rss()
         {
             XmlReaderSettings setting = new XmlReaderSettings();
@@ -248,7 +248,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Load_Atom()
         {
             XmlReaderSettings setting = new XmlReaderSettings();
@@ -261,7 +261,7 @@ namespace System.ServiceModel.Syndication.Tests
 
         [Fact]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "Disjoint items not supported on NetFX")]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Rss_TestDisjointItems()
         {
             using (XmlReader reader = XmlReader.Create("TestFeeds/RssDisjointItems.xml"))
@@ -283,7 +283,7 @@ namespace System.ServiceModel.Syndication.Tests
 
         [Fact]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "Disjoint items not supported on NetFX")]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Atom_TestDisjointItems()
         {
             using (XmlReader reader = XmlReader.Create("TestFeeds/AtomDisjointItems.xml"))
@@ -304,7 +304,7 @@ namespace System.ServiceModel.Syndication.Tests
 
         [Fact]
         [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, "Deferred date exception throwing not implemented on NetFX")]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void SyndicationFeed_Rss_WrongDateFormat()
         {
             // *** SETUP *** \\
@@ -324,7 +324,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void AtomEntryPositiveTest()
         {
             string file = "TestFeeds/brief-entry-noerror.xml";
@@ -332,7 +332,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void AtomEntryPositiveTest_write()
         {
             string file = "TestFeeds/AtomEntryTest.xml";
@@ -380,7 +380,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void AtomFeedPositiveTest()
         {
             string dataFile = "TestFeeds/atom_feeds.dat";
@@ -394,7 +394,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void RssEntryPositiveTest()
         {
             string file = "TestFeeds/RssEntry.xml";
@@ -402,7 +402,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void RssFeedPositiveTest()
         {
             string dataFile = "TestFeeds/rss_feeds.dat";
@@ -416,7 +416,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void DiffAtomNsTest()
         {
             string file = "TestFeeds/FailureFeeds/diff_atom_ns.xml";
@@ -427,7 +427,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void DiffRssNsTest()
         {
             string file = "TestFeeds/FailureFeeds/diff_rss_ns.xml";
@@ -438,7 +438,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void DiffRssVersionTest()
         {
             string file = "TestFeeds/FailureFeeds/diff_rss_version.xml";
@@ -449,7 +449,7 @@ namespace System.ServiceModel.Syndication.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36898", TestPlatforms.iOS | TestPlatforms.tvOS)]
         public static void NoRssVersionTest()
         {
             string file = "TestFeeds/FailureFeeds/no_rss_version.xml";
