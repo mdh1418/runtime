@@ -175,7 +175,6 @@ namespace System.PrivateUri.Tests
 
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/52000", TestPlatforms.tvOS)]
         public static void GetComponents_Null()
         {
             TestUriParser parser = new TestUriParser();
@@ -308,7 +307,6 @@ namespace System.PrivateUri.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/52000", TestPlatforms.tvOS)]
         public static void IsWellFormedOriginalString_Null()
         {
             TestUriParser parser = new TestUriParser();
@@ -372,7 +370,6 @@ namespace System.PrivateUri.Tests
         }
 
         [Fact]
-        [ActiveIssue("https://github.com/dotnet/runtime/issues/52000", TestPlatforms.tvOS)]
         public static void Resolve_NullUri()
         {
             Uri http = new Uri(FullHttpUri);
