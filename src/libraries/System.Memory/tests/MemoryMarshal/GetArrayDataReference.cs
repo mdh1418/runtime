@@ -11,7 +11,7 @@ namespace System.SpanTests
     {
         [Fact]
         [ActiveIssue("https://github.com/dotnet/runtime/issues/50960", typeof(PlatformDetection), nameof(PlatformDetection.IsBrowser), nameof(PlatformDetection.IsMonoAOT))]
-        [ActiveIssue("", TestPlatforms.tvOS)]
+        [ActiveIssue("https://github.com/dotnet/runtime/issues/36885", TestPlatforms.tvOS)]
         public static void GetArrayDataReference_NullInput_ThrowsNullRef()
         {
             Assert.Throws<NullReferenceException>(() => MemoryMarshal.GetArrayDataReference((object[])null));
