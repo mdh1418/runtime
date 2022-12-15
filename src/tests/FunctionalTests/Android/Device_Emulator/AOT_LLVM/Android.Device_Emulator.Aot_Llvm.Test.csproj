@@ -12,6 +12,16 @@
     <MonoEnableLLVM>true</MonoEnableLLVM>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NativeLibrary>shared</NativeLibrary>
+    <AndroidGenerateAppBundle>true</AndroidGenerateAppBundle>
+  </PropertyGroup>
+  <ItemGroup>
+    <DirectPInvokes Include="mdh!mdh" />
+    <DirectPInvokeSources Include="$(MSBuildThisFileDirectory)mdh.c" />
+    <_ExtraLibrarySources Include="$(MSBuildThisFileDirectory)mdh.c" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="Program.cs" />
   </ItemGroup>

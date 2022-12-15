@@ -201,7 +201,9 @@ _monovm_runtimeconfig_initialize
         Mode="$(_AOTMode)"
         OutputDir="$(_MobileIntermediateOutputPath)"
         OutputType="AsmOnly"
-        UseLLVM="$(MonoEnableLLVM)">
+        UseLLVM="$(MonoEnableLLVM)"
+        DirectPInvokes="@(DirectPInvokes)"
+        DirectPInvokeLists="@(DirectPInvokeLists)">
         <Output TaskParameter="CompiledAssemblies" ItemName="_AppleAssembliesInternal" />
     </MonoAOTCompiler>
 

@@ -18,6 +18,11 @@ set(DOTNET_EXTRA_SOURCES
 include_directories("%MonoInclude%")
 
 add_library(
+    direct_pinvoke_library STATIC
+%DirectPInvokeSources%
+)
+
+add_library(
     aot_library STATIC
     ${DOTNET_AOT_SOURCES}   
 )
@@ -46,5 +51,6 @@ set_target_properties(%LIBRARY_NAME% PROPERTIES
 target_link_libraries(
     %LIBRARY_NAME%
     aot_library
+    direct_pinvoke_library
     %LIBRARY_LINKER_ARGS%
 )

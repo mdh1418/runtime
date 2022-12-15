@@ -12,9 +12,13 @@ public static class Program
         Console.WriteLine("Called from the outside!  Hello!");
     }
 
+    [DllImport("mdh")]
+    public static extern int mdh();
+
     public static int Main()
     {
         Console.WriteLine("Hello, Android!"); // logcat
+        Console.WriteLine($"mdh{mdh ()}");
         return 42;
     }
 }

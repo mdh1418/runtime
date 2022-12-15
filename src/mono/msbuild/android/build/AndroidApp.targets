@@ -3,7 +3,6 @@
              AssemblyFile="$(AndroidAppBuilderTasksAssemblyPath)" />
 
   <PropertyGroup>
-    <AndroidGenerateAppBundle Condition="'$(GenerateAppBundle)' != ''">$(GenerateAppBundle)</AndroidGenerateAppBundle>
     <AndroidGenerateAppBundle Condition="'$(AndroidGenerateAppBundle)' == '' and '$(NativeLibrary)' != ''">false</AndroidGenerateAppBundle>
     <AndroidGenerateAppBundle Condition="'$(AndroidGenerateAppBundle)' == ''">true</AndroidGenerateAppBundle>
   </PropertyGroup>
@@ -60,7 +59,7 @@ monovm_runtimeconfig_initialize
 mono_aot_register_module
 mono_polling_required
 mono_thread_interruption_request_flag
-
+mdh
       </_RuntimeSymbolsToKeep>
     </PropertyGroup>
 
