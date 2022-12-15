@@ -12,7 +12,19 @@
     <ExpectedExitCode>42</ExpectedExitCode>
     <EnableAggressiveTrimming Condition="'$(EnableAggressiveTrimming)' == ''">true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
+    <Mode>Full</Mode>
   </PropertyGroup>
+
+  <ItemGroup>
+    <DirectPInvokes Include="mitch!hwang" />
+    <DirectPInvokes Include="hwang!mitch" />
+    <DirectPInvokes Include="mitch!mihw" />
+    <DirectPInvokeLists Include="temp.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DirectPInvokeSources Include="mihw.c;mitch.c;hwang.c" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Program.cs" />

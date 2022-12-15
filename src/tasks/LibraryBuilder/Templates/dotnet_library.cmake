@@ -9,6 +9,11 @@ set(DOTNET_EXTRA_SOURCES
 )
 
 add_library(
+    direct_pinvoke_library STATIC
+%DirectPInvokeSources%
+)
+
+add_library(
     aot_library STATIC
     ${DOTNET_AOT_SOURCES}   
 )
@@ -24,5 +29,6 @@ add_library(
 target_link_libraries(
     lib-%LIBRARY_NAME%
     aot_library
+    direct_pinvoke_library
     %LIBRARY_LINKER_ARGS%
 )

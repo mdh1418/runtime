@@ -45,6 +45,11 @@ public class LibraryBuilderTask : AppBuilderTask
     public ITaskItem[] ExtraSources { get; set; } = Array.Empty<ITaskItem>();
 
     /// <summary>
+    /// Direct PInvoke sources to be linked into shared library
+    /// </summary>
+    public ITaskItem[] DirectPInvokeSources { get; set; } = Array.Empty<ITaskItem>();
+
+    /// <summary>
     /// Additional linker arguments that apply to the library being built
     /// </summary>
     public ITaskItem[] ExtraLinkerArguments { get; set; } = Array.Empty<ITaskItem>();
@@ -74,6 +79,7 @@ public class LibraryBuilderTask : AppBuilderTask
         StringBuilder aotSources = new StringBuilder();
         StringBuilder aotObjects = new StringBuilder();
         StringBuilder extraSources = new StringBuilder();
+        StringBuilder directPInvokeSources = new StringBuilder();
         StringBuilder linkerArgs = new StringBuilder();
 
         if (!base.Execute())
@@ -83,9 +89,10 @@ public class LibraryBuilderTask : AppBuilderTask
         }
 
         GatherAotSourcesObjects(aotSources, aotObjects, extraSources, linkerArgs);
+        GatherDirectPInvokeSources(directPInvokeSources);
         GatherLinkerArgs(linkerArgs);
 
-        WriteCMakeFileFromTemplate(aotSources.ToString(), aotObjects.ToString(), extraSources.ToString(), linkerArgs.ToString());
+        WriteCMakeFileFromTemplate(aotSources.ToString(), aotObjects.ToString(), extraSources.ToString(), directPInvokeSources.ToString(), linkerArgs.ToString());
 
         return true;
     }
@@ -120,6 +127,14 @@ public class LibraryBuilderTask : AppBuilderTask
         foreach (ITaskItem item in ExtraSources)
         {
             extraSources.AppendLine(item.ItemSpec);
+        }
+    }
+
+    private void GatherDirectPInvokeSources(StringBuilder directPInvokeSources)
+    {
+        foreach (var DirectPInvokeSourceItem in DirectPInvokeSources)
+        {
+            directPInvokeSources.AppendLine($"    \"{DirectPInvokeSourceItem.GetMetadata("FullPath")}\"");
         }
     }
 
@@ -160,7 +175,7 @@ public class LibraryBuilderTask : AppBuilderTask
         }
     }
 
-    private void WriteCMakeFileFromTemplate(string aotSources, string aotObjects, string extraSources, string linkerArgs)
+    private void WriteCMakeFileFromTemplate(string aotSources, string aotObjects, string extraSources, string directPInvokeSources, string linkerArgs)
     {
         // BundleDir
         File.WriteAllText(Path.Combine(OutputDirectory, "dotnet_library.cmake"),
@@ -170,6 +185,7 @@ public class LibraryBuilderTask : AppBuilderTask
                 .Replace("%AotSources%", aotSources)
                 .Replace("%AotObjects%", aotObjects)
                 .Replace("%ExtraSources%", extraSources)
+                .Replace("%DirectPInvokeSources%", directPInvokeSources)
                 .Replace("%LIBRARY_LINKER_ARGS%", linkerArgs));
     }
 }

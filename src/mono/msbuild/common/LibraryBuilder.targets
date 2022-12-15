@@ -21,6 +21,7 @@
       Assemblies="@(AppAssembliesInternal)"
       ExtraLinkerArguments="@(_ExtraLinkerArgs)"
       ExtraSources="@(_ExtraLibrarySources)"
+      DirectPInvokeSources="@(DirectPInvokeSources)"
       Name="$(AssemblyName)"
       MonoRuntimeHeaders="$(_MonoHeaderPath)"
       OutputDirectory="$(BundleDir)"

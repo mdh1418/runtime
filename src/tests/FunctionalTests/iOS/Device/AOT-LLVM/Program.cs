@@ -11,6 +11,9 @@ public static class Program
     [DllImport("__Internal")]
     public static extern void mono_ios_set_summary (string value);
 
+    [DllImport("mitch")]
+    public static extern void hwang ();
+
     [UnmanagedCallersOnly(EntryPoint="HelloSteve")]
     public static void HelloSteve()
     {
