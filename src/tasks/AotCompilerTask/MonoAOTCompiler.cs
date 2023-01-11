@@ -66,6 +66,7 @@ public class MonoAOTCompiler : Microsoft.Build.Utilities.Task
     ///   - AotDataFile (when using UseAotDataFile=true)
     ///   - LlvmObjectFile (if using LLVM)
     ///   - LlvmBitcodeFile (if using LLVM-only)
+    ///   - ExportsFile (used in LibraryMode only)
     /// </summary>
     [Output]
     public ITaskItem[]? CompiledAssemblies { get; set; }
@@ -665,7 +666,7 @@ public class MonoAOTCompiler : Microsoft.Build.Utilities.Task
 
         if (UseDirectPInvoke)
         {
-            aotArgs.Add($"direct-pinvoke");
+            aotArgs.Add("direct-pinvoke");
         }
 
         if (DirectPInvokes.Length > 0)
@@ -679,7 +680,6 @@ public class MonoAOTCompiler : Microsoft.Build.Utilities.Task
         {
             var directPInvokeListsSB = new StringBuilder("direct-pinvoke-lists=");
             Array.ForEach(DirectPInvokeLists, directPInvokeListItem => directPInvokeListsSB.Append($"{directPInvokeListItem.GetMetadata("FullPath")};"));
-            aotArgs.Add(directPInvokeListsSB.ToString());
         }
 
         if (UseDwarfDebug)
