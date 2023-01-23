@@ -13898,7 +13898,13 @@ aot_opts_free (MonoAotOptions *aot_opts)
 static void
 acfg_free (MonoAotCompile *acfg)
 {
-	mono_img_writer_destroy (acfg->w);
+#ifdef ENABLE_LLVM
+	if (acfg->aot_opts.llvm)
+		mono_llvm_free_aot_module ();
+#endif
+
+	if (acfg->w)
+		mono_img_writer_destroy (acfg->w);
 	for (guint32 i = 0; i < acfg->nmethods; ++i)
 		if (acfg->cfgs [i])
 			mono_destroy_compile (acfg->cfgs [i]);
@@ -14833,9 +14839,11 @@ aot_assembly (MonoAssembly *ass, guint32 jit_opts, MonoAotOptions *aot_options)
 
 	dedup_skip_methods (acfg);
 
-	if (acfg->dedup_collect_only)
+	if (acfg->dedup_collect_only) {
 		/* We only collected methods from this assembly */
+		acfg_free (acfg);
 		return 0;
+	}
 
 	current_acfg = NULL;
 
