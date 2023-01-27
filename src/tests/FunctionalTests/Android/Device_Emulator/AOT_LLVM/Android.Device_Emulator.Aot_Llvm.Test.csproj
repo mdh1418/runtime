@@ -10,7 +10,16 @@
     <ExpectedExitCode>42</ExpectedExitCode>
     <EnableAggressiveTrimming>true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
+    <Mode>Full</Mode>
   </PropertyGroup>
+
+  <ItemGroup>
+    <DirectPInvokes Include="autoinit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DirectPInvokeSources Include="autoinit.c" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Program.cs" />

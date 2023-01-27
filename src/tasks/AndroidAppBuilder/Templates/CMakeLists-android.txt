@@ -25,4 +25,5 @@ target_link_libraries(
     lib-%ProjectName%
     libz.so
     log
+    -Wl,--exclude-libs lib-%ProjectName%
 )

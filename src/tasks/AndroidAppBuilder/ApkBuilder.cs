@@ -425,7 +425,7 @@ public class ApkBuilder
         Utils.RunProcess(logger, aapt, $"package -f -m -F {apkFile} -A assets -M AndroidManifest.xml -I {androidJar} {debugModeArg}", workingDir: OutputDir);
 
         var dynamicLibs = new List<string>();
-        dynamicLibs.Add(Path.Combine(OutputDir, "monodroid", "libmonodroid.so"));
+        dynamicLibs.AddRange(Directory.GetFiles(Path.Combine(OutputDir, "monodroid"), "*.so"));
         dynamicLibs.AddRange(Directory.GetFiles(AppDir, "*.so").Where(file => Path.GetFileName(file) != "libmonodroid.so"));
 
         // add all *.so files to lib/%abi%/

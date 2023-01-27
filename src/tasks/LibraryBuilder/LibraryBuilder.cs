@@ -99,7 +99,7 @@ public class LibraryBuilderTask : AppBuilderTask
 
     private void GatherAotSourcesObjects(StringBuilder aotSources, StringBuilder aotObjects, StringBuilder extraSources, StringBuilder linkerArgs)
     {
-        bool hasExports = false;
+        bool hasExports = true;
 
         foreach (CompiledAssembly compiledAssembly in CompiledAssemblies)
         {
