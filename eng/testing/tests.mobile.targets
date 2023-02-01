@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GenerateAppBundle Condition="'$(GenerateAppBundle)' == ''">true</GenerateAppBundle>
     <RunAOTCompilation Condition="'$(TargetOS)' == 'ios' or '$(TargetOS)' == 'tvos'">true</RunAOTCompilation>
   </PropertyGroup>
 
