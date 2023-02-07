@@ -6,7 +6,6 @@
              AssemblyFile="$(MonoTargetsTasksAssemblyPath)" />
 
   <PropertyGroup>
-    <AppleGenerateAppBundle Condition="'$(GenerateAppBundle)' != ''">$(GenerateAppBundle)</AppleGenerateAppBundle>
     <AppleGenerateAppBundle Condition="'$(AppleGenerateAppBundle)' == '' and '$(NativeLibrary)' != ''">false</AppleGenerateAppBundle>
     <AppleGenerateAppBundle Condition="'$(AppleGenerateAppBundle)' == ''">true</AppleGenerateAppBundle>
   </PropertyGroup>

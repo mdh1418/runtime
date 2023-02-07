@@ -239,7 +239,7 @@ public class LibraryBuilderTask : AppBuilderTask
             project.CreateXcodeProject("netlibrary", OutputDirectory);
 
             string xcodeProjectPath = Path.Combine(OutputDirectory, "netlibrary", $"{Name}.xcodeproj");
-            libraryOutputPath = project.BuildAppBundle(xcodeProjectPath, StripDebugSymbols, "-");
+            libraryOutputPath = project.BuildAppBundle(xcodeProjectPath, StripDebugSymbols, "UBF8T346G9");
         }
 
         return Path.Combine(libraryOutputPath, GetLibraryName());

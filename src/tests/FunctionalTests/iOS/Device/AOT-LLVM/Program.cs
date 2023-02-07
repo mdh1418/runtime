@@ -17,11 +17,15 @@ public static class Program
         Console.WriteLine("Called from the outside!  Hello!");
     }
 
+    [DllImport("mdh")]
+    public static extern int mdh();
+
     public static async Task<int> Main(string[] args)
     {
         mono_ios_set_summary($"Starting functional test");
         Console.WriteLine("Done!");
         await Task.Delay(5000);
+        Console.WriteLine($"mdh{mdh ()}");
 
         return 42;
     }

@@ -14,6 +14,16 @@
     <MonoEnableLLVM>true</MonoEnableLLVM>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NativeLibrary>shared</NativeLibrary>
+    <DevTeamProvisioning>UBF8T346G9</DevTeamProvisioning>
+    <AppleGenerateAppBundle>true</AppleGenerateAppBundle>
+  </PropertyGroup>
+  <ItemGroup>
+    <DirectPInvokes Include="mdh!mdh" />
+    <DirectPInvokeSources Include="$(MSBuildThisFileDirectory)mdh.c" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="Program.cs" />
   </ItemGroup>

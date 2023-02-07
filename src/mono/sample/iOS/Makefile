@@ -1,8 +1,8 @@
 MONO_CONFIG?=Debug
-MONO_ARCH?=x64
+MONO_ARCH?=arm64
 DOTNET := ../../../../dotnet.sh
 USE_LLVM=true
-AOT?=false
+AOT?=true
 TARGET?=iossimulator
 DEPLOY_AND_RUN?=true
 APP_SANDBOX?=false
@@ -35,7 +35,8 @@ run: clean appbuilder
 	/p:ForceAOT=$(AOT) \
 	'/p:RuntimeComponents="$(RUNTIME_COMPONENTS)"' \
 	'/p:DeployAndRun="$(DEPLOY_AND_RUN)"' \
-	'/p:DiagnosticPorts="$(DIAGNOSTIC_PORTS)"'
+	'/p:DiagnosticPorts="$(DIAGNOSTIC_PORTS)"' \
+	/bl:iOSSample.binlog
 
 run-sim: clean appbuilder
 	$(DOTNET) publish \
