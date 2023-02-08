@@ -220,7 +220,8 @@ mdh
         OutputType="AsmOnly"
         UseLLVM="$(MonoEnableLLVM)"
         DirectPInvokes="@(DirectPInvokes)"
-        DirectPInvokeLists="@(DirectPInvokeLists)">
+        DirectPInvokeLists="@(DirectPInvokeLists)"
+        ForceRebuild="$(ForceRebuild)">
         <Output TaskParameter="CompiledAssemblies" ItemName="_AndroidAssembliesInternal" />
     </MonoAOTCompiler>
 

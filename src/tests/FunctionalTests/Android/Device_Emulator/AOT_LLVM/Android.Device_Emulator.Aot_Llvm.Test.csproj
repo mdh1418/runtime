@@ -20,6 +20,7 @@
     <DirectPInvokes Include="mdh!mdh" />
     <DirectPInvokeSources Include="$(MSBuildThisFileDirectory)mdh.c" />
     <_ExtraLibrarySources Include="$(MSBuildThisFileDirectory)mdh.c" />
+    <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptor.Android.Device_Emulator.Aot_Llvm.Test.xml" />
   </ItemGroup>
 
   <ItemGroup>

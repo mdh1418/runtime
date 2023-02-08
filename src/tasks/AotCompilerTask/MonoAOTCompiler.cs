@@ -267,6 +267,8 @@ public class MonoAOTCompiler : Microsoft.Build.Utilities.Task
     /// </summary>
     public string? WorkingDirectory { get; set; }
 
+    public bool ForceRebuild { get; set; }
+
     [Required]
     public string IntermediateOutputPath { get; set; } = string.Empty;
 
@@ -479,7 +481,7 @@ public class MonoAOTCompiler : Microsoft.Build.Utilities.Task
             argsList.Add(GetPrecompileArgumentsFor(assemblyItem, monoPaths));
 
         _totalNumAssemblies = _assembliesToCompile.Count;
-        if (CheckAllUpToDate(argsList))
+        if (CheckAllUpToDate(argsList) && !ForceRebuild)
         {
             Log.LogMessage(MessageImportance.High, "Everything is up-to-date, nothing to precompile");
 
