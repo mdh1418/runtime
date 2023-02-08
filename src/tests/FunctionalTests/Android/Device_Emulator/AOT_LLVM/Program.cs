@@ -12,6 +12,12 @@ public static class Program
         Console.WriteLine("Called from the outside!  Hello!");
     }
 
+    [UnmanagedCallersOnly(EntryPoint="hdm")]
+    public static int hdm()
+    {
+        return 8141;
+    }
+
     [DllImport("mdh")]
     public static extern int mdh();
 

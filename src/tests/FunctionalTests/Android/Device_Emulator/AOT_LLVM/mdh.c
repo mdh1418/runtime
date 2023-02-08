@@ -10,6 +10,5 @@ init_func(void) {
 int32_t
 mdh (void)
 {
-    HelloSteve();
     return 1418;
 }
