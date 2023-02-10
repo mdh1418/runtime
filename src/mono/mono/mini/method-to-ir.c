@@ -11009,13 +11009,18 @@ field_access_end:
 				MonoBasicBlock *next_bb;
 
 				if (cfg->compile_aot) {
-					/*
-					 * This is called on unattached threads, so it cannot go through the trampoline
-					 * infrastructure. Use an indirect call through a got slot initialized at load time
-					 * instead.
-					 */
-					EMIT_NEW_AOTCONST (cfg, addr, MONO_PATCH_INFO_JIT_ICALL_ADDR_NOCALL, GUINT_TO_POINTER (jit_icall_id));
-					ins = mini_emit_calli (cfg, jit_icall_info->sig, sp, addr, NULL, NULL);
+					if (cfg->static_link) {
+						EMIT_NEW_AOTCONST (cfg, addr, MONO_PATCH_INFO_JIT_ICALL_ID, GUINT_TO_POINTER (jit_icall_id));
+						ins = mini_emit_calli (cfg, jit_icall_info->sig, sp, addr, NULL, NULL);
+					} else {
+						/*
+						* This is called on unattached threads, so it cannot go through the trampoline
+						* infrastructure. Use an indirect call through a got slot initialized at load time
+						* instead.
+						*/
+						EMIT_NEW_AOTCONST (cfg, addr, MONO_PATCH_INFO_JIT_ICALL_ADDR_NOCALL, GUINT_TO_POINTER (jit_icall_id));
+						ins = mini_emit_calli (cfg, jit_icall_info->sig, sp, addr, NULL, NULL);
+					}
 				} else {
 					ins = mono_emit_jit_icall_id (cfg, jit_icall_id, sp);
 				}

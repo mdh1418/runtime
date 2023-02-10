@@ -3078,6 +3078,7 @@ mini_method_compile (MonoMethod *method, guint32 opts, JitFlags flags, int parts
 	gboolean method_is_gshared = FALSE;
 	gboolean run_cctors = (flags & JIT_FLAG_RUN_CCTORS) ? 1 : 0;
 	gboolean compile_aot = (flags & JIT_FLAG_AOT) ? 1 : 0;
+	gboolean static_link = (flags & JIT_FLAG_STATIC_LINK) ? 1 : 0;
 	gboolean full_aot = (flags & JIT_FLAG_FULL_AOT) ? 1 : 0;
 	gboolean disable_direct_icalls = (flags & JIT_FLAG_NO_DIRECT_ICALLS) ? 1 : 0;
 	gboolean gsharedvt_method = FALSE;
@@ -3163,6 +3164,7 @@ mini_method_compile (MonoMethod *method, guint32 opts, JitFlags flags, int parts
 	cfg->run_cctors = run_cctors;
 	cfg->verbose_level = mini_verbose;
 	cfg->compile_aot = compile_aot;
+	cfg->static_link = static_link;
 	cfg->full_aot = full_aot;
 	cfg->disable_omit_fp = mini_debug_options.disable_omit_fp;
 	cfg->skip_visibility = method->skip_visibility;

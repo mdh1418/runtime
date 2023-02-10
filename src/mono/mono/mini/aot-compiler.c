@@ -9278,6 +9278,8 @@ compile_method (MonoAotCompile *acfg, MonoMethod *method)
 		flags = (JitFlags)(flags | JIT_FLAG_SELF_INIT);
 	if (acfg->flags & MONO_AOT_FILE_FLAG_CODE_EXEC_ONLY)
 		flags = (JitFlags)(flags | JIT_FLAG_CODE_EXEC_ONLY);
+	if (acfg->aot_opts.static_link)
+		flags = (JitFlags)(flags | JIT_FLAG_STATIC_LINK);
 
 	jit_time_start = mono_time_track_start ();
 	cfg = mini_method_compile (method, acfg->jit_opts, flags, 0, index);

@@ -1269,6 +1269,8 @@ typedef enum {
 	JIT_FLAG_SELF_INIT = (1 << 11),
 	/* Assume code memory is exec only */
 	JIT_FLAG_CODE_EXEC_ONLY = (1 << 12),
+	/* Whenever linking statically */
+	JIT_FLAG_STATIC_LINK = (1 << 13),
 } JitFlags;
 
 /* Bit-fields in the MonoBasicBlock.region */
@@ -1427,6 +1429,7 @@ typedef struct {
 	guint            run_cctors : 1;
 	guint            need_lmf_area : 1;
 	guint            compile_aot : 1;
+	guint            static_link : 1;
 	guint            full_aot : 1;
 	guint            compile_llvm : 1;
 	guint            got_var_allocated : 1;
