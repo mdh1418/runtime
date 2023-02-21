@@ -12,6 +12,11 @@
     <MonoEnableLLVM>true</MonoEnableLLVM>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NativeLib>shared</NativeLib>
+    <GenerateAppBundle>true</GenerateAppBundle>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Program.cs" />
   </ItemGroup>
