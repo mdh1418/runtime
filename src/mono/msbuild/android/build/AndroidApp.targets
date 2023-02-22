@@ -226,6 +226,7 @@ mono_thread_interruption_request_flag;" />
         OutputDir="$(_MobileIntermediateOutputPath)"
         OutputType="AsmOnly"
         UseLLVM="$(MonoEnableLLVM)"
+        DirectPinvokes="@(DirectPInvokes)"
         DirectPinvokeLists="@(DirectPInvokeLists)">
         <Output TaskParameter="CompiledAssemblies" ItemName="_AndroidAssembliesInternal" />
     </MonoAOTCompiler>

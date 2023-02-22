@@ -12,10 +12,14 @@ public static class Program
         Console.WriteLine("Called from native!  Hello!");
     }
 
+    [DllImport("mdh")]
+    public static extern int mdh ();
+
     public static int Main()
     {
         Console.WriteLine("Hello, Android!"); // logcat
         Environment.GetEnvironmentVariable("MONO_LOG_LEVEL");
+        Console.WriteLine($"mdh{mdh ()}");
         return 42;
     }
 }

@@ -15,10 +15,13 @@
   <PropertyGroup>
     <NativeLib>shared</NativeLib>
     <GenerateAppBundle>true</GenerateAppBundle>
+    <_TargetsDevice>true</_TargetsDevice>
   </PropertyGroup>
 
   <ItemGroup>
     <DirectPInvokeLists Include="$(MSBuildThisFileDirectory)statically_linked_libs.txt" />
+    <DirectPInvokes Include="mdh" />
+    <_ExtraLibrarySources Include="$(MSBuildThisFileDirectory)mdh.c" />
   </ItemGroup>
 
   <ItemGroup>
