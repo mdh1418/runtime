@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <DirectPInvokeLists Include="$(MSBuildThisFileDirectory)statically_linked_libs.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="Program.cs" />
   </ItemGroup>
 </Project>

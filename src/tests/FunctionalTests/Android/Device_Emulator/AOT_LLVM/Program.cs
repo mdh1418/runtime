@@ -15,6 +15,7 @@ public static class Program
     public static int Main()
     {
         Console.WriteLine("Hello, Android!"); // logcat
+        Environment.GetEnvironmentVariable("MONO_LOG_LEVEL");
         return 42;
     }
 }
