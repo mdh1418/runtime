@@ -158,6 +158,7 @@ mono_thread_interruption_request_flag;" />
 
       <MonoAOTCompilerDefaultAotArguments Include="static" />
       <MonoAOTCompilerDefaultAotArguments Include="dwarfdebug" />
+      <MonoAOTCompilerDefaultAotArguments Include="runtime-init-callback" />
 
       <MonoAOTCompilerDefaultAotArguments Include="nimt-trampolines=2000" />
       <MonoAOTCompilerDefaultAotArguments Include="ntrampolines=10000" />
