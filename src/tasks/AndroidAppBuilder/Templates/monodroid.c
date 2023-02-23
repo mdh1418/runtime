@@ -329,43 +329,7 @@ Java_net_dot_MonoRunner_hdm (JNIEnv* env, jobject thiz) {
 int
 Java_net_dot_MonoRunner_initRuntime (JNIEnv* env, jobject thiz, jstring j_files_dir, jstring j_cache_dir, jstring j_testresults_dir, jstring j_entryPointLibName, jobjectArray j_args, long current_local_time)
 {
-    char file_dir[2048];
-    char cache_dir[2048];
-    char testresults_dir[2048];
-    char entryPointLibName[2048];
-    strncpy_str (env, file_dir, j_files_dir, sizeof(file_dir));
-    strncpy_str (env, cache_dir, j_cache_dir, sizeof(cache_dir));
-    strncpy_str (env, testresults_dir, j_testresults_dir, sizeof(testresults_dir));
-    strncpy_str (env, entryPointLibName, j_entryPointLibName, sizeof(entryPointLibName));
-
-    bundle_path = file_dir;
-    executable = entryPointLibName;
-
-    setenv ("HOME", bundle_path, true);
-    setenv ("TMPDIR", cache_dir, true);
-    setenv ("TEST_RESULTS_DIR", testresults_dir, true);
-
-    int args_len = (*env)->GetArrayLength(env, j_args);
-    int managed_argc = args_len + 1;
-    char** managed_argv = (char**)malloc(managed_argc * sizeof(char*));
-
-    managed_argv[0] = bundle_path;
-    for (int i = 0; i < args_len; ++i)
-    {
-        jstring j_arg = (*env)->GetObjectArrayElement(env, j_args, i);
-        managed_argv[i + 1] = (*env)->GetStringUTFChars(env, j_arg, NULL);
-    }
-
-    int res = mono_droid_runtime_init (executable, managed_argc, managed_argv, current_local_time);
-
-    for (int i = 0; i < args_len; ++i)
-    {
-        jstring j_arg = (*env)->GetObjectArrayElement(env, j_args, i);
-        (*env)->ReleaseStringUTFChars(env, j_arg, managed_argv[i + 1]);
-    }
-
-    free(managed_argv);
-    return res;
+    return hdm();
 }
 
 // called from C#
