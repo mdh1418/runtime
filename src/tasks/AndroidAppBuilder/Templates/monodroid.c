@@ -210,8 +210,8 @@ mono_droid_runtime_init (const char* executable, int managed_argc, char* managed
     // uncomment for debug output:
     //
     //setenv ("XUNIT_VERBOSE", "true", true);
-    //setenv ("MONO_LOG_LEVEL", "debug", true);
-    //setenv ("MONO_LOG_MASK", "all", true);
+    setenv ("MONO_LOG_LEVEL", "debug", true);
+    setenv ("MONO_LOG_MASK", "all", true);
 
     // build using DiagnosticPorts property in AndroidAppBuilder
     // or set DOTNET_DiagnosticPorts env via adb, xharness when undefined.
