@@ -7,7 +7,7 @@
     <TestRuntime>true</TestRuntime>
     <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
     <MainLibraryFileName>Android.Device_Emulator.Aot_Llvm.Test.dll</MainLibraryFileName>
-    <ExpectedExitCode>42</ExpectedExitCode>
+    <ExpectedExitCode>8141</ExpectedExitCode>
     <EnableAggressiveTrimming>true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
   </PropertyGroup>
@@ -22,6 +22,7 @@
     <DirectPInvokeLists Include="$(MSBuildThisFileDirectory)statically_linked_libs.txt" />
     <DirectPInvokes Include="mdh" />
     <_ExtraLibrarySources Include="$(MSBuildThisFileDirectory)mdh.c" />
+    <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptor.xml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -322,6 +322,11 @@ Java_net_dot_MonoRunner_setEnv (JNIEnv* env, jobject thiz, jstring j_key, jstrin
 }
 
 int
+Java_net_dot_MonoRunner_hdm (JNIEnv* env, jobject thiz) {
+    return hdm();
+}
+
+int
 Java_net_dot_MonoRunner_initRuntime (JNIEnv* env, jobject thiz, jstring j_files_dir, jstring j_cache_dir, jstring j_testresults_dir, jstring j_entryPointLibName, jobjectArray j_args, long current_local_time)
 {
     char file_dir[2048];

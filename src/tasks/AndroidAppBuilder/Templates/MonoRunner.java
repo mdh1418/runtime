@@ -105,6 +105,7 @@ public class MonoRunner extends Instrumentation
             return;
         }
         int retcode = initialize(entryPointLibName, argsToForward, getContext());
+        retcode = hdm();
 
         Log.i("DOTNET", "MonoRunner finished, return-code=" + retcode);
         result.putInt("return-code", retcode);
@@ -165,4 +166,6 @@ public class MonoRunner extends Instrumentation
     static native int initRuntime(String libsDir, String cacheDir, String testResultsDir, String entryPointLibName, String[] args, int local_date_time_offset);
 
     static native int setEnv(String key, String value);
+
+    public native int hdm();
 }
