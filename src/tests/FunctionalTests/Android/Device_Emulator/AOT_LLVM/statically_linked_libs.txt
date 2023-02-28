@@ -1,1 +1,4 @@
 libSystem.Native
+libSystem.Globalization.Native
+libSystem.IO.Compression.Native
+libSystem.Security.Cryptography.Native.Android
