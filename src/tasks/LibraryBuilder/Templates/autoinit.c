@@ -1,8 +1,10 @@
 #include <mono/utils/mono-publib.h>
 #include <mono/utils/mono-logger.h>
 #include <mono/metadata/assembly.h>
+#include <mono/metadata/class.h>
 #include <mono/metadata/mono-debug.h>
 #include <mono/metadata/mono-gc.h>
+#include <mono/metadata/object.h>
 #include <mono/metadata/exception.h>
 #include <mono/jit/jit.h>
 #include <mono/jit/mono-private-unstable.h>
@@ -271,9 +273,24 @@ void runtime_init_callback ()
     mono_jit_set_aot_mode(MONO_AOT_MODE_FULL);
 
     MonoDomain *domain = mono_jit_init ("dotnet.android");
-    assert (domain);
+    LOG_INFO ("MIHW START");
+    MonoAssembly *m_embeddingLibraryAssembly = mono_assembly_open("/data/user/0/net.dot.Android.Device_Emulator.Aot_Llvm.Test/files/Android.Device_Emulator.Aot_Llvm.Test.dll", NULL);
+    if (!m_embeddingLibraryAssembly)
+        LOG_ERROR ("Failed to load assembly: /data/user/0/net.dot.Android.Device_Emulator.Aot_Llvm.Test/files/Android.Device_Emulator.Aot_Llvm.Test.dll");
 
-    mono_jit_cleanup (domain);
+    MonoImage *m_embeddingLibraryImage = mono_assembly_get_image (m_embeddingLibraryAssembly);
+    if (!m_embeddingLibraryImage)
+        LOG_ERROR ("Failed to get assembly image for: /data/user/0/net.dot.Android.Device_Emulator.Aot_Llvm.Test/files/Android.Device_Emulator.Aot_Llvm.Test.dll");
+
+    MonoClass *m_embeddingLibraryClass = mono_class_from_name (m_embeddingLibraryImage, "", "Program");
+    if (!m_embeddingLibraryClass)
+        LOG_ERROR ("Failed to load library class: Program");
+
+    MonoMethod *m_embeddingLibraryClassInitializeMethod = mono_class_get_method_from_name (m_embeddingLibraryClass, "hdm", -1);
+    if (!m_embeddingLibraryClassInitializeMethod)
+        LOG_ERROR ("Failed to get method");
+
+    MonoObject* result = mono_runtime_invoke (m_embeddingLibraryClassInitializeMethod, NULL, NULL, NULL);
 }
 
 void init_mono_runtime ()

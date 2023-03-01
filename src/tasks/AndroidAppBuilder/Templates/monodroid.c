@@ -334,7 +334,7 @@ Java_net_dot_MainActivity_hdm (JNIEnv* env, jobject thiz) {
 int
 Java_net_dot_MonoRunner_initRuntime (JNIEnv* env, jobject thiz, jstring j_files_dir, jstring j_cache_dir, jstring j_testresults_dir, jstring j_entryPointLibName, jobjectArray j_args, long current_local_time)
 {
-    return 42;
+    return hdm();
 }
 
 // called from C#
