@@ -1,7 +1,3 @@
-#include <mono/metadata/assembly.h>
-#include <mono/jit/jit.h>
-#include <mono/jit/mono-private-unstable.h>
-
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -11,6 +7,11 @@
 #include <sys/stat.h>
 #include <sys/system_properties.h>
 #include <unistd.h>
+
+#include <mono/jit/jit.h>
+#include <mono/jit/mono-private-unstable.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/mono-debug.h>
 
 static char *bundle_path = "/data/user/0/net.dot.Android.Device_Emulator.Aot_Llvm.Test/files";
 
@@ -44,6 +45,47 @@ void register_bundled_modules ()
         free (file_path);
     }
 }
+
+#ifndef FULL_AOT
+static MonoAssembly*
+mono_droid_load_assembly (const char *name, const char *culture)
+{
+    char filename [1024];
+    char path [1024];
+    int res;
+
+    int len = strlen (name);
+    int has_extension = len > 3 && name [len - 4] == '.' && (!strcmp ("exe", name + (len - 3)) || !strcmp ("dll", name + (len - 3)));
+
+    // add extensions if required.
+    strlcpy (filename, name, sizeof (filename));
+    if (!has_extension) {
+        strlcat (filename, ".dll", sizeof (filename));
+    }
+
+    if (culture && strcmp (culture, ""))
+        res = snprintf (path, sizeof (path) - 1, "%s/%s/%s", bundle_path, culture, filename);
+    else
+        res = snprintf (path, sizeof (path) - 1, "%s/%s", bundle_path, filename);
+    assert (res > 0);
+
+    struct stat buffer;
+    if (stat (path, &buffer) == 0) {
+        MonoAssembly *assembly = mono_assembly_open (path, NULL);
+        assert (assembly);
+        return assembly;
+    }
+    return NULL;
+}
+
+static MonoAssembly*
+mono_droid_assembly_preload_hook (MonoAssemblyName *aname, char **assemblies_path, void* user_data)
+{
+    const char *name = mono_assembly_name_get_name (aname);
+    const char *culture = mono_assembly_name_get_culture (aname);
+    return mono_droid_load_assembly (name, culture);
+}
+#endif
 
 static unsigned char *
 load_aot_data (MonoAssembly *assembly, int size, void *user_data, void **out_handle)
@@ -95,8 +137,11 @@ void runtime_init_callback ()
     char *assemblyPath = bundle_path;
     mono_set_assemblies_path ((assemblyPath && assemblyPath[0] != '\0') ? assemblyPath : ".\\");
 
-// #if JIT_DISABLED
-    mono_jit_set_aot_only (true); // Would `mono_jit_set_aot_mode (MONO_AOT_MODE_FULL);` be better here
+// #if FULL_AOT == 1
+    // mono_jit_set_aot_only (true); // Would `mono_jit_set_aot_mode (MONO_AOT_MODE_FULL);` be better here
+// #else
+    // This is needed in non full aot mode
+    mono_install_assembly_preload_hook (mono_droid_assembly_preload_hook, NULL);
 // #endif
 
 #if DEBUG_ENABLED
@@ -108,7 +153,7 @@ void runtime_init_callback ()
     }
 #endif
 
-    // mono_install_assembly_preload_hook (mono_droid_assembly_preload_hook, NULL);
+    // This is needed in aot mode
     mono_install_load_aot_data_hook (load_aot_data, free_aot_data, NULL);
 
     // mono_jit_init_version
