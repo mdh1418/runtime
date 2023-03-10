@@ -12,9 +12,14 @@ public static class Program
         Console.WriteLine("Called from native!  Hello!");
     }
 
+    [UnmanagedCallersOnly(EntryPoint="mdh")]
+    public static int mdh()
+    {
+        return 1418;
+    }
+
     public static int Main()
     {
-        Console.WriteLine("Hello, Android!"); // logcat
         return 42;
     }
 }

@@ -45,8 +45,11 @@ public class MainActivity extends Activity
             @Override
             public void run() {
                 int retcode = MonoRunner.initialize(entryPointLibName, new String[0], ctx);
+                retcode = mdh();
                 textView.setText("Mono Runtime returned: " + retcode);
             }
         }, 1000);
     }
+
+    public native int mdh();
 }

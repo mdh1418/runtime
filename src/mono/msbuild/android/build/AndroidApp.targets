@@ -5,7 +5,7 @@
   <PropertyGroup>
     <AndroidGenerateAppBundle Condition="'$(AndroidGenerateAppBundle)' == ''">true</AndroidGenerateAppBundle>
     <!-- Unable to properly integrate nativelib into app build, so not supported for now. -->
-    <AndroidGenerateAppBundle Condition="'$(_IsLibraryMode)' == 'true'">false</AndroidGenerateAppBundle>
+    <AndroidGenerateAppBundle Condition="'$(_IsLibraryMode)' == 'true' and '$(AndroidGenerateAppBundle)' == ''">false</AndroidGenerateAppBundle>
   </PropertyGroup>
 
   <Target Name="AndroidBuildApp" AfterTargets="$(AndroidBuildAppAfterThisTarget)" />

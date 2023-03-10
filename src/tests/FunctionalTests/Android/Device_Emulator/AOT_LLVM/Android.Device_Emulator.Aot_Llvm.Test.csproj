@@ -6,9 +6,12 @@
     <TestRuntime>true</TestRuntime>
     <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
     <MainLibraryFileName>Android.Device_Emulator.Aot_Llvm.Test.dll</MainLibraryFileName>
-    <ExpectedExitCode>42</ExpectedExitCode>
+    <ExpectedExitCode>8141</ExpectedExitCode>
     <EnableAggressiveTrimming>true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
+    <NativeLib>shared</NativeLib>
+    <AndroidGenerateAppBundle>true</AndroidGenerateAppBundle>
+    <ForceFullAOT>true</ForceFullAOT>
   </PropertyGroup>
 
   <ItemGroup>
