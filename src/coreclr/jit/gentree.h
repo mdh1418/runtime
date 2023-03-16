@@ -562,6 +562,10 @@ enum GenTreeFlags : unsigned int
     GTF_OVERFLOW                = 0x10000000, // Supported for: GT_ADD, GT_SUB, GT_MUL and GT_CAST.
                                               // Requires an overflow check. Use gtOverflow(Ex)() to check this flag.
 
+    GTF_DIV_MOD_NO_BY_ZERO      = 0x20000000, // GT_DIV, GT_MOD -- Div or mod definitely does not divide-by-zero.
+
+    GTF_DIV_MOD_NO_OVERFLOW     = 0x40000000, // GT_DIV, GT_MOD -- Div or mod definitely does not overflow.
+
     GTF_DIV_BY_CNS_OPT          = 0x80000000, // GT_DIV -- Uses the division by constant optimization to compute this division
 
     GTF_CHK_INDEX_INBND         = 0x80000000, // GT_BOUNDS_CHECK -- have proven this check is always in-bounds
@@ -1943,8 +1947,8 @@ public:
 
     template <typename T>
     void BashToConst(T value, var_types type = TYP_UNDEF);
-
     void BashToZeroConst(var_types type);
+    GenTreeLclVar* BashToLclVar(Compiler* comp, unsigned lclNum);
 
 #if NODEBASH_STATS
     static void RecordOperBashing(genTreeOps operOld, genTreeOps operNew);
@@ -2300,6 +2304,9 @@ public:
     bool IsInvariant() const;
 
     bool IsNeverNegative(Compiler* comp) const;
+    bool IsNeverNegativeOne(Compiler* comp) const;
+    bool IsNeverZero() const;
+    bool CanDivOrModPossiblyOverflow(Compiler* comp) const;
 
     bool IsReuseRegVal() const
     {
@@ -6348,7 +6355,9 @@ struct GenTreeVecCon : public GenTree
             case NI_Vector256_Create:
             case NI_Vector512_Create:
             case NI_Vector256_CreateScalar:
+            case NI_Vector512_CreateScalar:
             case NI_Vector256_CreateScalarUnsafe:
+            case NI_Vector512_CreateScalarUnsafe:
 #elif defined(TARGET_ARM64)
             case NI_Vector64_Create:
             case NI_Vector64_CreateScalar:
@@ -6364,7 +6373,8 @@ struct GenTreeVecCon : public GenTree
 // CreateScalar leaves the upper bits as zero
 
 #if defined(TARGET_XARCH)
-                    if ((intrinsic != NI_Vector128_CreateScalar) && (intrinsic != NI_Vector256_CreateScalar))
+                    if ((intrinsic != NI_Vector128_CreateScalar) && (intrinsic != NI_Vector256_CreateScalar) &&
+                        (intrinsic != NI_Vector512_CreateScalar))
 #elif defined(TARGET_ARM64)
                     if ((intrinsic != NI_Vector64_CreateScalar) && (intrinsic != NI_Vector128_CreateScalar))
 #endif
@@ -7340,6 +7350,7 @@ public:
     void Initialize(ClassLayout* layout)
     {
         assert(OperIsBlk(OperGet()) && ((layout != nullptr) || OperIs(GT_STORE_DYN_BLK)));
+        assert((layout == nullptr) || (layout->GetSize() != 0));
 
         m_layout    = layout;
         gtBlkOpKind = BlkOpKindInvalid;
