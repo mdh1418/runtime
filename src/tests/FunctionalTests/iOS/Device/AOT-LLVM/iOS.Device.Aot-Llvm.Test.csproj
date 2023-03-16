@@ -12,6 +12,7 @@
     <ExpectedExitCode>42</ExpectedExitCode>
     <EnableAggressiveTrimming Condition="'$(EnableAggressiveTrimming)' == ''">true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
+    <NativeLib>shared</NativeLib>
   </PropertyGroup>
 
   <ItemGroup>
