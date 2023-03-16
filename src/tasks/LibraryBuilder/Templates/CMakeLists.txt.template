@@ -38,6 +38,7 @@ if(TARGETS_ANDROID)
         log
     )
     add_definitions(-DHOST_ANDROID=1)
+    set(CMAKE_C_FLAGS, "${CMAKE_C_FLAGS} -fPIC")
 elseif(TARGETS_APPLE_MOBILE)
     set(MOBILE_SYSTEM_LIBS
         "-framework Foundation"
