@@ -12,6 +12,10 @@
     <ExpectedExitCode>42</ExpectedExitCode>
     <EnableAggressiveTrimming Condition="'$(EnableAggressiveTrimming)' == ''">true</EnableAggressiveTrimming>
     <MonoEnableLLVM>true</MonoEnableLLVM>
+    <NativeLib>shared</NativeLib>
+    <AppleGenerateAppBundle>true</AppleGenerateAppBundle>
+    <ForceFullAOT>true</ForceFullAOT>
+    <UseConsoleUITemplate>false</UseConsoleUITemplate>
   </PropertyGroup>
 
   <ItemGroup>

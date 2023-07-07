@@ -8,21 +8,14 @@ using System.Runtime.InteropServices;
 
 public static class Program
 {
-    [DllImport("__Internal")]
-    public static extern void mono_ios_set_summary (string value);
-
-    [UnmanagedCallersOnly(EntryPoint = nameof(SayHello))]
-    public static void SayHello()
+    [UnmanagedCallersOnly(EntryPoint="mdh")]
+    public static int mdh()
     {
-        Console.WriteLine("Called from native!  Hello!");
+        return 1418;
     }
 
-    public static async Task<int> Main(string[] args)
+    public static int Main()
     {
-        mono_ios_set_summary($"Starting functional test");
-        Console.WriteLine("Done!");
-        await Task.Delay(5000);
-
         return 42;
     }
 }
