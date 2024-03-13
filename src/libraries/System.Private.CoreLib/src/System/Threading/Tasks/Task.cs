@@ -9,14 +9,20 @@
 //
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
+using static System.DateTimeParse;
 
 namespace System.Threading.Tasks
 {
@@ -60,6 +66,131 @@ namespace System.Threading.Tasks
         /// The task completed due to an unhandled exception.
         /// </summary>
         Faulted
+    }
+
+    [EventSource(Name = "Microsoft-TaskContinuation-EventSource")]
+    internal sealed class TaskContinuationEventSource : EventSource
+    {
+        internal static readonly TaskContinuationEventSource Log = new();
+
+        private Thread? m_samplingThread;
+        private volatile bool m_sampling;
+        private ManualResetEvent? m_sampleEvent;
+
+        private TaskContinuationEventSource() :
+            base(EventSourceSettings.EtwSelfDescribingEventFormat | EventSourceSettings.ThrowOnEventWriteErrors)
+        {
+            //Internal.Console.WriteLine("Constructor!");
+        }
+
+        [NonEvent]
+        private void EnableSampling()
+        {
+            if (m_samplingThread == null)
+            {
+                Thread t = new Thread(DoSampling);
+                if (Interlocked.CompareExchange(ref m_samplingThread, t, null) == null)
+                {
+                    m_sampleEvent = new ManualResetEvent(false);
+                    t.IsBackground = true;
+                    t.Start();
+                }
+            }
+
+            m_sampling = true;
+            m_sampleEvent?.Set();
+        }
+
+        [NonEvent]
+        private void DoSampling()
+        {
+            int[] threadIds = new int[100];
+            Task?[] tasks = new Task[100];
+            Stopwatch sw = Stopwatch.StartNew();
+            while (true)
+            {
+                if (!m_sampling)
+                {
+                    m_sampleEvent?.WaitOne();
+                }
+
+                Thread.Sleep(500);
+                sw.Restart();
+
+                Array.Clear(threadIds);
+                Array.Clear(tasks);
+                //Internal.Console.WriteLine("Sample!");
+                TaskHelpers.GetAllTasks(threadIds, tasks);
+
+                for (int i = 0; i < threadIds.Length; ++i)
+                {
+                    int threadId = threadIds[i];
+                    Task? t = tasks[i];
+                    //Internal.Console.WriteLine($"tid 0x{threadId:X} taskId{t?.Id}");
+                    if (threadId == 0 || t == null)
+                    {
+                        Internal.Console.WriteLine("here");
+                        break;
+                    }
+
+                    Task.LogContinuations(threadId, t);
+                }
+                //Internal.Console.WriteLine("End Sample");
+                //Internal.Console.WriteLine($"Async sample took {sw.Elapsed.TotalMicroseconds:N0} us");
+            }
+        }
+
+        [NonEvent]
+        protected override void OnEventCommand(EventCommandEventArgs command)
+        {
+            base.OnEventCommand(command);
+
+            Internal.Console.WriteLine($"Got command {command.Command}.");
+            if (command.Command == EventCommand.Enable)
+            {
+                //Internal.Console.WriteLine("Got enable command, starting thread.");
+                EnableSampling();
+            }
+            else if (command.Command == EventCommand.Disable)
+            {
+                m_sampling = false;
+                m_sampleEvent?.Reset();
+            }
+        }
+
+        [Event(1)]
+        public void ActiveTaskOnThread(int threadId, int taskId)
+        {
+            WriteEvent(1, taskId, threadId);
+        }
+
+        [Event(3)]
+        public void WriteMessage(string message)
+        {
+            //Internal.Console.WriteLine(message);
+            WriteEvent(3, message);
+        }
+
+        // [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:UnrecognizedReflectionPattern",
+        //            Justification = "Primitive types")]
+        [Event(4)]
+        public unsafe void Sample(int threadId, long duration, int countIps, byte[] ips)
+        {
+            WriteEvent(4, threadId, duration, countIps, ips);
+        }
+
+        [Event(5)]
+        public void SampleHumanReadable(int threadId, string sample)
+        {
+            WriteEvent(5, threadId, sample);
+        }
+    }
+
+
+    internal static class TaskHelpers
+    {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetAllTasks(object threadIdArray, object currentTaskArray);
     }
 
     /// <summary>
@@ -112,6 +243,9 @@ namespace System.Threading.Tasks
     [DebuggerDisplay("Id = {Id}, Status = {Status}, Method = {DebuggerDisplayMethodDescription}")]
     public class Task : IAsyncResult, IDisposable
     {
+        // Make sure it's initialized
+        internal static TaskContinuationEventSource s_source = TaskContinuationEventSource.Log;
+
         [ThreadStatic]
         internal static Task? t_currentTask;  // The currently executing task.
 
@@ -210,6 +344,272 @@ namespace System.Threading.Tasks
             {
                 activeTasks.Remove(taskId);
             }
+        }
+
+        private struct GetterKey : IEquatable<GetterKey>
+        {
+            internal readonly Type type;
+            internal readonly string fieldName;
+
+            internal GetterKey(Type type, string fieldName)
+            {
+                this.type = type;
+                this.fieldName = fieldName;
+            }
+
+            public override bool Equals([NotNullWhen(true)] object? obj)
+            {
+                if (obj == null)
+                {
+                    return false;
+                }
+
+                if (obj is GetterKey other)
+                {
+                    return Equals(other);
+                }
+
+                return false;
+            }
+
+            public bool Equals(GetterKey other) => (other.type == type) && (other.fieldName == fieldName);
+
+            public override int GetHashCode()
+            {
+                return type.GetHashCode() ^ fieldName.GetHashCode();
+            }
+        }
+        private static Dictionary<GetterKey, Func<object, object>?> _optimizedGetters = new();
+
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075:UnrecognizedReflectionPattern",
+            Justification = "Prototype")]
+        private static bool GetFieldFromObject(object? obj, string fieldName, out object? value)
+        {
+            value = null;
+            if (obj == null)
+            {
+                return false;
+            }
+
+            Type objType = obj.GetType();
+
+            GetterKey key = new(objType, fieldName);
+            Func<object, object>? getFieldAction;
+            if (!_optimizedGetters.TryGetValue(key, out getFieldAction))
+            {
+                FieldInfo? fieldInfo = objType.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (fieldInfo == null)
+                {
+                    _optimizedGetters.Add(key, null);
+                }
+                else
+                {
+                    Type[] methodArgs = { objType };
+                    string methodName = $"get{fieldName}From{key.type.Name}";
+                    DynamicMethod fetcher = new(methodName, typeof(object), methodArgs);
+                    ILGenerator il = fetcher.GetILGenerator();
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldfld, fieldInfo);
+                    il.Emit(OpCodes.Ret);
+
+                    getFieldAction = (Func<object, object>)fetcher.CreateDelegate(typeof(Func<object, object>));
+                    _optimizedGetters.Add(key, getFieldAction);
+                }
+            }
+
+            if (getFieldAction == null)
+            {
+                return false;
+            }
+
+            value = getFieldAction(obj);
+
+            //value = fieldInfo?.GetValue(obj);
+            return value != null;
+        }
+
+        private static bool ResolveContinuation(object? continuation, out object? resolvedContinuation)
+        {
+            resolvedContinuation = null;
+            if (continuation == null)
+            {
+                return false;
+            }
+
+            if (continuation == s_taskCompletionSentinel || continuation is Action || continuation is IAsyncStateMachineBox)
+            {
+                resolvedContinuation = continuation;
+                return true;
+            }
+
+            // If it's a standard task continuation, get its task field.
+            if (GetFieldFromObject(continuation, "m_task", out resolvedContinuation))
+            {
+                return true;
+            }
+
+            object? tmp;
+            // If it's storing an action wrapper, try to follow to that action's target.
+            if (resolvedContinuation != null
+                && GetFieldFromObject(resolvedContinuation, "m_action", out tmp))
+            {
+                resolvedContinuation = tmp;
+            }
+
+            // If we now have an Action, try to follow through to the delegate's target.
+            if (resolvedContinuation != null
+                &&  GetFieldFromObject(resolvedContinuation, "_target", out tmp))
+            {
+                resolvedContinuation = tmp;
+
+                // In some cases, the delegate's target might be a ContinuationWrapper, in which case we want to unwrap that as well.
+                if (resolvedContinuation != null
+                    && resolvedContinuation?.GetType()?.Name == "System.Runtime.CompilerServices.AsyncMethodBuilderCore+ContinuationWrapper"
+                    && GetFieldFromObject(resolvedContinuation, "_continuation", out tmp))
+                {
+                    resolvedContinuation = tmp;
+                    if (resolvedContinuation != null
+                        && GetFieldFromObject(resolvedContinuation, "_target", out tmp))
+                    {
+                        resolvedContinuation = tmp;
+                    }
+                }
+            }
+
+            return resolvedContinuation != null;
+        }
+
+        private static string SimpleName(Type? type)
+        {
+            if (type == null)
+            {
+                return "null";
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append(type.Name);
+            if (type.GenericTypeArguments.Length > 0)
+            {
+                builder.Append('<');
+                for (int i = 0; i < type.GenericTypeArguments.Length; ++i)
+                {
+                    builder.Append(type.GenericTypeArguments[i].Name);
+                    if (i < (type.GenericTypeArguments.Length - 1))
+                    {
+                        builder.Append(", ");
+                    }
+                }
+                builder.Append('>');
+            }
+
+            return builder.ToString();
+        }
+
+        private static void DoAsyncSample(int indent, object? continuationObj, List<Delegate> actions, StringBuilder? stringBuilder)
+        {
+            Debug.Assert(continuationObj != null);
+
+            for (int i = 0; i < indent; ++i)
+            {
+                stringBuilder?.Append('.');
+            }
+
+            if (continuationObj == s_taskCompletionSentinel)
+            {
+                stringBuilder?.AppendLine("s_taskCompletionSentinel");
+                return;
+            }
+
+            // The common continuation types
+            object? resolvedContinuation;
+            switch (continuationObj)
+            {
+                case Task t:
+                    string actionString = string.Empty;
+                    if (t is IAsyncStateMachineBox asm)
+                    {
+                        IAsyncStateMachine sm = asm.GetStateMachineObject();
+                        actionString = SimpleName(sm.GetType());
+                        actions.Add(new Action(sm.MoveNext));
+                    }
+                    else
+                    {
+                        actionString = SimpleName(t?.m_action?.GetType());
+                        if (t?.m_action is Delegate d)
+                        {
+                            actions.Add(d);
+                        }
+                    }
+
+                    object? taskContinuationObj = t?.m_continuationObject;
+                    stringBuilder?.AppendLine($"Task ({SimpleName(t?.GetType())}): Id={t?.Id} m_action={actionString} cont={SimpleName(taskContinuationObj?.GetType())}");
+                    if (taskContinuationObj != null)
+                    {
+                        DoAsyncSample(indent + 1, taskContinuationObj, actions, stringBuilder);
+                    }
+                    return;
+                case Action a:
+                    actions.Add(a);
+                    stringBuilder?.AppendLine($"Action: {SimpleName(a.Target?.GetType())}");
+                    return;
+                case TaskContinuation:
+                case ITaskCompletionAction:
+                    if (ResolveContinuation(continuationObj, out resolvedContinuation))
+                    {
+                        DoAsyncSample(indent, resolvedContinuation, actions, stringBuilder);
+                    }
+                    else
+                    {
+                        stringBuilder?.AppendLine($"Could not resolve continuation for {continuationObj}");
+                    }
+                    return;
+            }
+
+            stringBuilder?.AppendLine($"Assuming list {continuationObj.GetType()}");
+            // Must be a list.
+            List<object?> continuations = (List<object?>)continuationObj;
+            foreach (object? obj in continuations)
+            {
+                if (obj != null)
+                {
+                    DoAsyncSample(indent + 1, obj, actions, stringBuilder);
+                }
+            }
+
+            stringBuilder?.AppendLine();
+        }
+
+        internal static void LogContinuations(int threadId, Task? currentThreadTask)
+        {
+#if !NATIVEAOT
+            if (currentThreadTask == null)
+            {
+                return;
+            }
+
+            Stopwatch sw = Stopwatch.StartNew();
+            TaskContinuationEventSource.Log.ActiveTaskOnThread(threadId, currentThreadTask?.Id ?? 0);
+
+            List<Delegate> actions = new List<Delegate>();
+            DoAsyncSample(0, currentThreadTask, actions, null);
+
+            int maxItems = 512;
+            int arraySize = maxItems * 12;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(arraySize);
+            Array.Clear(buffer);
+            for (int i = 0; i < actions.Count; ++i)
+            {
+                // Write method token
+                Span<byte> byteSpan = new Span<byte>(buffer, i * 12, 4);
+                BinaryPrimitives.WriteInt32LittleEndian(byteSpan, actions[i].Method.MetadataToken);
+                // Now module token
+                byteSpan = new Span<byte>(buffer, (i * 12) + 4, 8);
+                BinaryPrimitives.WriteUInt64LittleEndian(byteSpan, (ulong)actions[i].Method.Module.ModuleHandle.GetRuntimeModule().GetUnderlyingNativeHandle());
+            }
+
+            TaskContinuationEventSource.Log.Sample(threadId, sw.Elapsed.Ticks, Math.Min(actions.Count, maxItems), buffer);
+            ArrayPool<byte>.Shared.Return(buffer);
+#endif
         }
 
         // We moved a number of Task properties into this class.  The idea is that in most cases, these properties never
