@@ -36,6 +36,12 @@
 #undef EP_ALIGN_UP
 #define EP_ALIGN_UP(val,align) ALIGN_UP(val,align)
 
+class TaskHelpers
+{
+public:
+    static FCDECL2(void, GetAllTasks, Object *pThreadIdsUnsafe, Object *pTasksUnsafe);
+};
+
 static
 inline
 ep_rt_lock_handle_t *

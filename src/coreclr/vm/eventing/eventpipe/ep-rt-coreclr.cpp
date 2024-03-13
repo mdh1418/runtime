@@ -140,6 +140,58 @@ walk_managed_stack_for_threads (
 	ep_stack_contents_fini (current_stack_contents);
 }
 
+FCIMPL2(void, TaskHelpers::GetAllTasks, Object *pThreadIdsUnsafe, Object *pTasksUnsafe)
+{
+    FCALL_CONTRACT;
+    CONTRACTL
+    {
+        FCALL_CHECK;
+    }
+    CONTRACTL_END;
+
+    ASSERT(pThreadIdsUnsafe != NULL);
+    ASSERT(pTasksUnsafe != NULL);
+
+	BASEARRAYREF pThreadArray = (BASEARRAYREF)ObjectToOBJECTREF(pThreadIdsUnsafe);
+	BASEARRAYREF pTaskArray = (BASEARRAYREF)ObjectToOBJECTREF(pTasksUnsafe);
+
+	HELPER_METHOD_FRAME_BEGIN_2(pThreadArray, pTaskArray);
+
+	{
+		GCX_COOP();
+		ThreadStoreLockHolder threadStoreLockHolder;
+
+		SIZE_T pos = 0;
+		Thread *target_thread = NULL;
+		while ((target_thread = ThreadStore::GetThreadList (target_thread)) != NULL)
+		{
+			if (pos >= pThreadArray->GetNumComponents())
+			{
+				// TODO: don't just drop stuff silently
+				break;
+			}
+
+			TADDR pCurrentTask = target_thread->GetStaticFieldAddrNoCreate(CoreLibBinder::GetField(FIELD__TASK__CURRENT_TASK));
+			if (pCurrentTask != NULL)
+			{
+				OBJECTREF currentTask = ObjectToOBJECTREF(*((Object **)(pCurrentTask)));
+				if (currentTask != NULL)
+				{
+					DWORD *pThreadId = ((DWORD *)pThreadArray->GetDataPtr()) + pos;
+					*pThreadId = target_thread->GetOSThreadId();
+					OBJECTREF *pTask = ((OBJECTREF *)pTaskArray->GetDataPtr()) + pos;
+					SetObjectReference(pTask, currentTask);
+
+					++pos;
+				}
+			}
+		}
+	}
+
+    HELPER_METHOD_FRAME_END();
+}
+FCIMPLEND
+
 void
 ep_rt_coreclr_sample_profiler_write_sampling_event_for_threads (
 	ep_rt_thread_handle_t sampling_thread,

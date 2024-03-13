@@ -833,6 +833,8 @@ DEFINE_METHOD(AUTORELEASEPOOL,      DRAINAUTORELEASEPOOL,   DrainAutoreleasePool
 
 DEFINE_CLASS(TIMESPAN,              System,                 TimeSpan)
 
+DEFINE_CLASS(TASK,                  Tasks,                  Task)
+DEFINE_FIELD(TASK,                  CURRENT_TASK,           t_currentTask)
 
 DEFINE_CLASS(TYPE,                  System,                 Type)
 DEFINE_METHOD(TYPE,                 GET_TYPE_FROM_HANDLE,   GetTypeFromHandle,          SM_RuntimeTypeHandle_RetType)
