@@ -6204,8 +6204,15 @@ HRESULT ProfToEEInterfaceImpl::GetFunctionFromIP3(LPCBYTE ip, FunctionID * pFunc
         MODE_ANY;
         EE_THREAD_NOT_REQUIRED;
 
-        // Calling GetFunctionFromIPInternal may take a reader lock
-        CAN_TAKE_LOCK;
+        // Querying the code manager requires a reader lock.  However, see
+        // code:#DisableLockOnAsyncCalls
+        DISABLED(CAN_TAKE_LOCK);
+
+        // Asynchronous functions can be called at arbitrary times when runtime
+        // is holding locks that cannot be reentered without causing deadlock.
+        // This contract detects any attempts to reenter locks held at the time
+        // this function was called.
+        CANNOT_RETAKE_LOCK;
 
     }
     CONTRACTL_END;
@@ -6213,12 +6220,18 @@ HRESULT ProfToEEInterfaceImpl::GetFunctionFromIP3(LPCBYTE ip, FunctionID * pFunc
     // See code:#DisableLockOnAsyncCalls
     PERMANENT_CONTRACT_VIOLATION(TakesLockViolation, ReasonProfilerAsyncCannotRetakeLock);
 
-    PROFILER_TO_CLR_ENTRYPOINT_SYNC_EX(
+    PROFILER_TO_CLR_ENTRYPOINT_ASYNC_EX(
         kP2EEAllowableAfterAttach,
         (LF_CORPROF,
             LL_INFO1000,
             "**PROF: GetFunctionFromIP3 0x%p.\n",
             ip));
+
+    // This call is allowed asynchronously, but the JIT functions take a reader lock.
+    // So we need to ensure the current thread hasn't been hijacked by a profiler while
+    // it was holding the writer lock.  Checking the ForbidSuspendThread region is a
+    // sufficient test for this
+    FAIL_IF_IN_FORBID_SUSPEND_REGION();
 
     HRESULT hr = S_OK;
 
