@@ -431,18 +431,9 @@ ipc_stream_poll_func (
 	void *object,
 	uint32_t timeout_ms)
 {
-	EP_ASSERT (object != NULL);
-	DiagnosticsIpcStream *ipc_stream = (DiagnosticsIpcStream *)object;
-
-	// Check if the socket is still open
-	int pending = ds_rt_websocket_poll (ipc_stream->client_socket);
-	if (pending < 0)
-		return EP_IPC_POLL_EVENTS_ERR;
-	
-	if (pending > 0)
-		return EP_IPC_POLL_EVENTS_SIGNALED;
-
-	return EP_IPC_POLL_EVENTS_NONE;
+	EP_UNREACHABLE ("ipc_stream_poll_func needs to be implemented for WebSockets");
+	// TODO: Implement ipc_stream_poll_func for WebSockets
+	return EP_IPC_POLL_EVENTS_UNKNOWN;
 }
 
 static IpcStreamVtable ipc_stream_vtable = {

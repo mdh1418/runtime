@@ -76,6 +76,10 @@ session_tracepoint_write_event (
 	ep_rt_thread_handle_t event_thread,
 	EventPipeStackContents *stack);
 
+static
+bool
+session_is_stream_connection_closed (IpcStream *stream);
+
 /*
  * EventPipeSession.
  */
@@ -125,8 +129,8 @@ EP_RT_DEFINE_THREAD_FUNC (streaming_thread)
 		} else if (session->session_type == EP_SESSION_TYPE_USEREVENTS) {
 			// User events session, write all user events tracepoints to the file.
 			while (ep_session_get_streaming_enabled (session)) {
-				EP_ASSERT (session->continuation_stream != NULL);
-				if (ep_ipc_continuation_stream_connection_closed (session->continuation_stream)) {
+				EP_ASSERT (session->stream != NULL);
+				if (session_is_stream_connection_closed (session->stream)) {
 					success = false;
 					break;
 				}
@@ -217,6 +221,15 @@ session_disable_streaming_thread (EventPipeSession *session)
 	ep_rt_wait_event_handle_t *rt_thread_shutdown_event = &session->rt_thread_shutdown_event;
 	ep_rt_wait_event_wait (rt_thread_shutdown_event, EP_INFINITE_WAIT, false /* bAlertable */);
 	ep_rt_wait_event_free (rt_thread_shutdown_event);
+}
+
+static
+bool
+session_is_stream_connection_closed (IpcStream *stream)
+{
+	EP_ASSERT (stream != NULL);
+	EventPipeIpcPollEvents poll_event = ep_ipc_stream_poll_vcall (stream, DS_IPC_TIMEOUT_INFINITE);
+	return poll_event == EP_IPC_POLL_EVENTS_HANGUP;
 }
 
 /*

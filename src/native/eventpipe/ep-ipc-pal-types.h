@@ -23,7 +23,7 @@ typedef enum {
 	EP_IPC_POLL_EVENTS_UNKNOWN = 0x80 // unknown state
 } EventPipeIpcPollEvents;
 
-#define EP_IPC_POLL_TIMEOUT_MIN_MS (uint32_t)10
+#define DS_IPC_TIMEOUT_INFINITE (uint32_t)-1
 
 #endif /* ENABLE_PERFTRACING */
 #endif /* __EVENTPIPE_IPC_PAL_TYPES_H__ */

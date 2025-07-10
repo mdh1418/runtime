@@ -72,7 +72,7 @@ struct _EventPipeSession_Internal {
 	// The user_events_data file descriptor to register Tracepoints and write user_events to.
 	int user_events_data_fd;
 	// The IPC continuation stream from initializing the session through the diagnostic server
-	IpcContinuationStream *continuation_stream;
+	IpcStream *stream;
 };
 
 #if !defined(EP_INLINE_GETTER_SETTER) && !defined(EP_IMPL_SESSION_GETTER_SETTER)

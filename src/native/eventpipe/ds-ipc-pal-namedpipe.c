@@ -840,7 +840,8 @@ ipc_stream_poll_func (
 	void *object,
 	uint32_t timeout_ms)
 {
-	// Needs to be implemented.
+	EP_UNREACHABLE ("ipc_stream_poll_func needs to be implemented for NamedPipes");
+	// TODO: Implement ipc_stream_poll_func for NamedPipes
 	return EP_IPC_POLL_EVENTS_UNKNOWN;
 }
 
