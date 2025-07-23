@@ -251,7 +251,7 @@ struct _EventPipeThreadSessionState {
 struct _EventPipeThreadSessionState_Internal {
 #endif
 	// immutable.
-	EventPipeThreadHolder thread_holder;
+	EventPipeThread *thread;
 	// immutable.
 	EventPipeSession *session;
 	// The buffer this thread is allowed to write to if non-null, it must
@@ -299,7 +299,6 @@ struct _EventPipeThreadSessionState {
 };
 #endif
 
-EP_DEFINE_GETTER_REF(EventPipeThreadSessionState *, thread_session_state, EventPipeThreadHolder *, thread_holder)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeSession *, session)
 
 EventPipeThreadSessionState *

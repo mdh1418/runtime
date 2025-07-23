@@ -339,9 +339,11 @@ ep_thread_session_state_alloc (
 {
 	EventPipeThreadSessionState *instance = ep_rt_object_alloc (EventPipeThreadSessionState);
 	ep_raise_error_if_nok (instance != NULL);
-	ep_raise_error_if_nok (ep_thread_holder_init (&instance->thread_holder, thread) != NULL);
 
+	instance->thread = thread;
 	instance->session = session;
+	instance->write_buffer = NULL;
+	instance->buffer_list = NULL;
 	instance->sequence_number = 1;
 
 #ifdef EP_CHECKED_BUILD
@@ -374,7 +376,6 @@ void
 ep_thread_session_state_free (EventPipeThreadSessionState *thread_session_state)
 {
 	ep_return_void_if_nok (thread_session_state != NULL);
-	ep_thread_holder_fini (&thread_session_state->thread_holder);
 	ep_rt_object_free (thread_session_state);
 }
 
@@ -382,14 +383,14 @@ EventPipeThread *
 ep_thread_session_state_get_thread (const EventPipeThreadSessionState *thread_session_state)
 {
 	EP_ASSERT (thread_session_state != NULL);
-	return thread_session_state->thread_holder.thread;
+	return thread_session_state->thread;
 }
 
 EventPipeBuffer *
 ep_thread_session_state_get_write_buffer (const EventPipeThreadSessionState *thread_session_state)
 {
 	EP_ASSERT (thread_session_state != NULL);
-	ep_thread_requires_lock_held (thread_session_state->thread_holder.thread);
+	ep_thread_requires_lock_held (thread_session_state->thread);
 
 	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (thread_session_state->write_buffer)) == EP_BUFFER_STATE_WRITABLE));
 	return thread_session_state->write_buffer;
@@ -402,7 +403,7 @@ ep_thread_session_state_set_write_buffer (
 {
 	EP_ASSERT (thread_session_state != NULL);
 
-	ep_thread_requires_lock_held (thread_session_state->thread_holder.thread);
+	ep_thread_requires_lock_held (thread_session_state->thread);
 
 	EP_ASSERT ((new_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (new_buffer)) == EP_BUFFER_STATE_WRITABLE));
 	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (thread_session_state->write_buffer)) == EP_BUFFER_STATE_WRITABLE));
@@ -447,7 +448,7 @@ ep_thread_session_state_get_sequence_number (const EventPipeThreadSessionState *
 {
 	EP_ASSERT (thread_session_state != NULL);
 
-	ep_thread_requires_lock_held (thread_session_state->thread_holder.thread);
+	ep_thread_requires_lock_held (thread_session_state->thread);
 
 	return ep_rt_volatile_load_uint32_t_without_barrier (&thread_session_state->sequence_number);
 }
@@ -457,7 +458,7 @@ ep_thread_session_state_increment_sequence_number (EventPipeThreadSessionState *
 {
 	EP_ASSERT (thread_session_state != NULL);
 
-	ep_thread_requires_lock_held (thread_session_state->thread_holder.thread);
+	ep_thread_requires_lock_held (thread_session_state->thread);
 
 	ep_rt_volatile_store_uint32_t (&thread_session_state->sequence_number, ep_rt_volatile_load_uint32_t (&thread_session_state->sequence_number) + 1);
 }
