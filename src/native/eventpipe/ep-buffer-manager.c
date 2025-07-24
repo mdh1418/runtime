@@ -124,6 +124,12 @@ buffer_manager_convert_buffer_to_read_only (
 	EventPipeBufferManager *buffer_manager,
 	EventPipeBuffer *new_read_buffer);
 
+static
+void
+buffer_manager_remove_and_delete_thread_session_state (
+	EventPipeBufferManager *buffer_manager,
+	EventPipeThreadSessionState *thread_session_state);
+
 /*
  * EventPipeBufferList.
  */
@@ -256,6 +262,14 @@ ep_buffer_list_get_and_remove_head (EventPipeBufferList *buffer_list)
 	EP_ASSERT (ep_buffer_list_ensure_consistency (buffer_list));
 
 	return ret_buffer;
+}
+
+bool
+ep_buffer_list_is_empty (const EventPipeBufferList *buffer_list)
+{
+	EP_ASSERT (buffer_list != NULL);
+	EP_ASSERT (ep_buffer_list_ensure_consistency ((EventPipeBufferList *)buffer_list));
+	return buffer_list->head_buffer == NULL;
 }
 
 bool
@@ -702,6 +716,17 @@ buffer_manager_advance_to_non_empty_buffer (
 
 				// get the next buffer
 				current_buffer = buffer_list->head_buffer;
+
+				if (!current_buffer && (ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0)) {
+					if (buffer_manager->sequence_point_alloc_budget != 0) {
+						// The next sequence point needs to update the sequence number for this thread
+						// Delay the thread session state removal until the next sequence point is written.
+						ep_thread_session_state_set_delete_deferred (thread_session_state, true);
+					} else {
+						buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+					}
+				}
+
 				if (!current_buffer || ep_buffer_get_creation_timestamp (current_buffer) >= before_timestamp) {
 					// no more buffers in the list before this timestamp, we're done
 					current_buffer = NULL;
@@ -1198,19 +1223,8 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 
 				it = dn_list_it_next (it);
 
-				// if a session_state was exhausted during this sequence point, mark it for deletion
-				if (ep_thread_session_state_get_buffer_list (session_state)->head_buffer == NULL) {
-					// We don't hold the thread lock here, so it technically races with a thread getting unregistered. This is okay,
-					// because we will either not have passed the above if statement (there were events still in the buffers) or we
-					// will catch it at the next sequence point.
-					EventPipeThread* thread = ep_thread_session_state_get_thread (session_state);
-					EventPipeSession* session = ep_thread_session_state_get_session (session_state);
-					if (ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (thread)) > 0) {
-						dn_vector_ptr_push_back (&session_states_to_delete, session_state);
-						dn_list_remove (buffer_manager->thread_session_state_list, session_state);
-						ep_thread_set_session_state (thread, session, NULL);
-					}
-				}
+				if (ep_thread_session_state_get_delete_deferred (session_state))
+					dn_vector_ptr_push_back (&session_states_to_delete, session_state);
 			}
 		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
 
@@ -1219,35 +1233,12 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 
 		// we are done with the sequence point
 		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
+			DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, &session_states_to_delete) {
+				if (ep_thread_session_state_get_delete_deferred (thread_session_state))
+					buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+			} DN_VECTOR_PTR_FOREACH_END;
 			buffer_manager_dequeue_sequence_point (buffer_manager);
 		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
-	}
-
-	// There are sequence points created during this flush and we've marked session states for deletion.
-	// We need to remove these from the internal maps of the subsequent Sequence Points
-	if (dn_vector_ptr_size (&session_states_to_delete) > 0) {
-		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section4)
-			if (buffer_manager_try_peek_sequence_point (buffer_manager, &sequence_point)) {
-				DN_LIST_FOREACH_BEGIN (EventPipeSequencePoint *, current_sequence_point, buffer_manager->sequence_points) {
-					// foreach (session_state in session_states_to_delete)
-					DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, &session_states_to_delete) {
-						dn_umap_it_t found = dn_umap_ptr_uint32_find (ep_sequence_point_get_thread_sequence_numbers (current_sequence_point), thread_session_state);
-						if (!dn_umap_it_end (found)) {
-							dn_umap_erase (found);
-							// every entry of this map was holding an extra ref to the thread (see: ep-event-instance.{h|c})
-							ep_thread_release (ep_thread_session_state_get_thread (thread_session_state));
-						}
-					} DN_VECTOR_PTR_FOREACH_END;
-				} DN_LIST_FOREACH_END;
-			}
-
-			// foreach (thread_session_state in session_states_to_delete)
-			DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, &session_states_to_delete) {
-				EP_ASSERT (thread_session_state != NULL);
-				ep_thread_session_state_free (thread_session_state);
-			} DN_VECTOR_PTR_FOREACH_END;
-
-		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section4)
 	}
 
 ep_on_exit:
@@ -1330,6 +1321,73 @@ ep_buffer_manager_ensure_consistency (EventPipeBufferManager *buffer_manager)
 	return true;
 }
 #endif
+
+static
+void
+buffer_manager_remove_thread_session_state_from_sequence_points (
+	EventPipeBufferManager *buffer_manager,
+	EventPipeThreadSessionState *thread_session_state)
+{
+	EP_ASSERT (buffer_manager != NULL);
+	EP_ASSERT (thread_session_state != NULL);
+
+	ep_buffer_manager_requires_lock_held (buffer_manager);
+
+	DN_LIST_FOREACH_BEGIN (EventPipeSequencePoint *, current_sequence_point, buffer_manager->sequence_points) {
+		dn_umap_it_t found = dn_umap_ptr_uint32_find (ep_sequence_point_get_thread_sequence_numbers (current_sequence_point), thread_session_state);
+		if (!dn_umap_it_end (found)) {
+			dn_umap_erase (found);
+			// buffer_manager_init_sequence_point_thread_list - every entry of this map was holding an extra ref to the thread
+			ep_thread_release (ep_thread_session_state_get_thread (thread_session_state));
+		}
+	} DN_LIST_FOREACH_END;
+}
+
+static
+void
+buffer_manager_remove_and_delete_thread_session_state (
+	EventPipeBufferManager *buffer_manager,
+	EventPipeThreadSessionState *thread_session_state)
+{
+	EP_ASSERT (buffer_manager != NULL);
+	EP_ASSERT (thread_session_state != NULL);
+
+	ep_buffer_manager_requires_lock_held (buffer_manager);
+
+	dn_list_remove (buffer_manager->thread_session_state_list, thread_session_state);
+	ep_thread_set_session_state (ep_thread_session_state_get_thread (thread_session_state), ep_thread_session_state_get_session (thread_session_state), NULL);
+	buffer_manager_remove_thread_session_state_from_sequence_points (buffer_manager, thread_session_state);
+	ep_thread_session_state_free (thread_session_state);
+}
+
+void
+ep_buffer_manager_remove_and_delete_thread_session_state (
+	EventPipeBufferManager *buffer_manager,
+	EventPipeThreadSessionState *thread_session_state)
+{
+	EP_ASSERT (buffer_manager != NULL);
+	EP_ASSERT (thread_session_state != NULL);
+
+	ep_buffer_manager_requires_lock_not_held (buffer_manager);
+
+	EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section1)
+		buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+	EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1)
+
+ep_on_exit:
+	ep_buffer_manager_requires_lock_not_held (buffer_manager);
+	return;
+
+ep_on_error:
+	ep_exit_error_handler ();
+}
+
+bool
+ep_buffer_manager_uses_sequence_points (const EventPipeBufferManager *buffer_manager)
+{
+	EP_ASSERT (buffer_manager != NULL);
+	return buffer_manager->sequence_point_alloc_budget != 0;
+}
 
 #endif /* !defined(EP_INCLUDE_SOURCE_FILES) || defined(EP_FORCE_INCLUDE_SOURCE_FILES) */
 #endif /* ENABLE_PERFTRACING */

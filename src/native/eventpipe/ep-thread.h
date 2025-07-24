@@ -273,10 +273,6 @@ struct _EventPipeThreadSessionState_Internal {
 	// The sequence number of the last event that was read, only
 	// updated/read by the reader thread.
 	uint32_t last_read_sequence_number;
-#ifdef EP_CHECKED_BUILD
-	// protected by the buffer manager lock.
-	EventPipeBufferManager *buffer_manager;
-#endif
 	// The number of events that were attempted to be written by this
 	// thread. Each event was either successfully recorded in a buffer
 	// or it was dropped.
@@ -297,6 +293,15 @@ struct _EventPipeThreadSessionState_Internal {
 	// buffers are later read and there are fewer than X events timestamped
 	// prior to the sequence point we can be certain the others were dropped.
 	volatile uint32_t sequence_number;
+	// An ThreadSessionState is no longer needed when the following are met:
+	// 1. The thread is unregistered - No more events can be written.
+	// 2. The buffers are empty - No more events need to be flushed.
+	// 3. The following SequencePoint is written - No more mapped sequence
+	//    numbers need to be updated.
+	// If this is set to true, that means we have detected 1 and 2 through
+	// buffer_manager_advance_to_non_empty_buffer, but sequence points are active,
+	// so we defer the deletion until the next sequence point updates its map.
+	bool delete_deferred;
 };
 
 #if !defined(EP_INLINE_GETTER_SETTER) && !defined(EP_IMPL_THREAD_GETTER_SETTER)
@@ -307,8 +312,10 @@ struct _EventPipeThreadSessionState {
 
 EP_DEFINE_GETTER_REF(EventPipeThreadSessionState *, thread_session_state, EventPipeThreadHolder *, thread_holder)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeSession *, session)
-EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number);
-EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number);
+EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number)
+EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number)
+EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, bool, delete_deferred)
+EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, bool, delete_deferred)
 
 EventPipeThreadSessionState *
 ep_thread_session_state_alloc (

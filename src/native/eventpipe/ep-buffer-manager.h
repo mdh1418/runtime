@@ -74,6 +74,9 @@ ep_buffer_list_insert_tail (
 EventPipeBuffer *
 ep_buffer_list_get_and_remove_head (EventPipeBufferList *buffer_list);
 
+bool
+ep_buffer_list_is_empty (const EventPipeBufferList *buffer_list);
+
 #ifdef EP_CHECKED_BUILD
 bool
 ep_buffer_list_ensure_consistency (EventPipeBufferList *buffer_list);
@@ -227,6 +230,14 @@ ep_buffer_manager_deallocate_buffers (EventPipeBufferManager *buffer_manager);
 bool
 ep_buffer_manager_ensure_consistency (EventPipeBufferManager *buffer_manager);
 #endif
+
+void
+ep_buffer_manager_remove_and_delete_thread_session_state (
+	EventPipeBufferManager *buffer_manager,
+	EventPipeThreadSessionState *thread_session_state);
+
+bool
+ep_buffer_manager_uses_sequence_points (const EventPipeBufferManager *buffer_manager);
 
 #endif /* ENABLE_PERFTRACING */
 #endif /* __EVENTPIPE_BUFFERMANAGER_H__ */

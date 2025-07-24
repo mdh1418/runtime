@@ -119,6 +119,22 @@ ep_thread_unregister (EventPipeThread *thread)
 
 	ep_return_false_if_nok (thread != NULL);
 
+	for (uint32_t i = 0; i < EP_MAX_NUMBER_OF_SESSIONS; ++i) {
+		EventPipeThreadSessionState *thread_session_state = (EventPipeThreadSessionState *)ep_rt_volatile_load_ptr ((volatile void **)(&thread->session_state [i]));
+		if (thread_session_state == NULL)
+			continue;
+
+		EventPipeBufferManager *buffer_manager = ep_session_get_buffer_manager (thread_session_state->session);
+		EP_ASSERT (buffer_manager != NULL);
+
+		if (ep_buffer_list_is_empty (thread_session_state->buffer_list)) {
+			if (ep_buffer_manager_uses_sequence_points (buffer_manager))
+				thread_session_state->delete_deferred = true;
+			else
+				ep_buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+		}
+	}
+
 	bool found = false;
 	EP_SPIN_LOCK_ENTER (&_ep_threads_lock, section1)
 		// Remove ourselves from the global list
@@ -321,9 +337,8 @@ ep_thread_session_state_alloc (
 
 	instance->buffer_list = ep_buffer_list_alloc (buffer_manager, thread);
 	ep_raise_error_if_nok (instance->buffer_list != NULL);
-#ifdef EP_CHECKED_BUILD
-	instance->buffer_manager = buffer_manager;
-#endif
+
+	instance->delete_deferred = false;
 
 ep_on_exit:
 	return instance;
@@ -367,7 +382,7 @@ EventPipeBuffer *
 ep_thread_session_state_get_write_buffer (const EventPipeThreadSessionState *thread_session_state)
 {
 	EP_ASSERT (thread_session_state != NULL);
-	ep_buffer_manager_requires_lock_held (thread_session_state->buffer_manager);
+	ep_buffer_manager_requires_lock_held (ep_session_get_buffer_manager (thread_session_state->session));
 
 	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_buffer_get_volatile_state (thread_session_state->write_buffer) == EP_BUFFER_STATE_WRITABLE));
 	return (EventPipeBuffer*) ep_rt_volatile_load_ptr_without_barrier ((volatile void **)&thread_session_state->write_buffer);
@@ -388,7 +403,7 @@ ep_thread_session_state_set_write_buffer (
 {
 	EP_ASSERT (thread_session_state != NULL);
 
-	ep_buffer_manager_requires_lock_held (thread_session_state->buffer_manager);
+	ep_buffer_manager_requires_lock_held (ep_session_get_buffer_manager (thread_session_state->session));
 
 	EP_ASSERT ((new_buffer == NULL) || (ep_buffer_get_volatile_state (new_buffer) == EP_BUFFER_STATE_WRITABLE));
 	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_buffer_get_volatile_state (thread_session_state->write_buffer) == EP_BUFFER_STATE_WRITABLE));
@@ -401,7 +416,7 @@ ep_thread_session_state_get_buffer_list (const EventPipeThreadSessionState *thre
 {
 	EP_ASSERT (thread_session_state != NULL);
 
-	ep_buffer_manager_requires_lock_held (thread_session_state->buffer_manager);
+	ep_buffer_manager_requires_lock_held (ep_session_get_buffer_manager (thread_session_state->session));
 
 	return thread_session_state->buffer_list;
 }
