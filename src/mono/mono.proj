@@ -706,6 +706,7 @@ JS_ENGINES = [NODE_JS]
     <!-- Components -->
     <ItemGroup Condition="'$(MonoComponentsStatic)' == 'true'">
       <_MonoCMakeArgs Include="-DSTATIC_COMPONENTS=1" />
+      <_MonoCMakeArgs Include="-DENABLE_EVENTPIPE_TEST=1" />
     </ItemGroup>
     <ItemGroup>
       <_MonoCMakeArgs Include="-DMONO_COMPONENTS_RID=$(TargetOS)-$(TargetArchitecture)" />

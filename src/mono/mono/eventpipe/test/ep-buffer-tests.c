@@ -10,6 +10,12 @@
 #include <eventpipe/ep-session.h>
 #include <eglib/test/test.h>
 
+// Include Mono EventPipe headers for initialization functions
+#include "../ep-rt-mono.h"
+
+// External variables from Mono EventPipe runtime
+extern ep_rt_spin_lock_handle_t _ep_rt_mono_config_lock;
+
 #define TEST_PROVIDER_NAME "MyTestProvider"
 #define TEST_FILE "./ep_test_create_file.txt"
 #define TEST_EVENT_DATA "Dummy data for perf test."
@@ -86,13 +92,14 @@ load_buffer_with_events_init (
 			NULL,
 			EP_SESSION_TYPE_FILE,
 			EP_SERIALIZATION_FORMAT_NETTRACE_V4,
-			false,
-			1,
+			0, // rundown_keyword
+			false, // stackwalk_requested
+			1, // circular_buffer_size_in_mb
 			current_provider_config,
-			1,
-			NULL,
-			NULL,
-			0);
+			1, // providers_len
+			NULL, // sync_callback
+			NULL, // callback_additional_data
+			0); // user_events_data_fd
 	EP_LOCK_EXIT (section1)
 
 	ep_raise_error_if_nok (*session != NULL);
@@ -197,6 +204,8 @@ test_buffer_setup (void)
 #ifdef _CRTDBG_MAP_ALLOC
 	_CrtMemCheckpoint (&eventpipe_memory_start_snapshot);
 #endif
+	// Initialize EventPipe components needed for buffer tests
+	ep_rt_mono_component_init ();
 	return NULL;
 }
 
@@ -624,7 +633,7 @@ test_check_buffer_perf (void)
 	test_location = 4;
 
 	float accumulated_time_sec = ((float)accumulated_time_ticks / (float)ep_perf_frequency_query ());
-	float events_per_sec = (float)total_events_written / (accumulated_time_sec ? accumulated_time_sec : 1.0);
+	float events_per_sec = (float)total_events_written / (accumulated_time_sec ? accumulated_time_sec : 1.0f);
 
 	// Measured number of events/second for one thread.
 	// Only measure loading data into pre-allocated buffer.
@@ -698,6 +707,9 @@ ep_on_error:
 static RESULT
 test_buffer_teardown (void)
 {
+	// Clean up EventPipe components
+	ep_rt_spin_lock_free (&_ep_rt_mono_config_lock);
+	
 #ifdef _CRTDBG_MAP_ALLOC
 	_CrtMemCheckpoint (&eventpipe_memory_end_snapshot);
 	if ( _CrtMemDifference( &eventpipe_memory_diff_snapshot, &eventpipe_memory_start_snapshot, &eventpipe_memory_end_snapshot) ) {

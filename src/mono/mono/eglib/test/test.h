@@ -65,7 +65,6 @@ gboolean run_group(const Group *group, gint iterations, gboolean quiet,
 	const char *tests);
 #undef FAILED
 RESULT FAILED(const gchar *format, ...);
-gdouble get_timestamp (void);
 gchar ** eg_strsplit (const gchar *string, const gchar *delimiter, gint max_tokens);
 void eg_strfreev (gchar **str_array);
 

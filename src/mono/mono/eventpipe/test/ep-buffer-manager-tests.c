@@ -84,12 +84,14 @@ buffer_manager_init (
 	*provider = NULL;
 	*ep_event = NULL;
 
+	printf ("\n\tbuffer_manager_init:\n");
 	EventPipeProviderConfiguration provider_config;
 	EventPipeProviderConfiguration *current_provider_config;
 	current_provider_config = ep_provider_config_init (&provider_config, TEST_PROVIDER_NAME, 1, EP_EVENT_LEVEL_LOGALWAYS, "");
 	ep_raise_error_if_nok (current_provider_config != NULL);
 
 	test_location = 1;
+	printf ("\n\ttest_location = 1\n");
 
 	EP_LOCK_ENTER (section1)
 		*session = ep_session_alloc (
@@ -98,6 +100,7 @@ buffer_manager_init (
 			NULL,
 			EP_SESSION_TYPE_FILE,
 			format,
+			0,
 			false,
 			1,
 			current_provider_config,
@@ -110,22 +113,26 @@ buffer_manager_init (
 	ep_raise_error_if_nok (*session != NULL);
 
 	test_location = 2;
+	printf ("\n\ttest_location = 2\n");
 
 	*buffer_manager = ep_session_get_buffer_manager (*session);
 
 	ep_raise_error_if_nok (*buffer_manager != NULL);
 
 	test_location = 3;
+	printf ("\n\ttest_location = 3\n");
 
 	*provider = ep_create_provider (TEST_PROVIDER_NAME, NULL, NULL);
 	ep_raise_error_if_nok (*provider != NULL);
 
 	test_location = 4;
+	printf ("\n\ttest_location = 4\n");
 
 	*ep_event = ep_event_alloc (*provider, 1, 1, 1, EP_EVENT_LEVEL_VERBOSE, false, NULL, 0);
 	ep_raise_error_if_nok (*ep_event != NULL);
 
 	test_location = 5;
+	printf ("\n\ttest_location = 5\n");
 
 	ep_event_set_enabled_mask (*ep_event, 1);
 
@@ -133,8 +140,11 @@ buffer_manager_init (
 	ep_raise_error_if_nok (*thread != NULL);
 
 	test_location = 6;
+	printf ("\n\ttest_location = 6\n");
 
 	*thread_handle = ep_rt_thread_get_handle ();
+	
+	printf ("\n\tbuffer_manager_init end:\n");
 
 ep_on_exit:
 	ep_provider_config_fini (current_provider_config);
@@ -188,31 +198,41 @@ test_buffer_manager_setup (void)
 static RESULT
 test_create_free_buffer_manager (void)
 {
-	RESULT result = NULL;
-	uint32_t test_location = 0;
-	EventPipeBufferManager *buffer_manager = NULL;
-	ep_rt_thread_handle_t thread_handle;
-	EventPipeThread *thread = NULL;
-	EventPipeSession *session = NULL;
-	EventPipeProvider *provider = NULL;
-	EventPipeEvent *ep_event = NULL;
+   RESULT result = NULL;
+   uint32_t test_location = 0;
+   EventPipeBufferManager *buffer_manager = NULL;
+   ep_rt_thread_handle_t thread_handle;
+   EventPipeThread *thread = NULL;
+   EventPipeSession *session = NULL;
+   EventPipeProvider *provider = NULL;
+   EventPipeEvent *ep_event = NULL;
 
-	result = buffer_manager_init (EP_SERIALIZATION_FORMAT_NETTRACE_V4, &buffer_manager, &thread_handle, &thread, &session, &provider, &ep_event);
+   printf("[test_create_free_buffer_manager] Entered test.\n");
+   result = buffer_manager_init (EP_SERIALIZATION_FORMAT_NETTRACE_V4, &buffer_manager, &thread_handle, &thread, &session, &provider, &ep_event);
+   printf("[test_create_free_buffer_manager] After buffer_manager_init. result=%p\n", (void*)result);
 
-	ep_raise_error_if_nok (result == NULL);
+   ep_raise_error_if_nok (result == NULL);
+   printf("[test_create_free_buffer_manager] buffer_manager_init returned NULL result (success).\n");
 
-	test_location = 1;
+   test_location = 1;
+   printf("[test_create_free_buffer_manager] test_location = 1\n");
 
-	ep_raise_error_if_nok (buffer_manager != NULL && session != NULL);
+   printf("[test_create_free_buffer_manager] buffer_manager=%p, session=%p\n", (void*)buffer_manager, (void*)session);
+   ep_raise_error_if_nok (buffer_manager != NULL && session != NULL);
+   printf("[test_create_free_buffer_manager] buffer_manager and session are non-NULL.\n");
 
 ep_on_exit:
-	buffer_manager_fini (buffer_manager, thread, session, provider, ep_event);
-	return result;
+   printf("[test_create_free_buffer_manager] ep_on_exit.\n");
+   buffer_manager_fini (buffer_manager, thread, session, provider, ep_event);
+   printf("[test_create_free_buffer_manager] Finished cleanup and returning.\n");
+   return result;
 
 ep_on_error:
-	if (!result)
-		result = FAILED ("Failed at test location=%i", test_location);
-	ep_exit_error_handler ();
+   printf("[test_create_free_buffer_manager] ep_on_error.\n");
+   if (!result)
+	   result = FAILED ("Failed at test location=%i", test_location);
+   printf("[test_create_free_buffer_manager] Error: %s\n", result);
+   ep_exit_error_handler ();
 }
 
 static RESULT

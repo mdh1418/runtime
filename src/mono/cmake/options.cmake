@@ -31,6 +31,7 @@ option (DISABLE_LOG_PROFILER_GZ "Disable support for log profiler output compres
 option (ENABLE_ICALL_EXPORT "Export icall functions")
 option (ENABLE_ICALL_SYMBOL_MAP "Generate tables which map icall functions to their C symbols")
 option (ENABLE_PERFTRACING "Enables support for eventpipe library")
+option (ENABLE_EVENTPIPE_TEST "Enable building of EventPipe test runner")
 option (ENABLE_INTERP_LIB "Enable separate interpreter library")
 option (ENABLE_LAZY_GC_THREAD_CREATION "Enable lazy runtime thread creation, embedding host must do it explicitly")
 option (ENABLE_WERROR "Compile with -Werror")
