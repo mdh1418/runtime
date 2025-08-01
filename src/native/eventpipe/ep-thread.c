@@ -31,8 +31,8 @@ ep_thread_alloc (void)
 	EventPipeThread *instance = ep_rt_object_alloc (EventPipeThread);
 	ep_raise_error_if_nok (instance != NULL);
 
-	instance->os_thread_id = ep_rt_thread_id_t_to_uint64_t (ep_rt_current_thread_get_id ());
-	memset (instance->session_state, 0, sizeof (instance->session_state));
+	instance->os_thread_id = p_rt_thread_id_t_to_uint64_t (ep_rt_current_thread_get_id ());
+	memset ((void *)instance->session_state, 0, sizeof (instance->session_state));
 
 	instance->writing_event_in_progress = UINT32_MAX;
 	instance->unregistered = 0;
@@ -204,9 +204,8 @@ ep_thread_set_session_state (
 	EP_ASSERT (thread != NULL);
 	EP_ASSERT (session != NULL);
 	EP_ASSERT (ep_session_get_index (session) < EP_MAX_NUMBER_OF_SESSIONS);
-	EP_ASSERT (thread_session_state != NULL);
 
-	ep_buffer_manager_requires_lock_held(ep_session_get_buffer_manager (session));
+	ep_buffer_manager_requires_lock_held (ep_session_get_buffer_manager (session));
 
 	uint32_t index = ep_session_get_index (session);
 	ep_rt_volatile_store_ptr ((volatile void **)(&thread->session_state [index]), thread_session_state);
@@ -221,7 +220,7 @@ ep_thread_get_session_state (
 	EP_ASSERT (session != NULL);
 	EP_ASSERT (ep_session_get_index (session) < EP_MAX_NUMBER_OF_SESSIONS);
 
-	ep_buffer_manager_requires_lock_held(ep_session_get_buffer_manager (session));
+	ep_buffer_manager_requires_lock_held (ep_session_get_buffer_manager (session));
 
 	uint32_t index = ep_session_get_index (session);
 	return (EventPipeThreadSessionState *)ep_rt_volatile_load_ptr_without_barrier ((volatile void **)(&thread->session_state [index]));
@@ -236,7 +235,7 @@ ep_thread_get_volatile_session_state (
 	EP_ASSERT (session != NULL);
 	EP_ASSERT (ep_session_get_index (session) < EP_MAX_NUMBER_OF_SESSIONS);
 	EP_ASSERT (ep_thread_get() == thread);
-	EP_ASSERT (thread->writing_event_in_progress == ep_session_get_index (session));
+	EP_ASSERT (ep_thread_is_rundown_thread (thread) || thread->writing_event_in_progress == ep_session_get_index (session));
 
 	size_t index = ep_session_get_index (session);
 	return (EventPipeThreadSessionState *)ep_rt_volatile_load_ptr ((volatile void **)(&thread->session_state [index]));
@@ -352,7 +351,7 @@ ep_thread_session_state_free (EventPipeThreadSessionState *thread_session_state)
 {
 	ep_return_void_if_nok (thread_session_state != NULL);
 	ep_thread_holder_fini (&thread_session_state->thread_holder);
-	ep_buffer_list_free(thread_session_state->buffer_list);
+	ep_buffer_list_free (thread_session_state->buffer_list);
 	ep_rt_object_free (thread_session_state);
 }
 
@@ -369,7 +368,7 @@ ep_thread_session_state_get_write_buffer (const EventPipeThreadSessionState *thr
 	EP_ASSERT (thread_session_state != NULL);
 	ep_buffer_manager_requires_lock_held (thread_session_state->buffer_manager);
 
-	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (thread_session_state->write_buffer)) == EP_BUFFER_STATE_WRITABLE));
+	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_buffer_get_volatile_state (thread_session_state->write_buffer) == EP_BUFFER_STATE_WRITABLE));
 	return (EventPipeBuffer*) ep_rt_volatile_load_ptr_without_barrier ((volatile void **)&thread_session_state->write_buffer);
 }
 
@@ -377,7 +376,6 @@ EventPipeBuffer *
 ep_thread_session_state_get_volatile_write_buffer (const EventPipeThreadSessionState *thread_session_state)
 {
 	EP_ASSERT (thread_session_state != NULL);
-	EP_ASSERT (ep_thread_get() == ep_thread_session_state_get_thread (thread_session_state));
 
 	return (EventPipeBuffer*) ep_rt_volatile_load_ptr ((volatile void **)&thread_session_state->write_buffer);
 }
@@ -391,8 +389,8 @@ ep_thread_session_state_set_write_buffer (
 
 	ep_buffer_manager_requires_lock_held (thread_session_state->buffer_manager);
 
-	EP_ASSERT ((new_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (new_buffer)) == EP_BUFFER_STATE_WRITABLE));
-	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_rt_volatile_load_uint32_t (ep_buffer_get_state_cref (thread_session_state->write_buffer)) == EP_BUFFER_STATE_WRITABLE));
+	EP_ASSERT ((new_buffer == NULL) || (ep_buffer_get_volatile_state (new_buffer) == EP_BUFFER_STATE_WRITABLE));
+	EP_ASSERT ((thread_session_state->write_buffer == NULL) || (ep_buffer_get_volatile_state (thread_session_state->write_buffer) == EP_BUFFER_STATE_WRITABLE));
 
 	thread_session_state->write_buffer = new_buffer;
 }
