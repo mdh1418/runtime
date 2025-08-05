@@ -31,7 +31,7 @@ ep_thread_alloc (void)
 	EventPipeThread *instance = ep_rt_object_alloc (EventPipeThread);
 	ep_raise_error_if_nok (instance != NULL);
 
-	instance->os_thread_id = p_rt_thread_id_t_to_uint64_t (ep_rt_current_thread_get_id ());
+	instance->os_thread_id = ep_rt_current_thread_get_id ();
 	memset ((void *)instance->session_state, 0, sizeof (instance->session_state));
 
 	instance->writing_event_in_progress = UINT32_MAX;
@@ -127,12 +127,8 @@ ep_thread_unregister (EventPipeThread *thread)
 		EventPipeBufferManager *buffer_manager = ep_session_get_buffer_manager (thread_session_state->session);
 		EP_ASSERT (buffer_manager != NULL);
 
-		if (ep_buffer_list_is_empty (thread_session_state->buffer_list)) {
-			if (ep_buffer_manager_uses_sequence_points (buffer_manager))
-				thread_session_state->delete_deferred = true;
-			else
-				ep_buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
-		}
+		if (ep_buffer_list_is_empty (thread_session_state->buffer_list))
+			ep_buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
 	}
 
 	bool found = false;
@@ -338,7 +334,6 @@ ep_thread_session_state_alloc (
 	instance->buffer_list = ep_buffer_list_alloc (buffer_manager, thread);
 	ep_raise_error_if_nok (instance->buffer_list != NULL);
 
-	instance->delete_deferred = false;
 	instance->track_state = EP_SEQUENCE_POINT_THREAD_ID_UNTRACKED;
 
 ep_on_exit:
