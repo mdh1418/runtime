@@ -339,6 +339,7 @@ ep_thread_session_state_alloc (
 	ep_raise_error_if_nok (instance->buffer_list != NULL);
 
 	instance->delete_deferred = false;
+	instance->track_state = EP_SEQUENCE_POINT_THREAD_ID_UNTRACKED;
 
 ep_on_exit:
 	return instance;

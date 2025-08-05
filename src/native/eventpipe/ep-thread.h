@@ -302,6 +302,7 @@ struct _EventPipeThreadSessionState_Internal {
 	// buffer_manager_advance_to_non_empty_buffer, but sequence points are active,
 	// so we defer the deletion until the next sequence point updates its map.
 	bool delete_deferred;
+	EventPipeThreadSequencePointTrackState track_state;
 };
 
 #if !defined(EP_INLINE_GETTER_SETTER) && !defined(EP_IMPL_THREAD_GETTER_SETTER)
@@ -316,6 +317,8 @@ EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, 
 EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, bool, delete_deferred)
 EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, bool, delete_deferred)
+EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeThreadSequencePointTrackState, track_state)
+EP_DEFINE_SETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeThreadSequencePointTrackState, track_state)
 
 EventPipeThreadSessionState *
 ep_thread_session_state_alloc (

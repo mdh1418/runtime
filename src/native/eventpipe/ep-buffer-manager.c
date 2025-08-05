@@ -399,6 +399,10 @@ buffer_manager_init_sequence_point_thread_list (
 	ep_buffer_manager_requires_lock_held (buffer_manager);
 
 	DN_LIST_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, buffer_manager->thread_session_state_list) {
+		EventPipeThreadSequencePointTrackState prev_track_state = ep_thread_session_state_get_track_state (thread_session_state);
+		if (prev_track_state == EP_SEQUENCE_POINT_THREAD_ID_RETIRED)
+			continue;
+
 		// The sequence number captured here is not guaranteed to be the most recent sequence number, nor
 		// is it guaranteed to match the number of events we would observe in the thread's write buffer
 		// memory. This is only used as a lower bound on the number of events the thread has attempted to
@@ -408,6 +412,22 @@ buffer_manager_init_sequence_point_thread_list (
 		// event is one less. Sequence numbers are allowed to overflow, so going backwards is allowed to
 		// underflow.
 		uint32_t sequence_number = ep_thread_session_state_get_volatile_sequence_number (thread_session_state) - 1;
+		if (ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0) {
+			// This sequence point will be the last one that embeds this thread's ID as there will be no more
+			// writes by this thread and thus all its events are prior to this sequence point.
+			// Future sequence points do not need to track this thread's ID
+			ep_thread_session_state_set_track_state (thread_session_state, EP_SEQUENCE_POINT_THREAD_ID_RETIRED);
+
+			if ((ep_thread_session_state_get_last_read_sequence_number (thread_session_state) == sequence_number) &&
+				(prev_track_state == EP_SEQUENCE_POINT_THREAD_ID_TRACKED)) {
+				// The thread will not emit new events, and the last sequence point has already tracked
+				// the last sequence number emitted by this thread,
+				// so we don't need to track it anymore
+				continue;
+			}
+		} else if (prev_track_state == EP_SEQUENCE_POINT_THREAD_ID_UNTRACKED) {
+			ep_thread_session_state_set_track_state (thread_session_state, EP_SEQUENCE_POINT_THREAD_ID_TRACKED);
+		}
 
 		dn_umap_ptr_uint32_insert (ep_sequence_point_get_thread_sequence_numbers (sequence_point), thread_session_state, sequence_number);
 		ep_thread_addref (ep_thread_holder_get_thread (ep_thread_session_state_get_thread_holder_ref (thread_session_state)));
@@ -1189,6 +1209,12 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 			}
 
 			ep_thread_session_state_set_last_read_sequence_number (current_thread_session_state, sequence_number);
+			if (sequence_point != NULL) {
+				dn_umap_it_t found = dn_umap_ptr_uint32_find (ep_sequence_point_get_thread_sequence_numbers (sequence_point), current_thread_session_state);
+				EP_ASSERT (!dn_umap_it_end (found));
+				dn_umap_ptr_uint32_insert_or_assign (ep_sequence_point_get_thread_sequence_numbers (sequence_point), current_thread_session_state, sequence_number);
+			}
+
 			// Have we written events in any sequence point?
 			*events_written = events_written_for_thread || *events_written;
 		}
@@ -1211,6 +1237,7 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 				dn_umap_it_t found = dn_umap_ptr_uint32_find (ep_sequence_point_get_thread_sequence_numbers (sequence_point), session_state);
 				uint32_t thread_sequence_number = !dn_umap_it_end (found) ? dn_umap_it_value_uint32_t (found) : 0;
 				uint32_t last_read_sequence_number = ep_thread_session_state_get_last_read_sequence_number (session_state);
+				EP_ASSERT (thread_sequence_number == 0 || thread_sequence_number == last_read_sequence_number);
 				// Sequence numbers can overflow so we can't use a direct last_read > sequence_number comparison
 				// If a thread is able to drop more than 0x80000000 events in between sequence points then we will
 				// miscategorize it, but that seems unlikely.
@@ -1238,6 +1265,7 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 					buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
 			} DN_VECTOR_PTR_FOREACH_END;
 			buffer_manager_dequeue_sequence_point (buffer_manager);
+			sequence_point = NULL;
 		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
 	}
 
