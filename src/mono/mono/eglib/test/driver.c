@@ -113,11 +113,8 @@ gint main(gint argc, gchar **argv)
 {
 	gint j, iterations = 1;
 	StringArray *tests_to_run = NULL;
-	gdouble time_start;
-	gboolean report_time = FALSE;
 	gboolean quiet = FALSE;
 	gboolean global_failure = FALSE;
-	gboolean no_final_time_labels = FALSE;
 	gboolean debug = FALSE;
 
 #if HAVE_GETOPT_H
@@ -129,11 +126,10 @@ gint main(gint argc, gchar **argv)
 		{"quiet",      no_argument,       0, 'q'},
 		{"iterations", required_argument, 0, 'i'},
 		{"debug",      no_argument,       0, 'd'},
-		{"no-labels",  no_argument,       0, 'n'},
 		{0, 0, 0, 0}
 	};
 
-	while((c = getopt_long(argc, argv, "dhtqni:", long_options, NULL)) != -1) {			switch(c) {
+	while((c = getopt_long(argc, argv, "dhtqi:", long_options, NULL)) != -1) {			switch(c) {
 			case 'h':
 				print_help(argv[0]);
 				return 1;
@@ -142,9 +138,6 @@ gint main(gint argc, gchar **argv)
 				break;
 			case 'q':
 				quiet = TRUE;
-				break;
-			case 'n':
-				no_final_time_labels = TRUE;
 				break;
 			case 'd':
 				debug = TRUE;
@@ -160,8 +153,6 @@ gint main(gint argc, gchar **argv)
 		tests_to_run = string_array_append(tests_to_run, argv[i]);
 	}
 #endif
-
-	time_start = get_timestamp();
 
 	for (j = 0; test_groups[j].name != NULL; j++) {
 		gboolean run = TRUE;
@@ -233,15 +224,6 @@ gint main(gint argc, gchar **argv)
 		gdouble pass_percentage = ((gdouble)global_passed / (gdouble)global_tests) * 100.0;
 		printf("=============================\n");
 		printf("Overall result: %s : %d / %d (%g%%)\n", global_failure ? "FAILED" : "OK", global_passed, global_tests, pass_percentage);
-	}
-
-	if (report_time) {
-		gdouble duration = get_timestamp() - time_start;
-		if (no_final_time_labels) {
-			printf("%g\n", duration);
-		} else {
-			printf("%s Total Time: %g\n", DRIVER_NAME, duration);
-		}
 	}
 
 	if (tests_to_run != NULL) {

@@ -394,6 +394,7 @@ test_thread_session_state (void)
 			NULL,
 			EP_SESSION_TYPE_FILE,
 			EP_SERIALIZATION_FORMAT_NETTRACE_V4,
+			0,
 			false,
 			1,
 			provider_config,

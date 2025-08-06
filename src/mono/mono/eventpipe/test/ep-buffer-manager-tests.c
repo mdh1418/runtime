@@ -98,6 +98,7 @@ buffer_manager_init (
 			NULL,
 			EP_SESSION_TYPE_FILE,
 			format,
+			0,
 			false,
 			1,
 			current_provider_config,

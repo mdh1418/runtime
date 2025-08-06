@@ -40,6 +40,11 @@ if(ENABLE_PERFTRACING)
         add_executable(ep-test ${EVENTPIPE_TEST_SOURCES} ${EVENTPIPE_TEST_HEADERS})
         target_sources(ep-test PRIVATE "${mono-components-objects}")
         
+        # Add compiler flags to reduce warning strictness for tests
+        if(MSVC)
+            target_compile_options(ep-test PRIVATE /wd4047 /wd4024 /wd4244 /wd4210 /wd4090 /wd2198)
+        endif()
+
         set(EPTEST_LINKABLE_LIBS "")
         list(APPEND EPTEST_LINKABLE_LIBS eglib_api monosgen-static ${OS_LIBS} ${LLVM_LIBS} monoapi)
         if (CLR_CMAKE_USE_SYSTEM_ZLIB)

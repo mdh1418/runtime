@@ -86,6 +86,7 @@ load_buffer_with_events_init (
 			NULL,
 			EP_SESSION_TYPE_FILE,
 			EP_SERIALIZATION_FORMAT_NETTRACE_V4,
+			0,
 			false,
 			1,
 			current_provider_config,
@@ -624,7 +625,7 @@ test_check_buffer_perf (void)
 	test_location = 4;
 
 	float accumulated_time_sec = ((float)accumulated_time_ticks / (float)ep_perf_frequency_query ());
-	float events_per_sec = (float)total_events_written / (accumulated_time_sec ? accumulated_time_sec : 1.0);
+	float events_per_sec = (float)total_events_written / (accumulated_time_sec ? accumulated_time_sec : 1.0f);
 
 	// Measured number of events/second for one thread.
 	// Only measure loading data into pre-allocated buffer.
