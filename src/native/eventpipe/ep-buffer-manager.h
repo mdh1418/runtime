@@ -65,6 +65,36 @@ ep_buffer_list_ensure_consistency (EventPipeBufferList *buffer_list);
 #endif
 
 /*
+ * EventPipeBufferManagerMinHeapNode
+ */
+#if defined(EP_INLINE_GETTER_SETTER) || defined(EP_IMPL_BUFFER_MANAGER_GETTER_SETTER)
+struct _EventPipeBufferManagerMinHeapNode {
+#else
+struct _EventPipeBufferManagerMinHeapNode_Internal {
+#endif
+	// The read-only buffer representing this node. Ownership transferred from EventPipeThread->EventPipeThreadSessionState->EventPipeBufferList
+	// When this node is heapified as the root, the current_read_event is advanced on the following call to ep_buffer_manager_get_next_event,
+	// so the last event will live long enough for the caller to process it.
+	//
+	// Once the buffer is exhausted:
+	// - It is freed
+	// - this node is removed from the min-heap and freed
+	// - the ties to the EventPipeThread is untracked
+	// - the EventPipeBufferManager reclaims the buffer size
+	//
+	// We track the buffer and not the buffer_list because 
+	// We shouldn't advance to the next buffer in the buffer_list without ensuring all potential new thread_session_states buffer_lists
+	// are also considered for the min-heap. Otherwise we might miss older events.
+	EventPipeBuffer *buffer;
+	// Unique identifier for the EventPipeThread that wrote into the buffer, solely for quickly iterating
+	// the EventPipeBufferManager's ThreadSessionState list for new candidate nodes.
+	// This is a weak reference; the EventPipeThreadSessionState may be deleted while this node exists.
+	EventPipeThreadSessionState *thread_session_state;
+	// Convenience to reclaim buffer space
+	EventPipeBufferManager *buffer_manager;
+};
+
+/*
  * EventPipeBufferManagerMinHeap
  */
 #if defined(EP_INLINE_GETTER_SETTER) || defined(EP_IMPL_BUFFER_MANAGER_GETTER_SETTER)
@@ -72,13 +102,13 @@ struct _EventPipeBufferManagerMinHeap {
 #else
 struct _EventPipeBufferManagerMinHeap_Internal {
 #endif
-	// The min heap for grabbing the next event.
-	// Nodes are EventPipeBuffer pointers, and the heap is ordered by its current_read_event's timestamp.
+	// The min-heap of read-only buffers popped off of EventPipeThreadSessionState's EventPipeBufferLists.
+	// Nodes are EventPipeBufferManagerMinHeapNode, and the heap is sorted by buffer's current EventPipeEventInstance's timestamps.
 	dn_vector_ptr_t *heap;
 	// Once a thread session state's buffer_list is "tracked", it remains in the min-heap until
-	// it is exhausted. This allows us to quickly iterate over a buffer_manager's
+	// the read-only buffer is exhausted. This allows us to quickly iterate over a buffer_manager's
 	// thread_session_state_list to append untracked thread_session_state's as nodes.
-	dn_umap_t *tracked_buffer_lists;
+	dn_umap_t *tracked_thread_session_states;
 };
 
 /*
