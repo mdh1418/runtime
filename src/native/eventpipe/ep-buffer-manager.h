@@ -65,6 +65,23 @@ ep_buffer_list_ensure_consistency (EventPipeBufferList *buffer_list);
 #endif
 
 /*
+ * EventPipeBufferManagerMinHeap
+ */
+#if defined(EP_INLINE_GETTER_SETTER) || defined(EP_IMPL_BUFFER_MANAGER_GETTER_SETTER)
+struct _EventPipeBufferManagerMinHeap {
+#else
+struct _EventPipeBufferManagerMinHeap_Internal {
+#endif
+	// The min heap for grabbing the next event.
+	// Nodes are EventPipeBuffer pointers, and the heap is ordered by its current_read_event's timestamp.
+	dn_vector_ptr_t *heap;
+	// Once a thread session state's buffer_list is "tracked", it remains in the min-heap until
+	// it is exhausted. This allows us to quickly iterate over a buffer_manager's
+	// thread_session_state_list to append untracked thread_session_state's as nodes.
+	dn_umap_t *tracked_buffer_lists;
+};
+
+/*
  * EventPipeBufferManager.
  */
 
@@ -82,6 +99,8 @@ struct _EventPipeBufferManager_Internal {
 	// we keep the buffers around without having to perform any migration or
 	// book-keeping.
 	dn_list_t *thread_session_state_list;
+	// A min-heap of read-only buffers used for reading events in timestamp order.
+	EventPipeBufferManagerMinHeap *event_min_heap;
 	// A queue of sequence points.
 	dn_list_t *sequence_points;
 	// Event for synchronizing real time reading.

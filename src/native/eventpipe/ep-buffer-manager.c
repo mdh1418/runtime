@@ -131,6 +131,53 @@ buffer_manager_remove_and_delete_thread_session_state (
 	EventPipeBufferManager *buffer_manager,
 	EventPipeThreadSessionState *thread_session_state);
 
+EventPipeBufferManagerMinHeap *
+buffer_manager_event_min_heap_alloc ();
+
+static
+void
+buffer_manager_event_min_heap_free (EventPipeBufferManagerMinHeap *event_min_heap);
+
+static
+void
+buffer_manager_event_min_heap_heapify_up (dn_vector_ptr_t *heap);
+
+static
+void
+buffer_manager_event_min_heap_heapify_down (dn_vector_ptr_t *heap);
+
+static
+EventPipeBufferList *
+buffer_manager_event_min_heap_get_node (
+	dn_vector_ptr_t *heap,
+	uint32_t index);
+
+static
+void
+buffer_manager_event_min_heap_set_node (
+	dn_vector_ptr_t *heap,
+	uint32_t index,
+	EventPipeBufferList *buffer_list);
+
+static
+void
+buffer_manager_event_min_heap_swap_nodes (
+	dn_vector_ptr_t *heap,
+	uint32_t i,
+	uint32_t j);
+
+static
+ep_timestamp_t
+buffer_manager_event_min_heap_get_node_timestamp (EventPipeBufferList *buffer_list);
+
+static
+EventPipeBufferList *
+buffer_manager_event_min_heap_get_root_node (dn_vector_ptr_t *heap);
+
+static
+void
+buffer_manager_event_min_heap_remove_root (dn_vector_ptr_t *heap);
+
 /*
  * EventPipeBufferList.
  */
@@ -868,6 +915,9 @@ ep_buffer_manager_alloc (
 	instance->thread_session_state_list = dn_list_alloc ();
 	ep_raise_error_if_nok (instance->thread_session_state_list != NULL);
 
+	instance->event_min_heap = buffer_manager_event_min_heap_alloc ();
+	ep_raise_error_if_nok (instance->event_min_heap != NULL);
+
 	instance->sequence_points = dn_list_alloc ();
 	ep_raise_error_if_nok (instance->sequence_points != NULL);
 
@@ -922,6 +972,8 @@ ep_buffer_manager_free (EventPipeBufferManager * buffer_manager)
 	ep_buffer_manager_deallocate_buffers (buffer_manager);
 
 	dn_list_free (buffer_manager->sequence_points);
+
+	buffer_manager_event_min_heap_free (buffer_manager->event_min_heap);
 
 	dn_list_free (buffer_manager->thread_session_state_list);
 
@@ -1299,18 +1351,126 @@ ep_buffer_manager_get_next_event (EventPipeBufferManager *buffer_manager)
 
 	ep_requires_lock_not_held ();
 
-	// PERF: This may be too aggressive? If this method is being called frequently enough to keep pace with the
-	// writing threads we could be in a state of high lock contention and lots of churning buffers. Each writer
-	// would take several locks, allocate a new buffer, write one event into it, then the reader would take the
-	// lock, convert the buffer to read-only and read the single event out of it. Allowing more events to accumulate
-	// in the buffers before converting between writable and read-only amortizes a lot of the overhead. One way
-	// to achieve that would be picking a stop_timestamp that was Xms in the past. This would let Xms of events
-	// to accumulate in the write buffer before we converted it and forced the writer to allocate another. Other more
-	// sophisticated approaches would probably build a low overhead synchronization mechanism to read and write the
-	// buffer at the same time.
-	ep_timestamp_t stop_timestamp = ep_perf_timestamp_get ();
-	buffer_manager_move_next_event_any_thread (buffer_manager, stop_timestamp);
-	return buffer_manager->current_event;
+	EventPipeEventInstance *result = NULL;
+	// buffer_manager's min heap of thread_session_state's read-only buffer's sorted by timestamps
+	// n = existing tss's tracked, k = new tss's to track and add to heap
+	EventPipeBufferManagerMinHeap *event_min_heap = buffer_manager->event_min_heap;
+	dn_vector_ptr_t *heap = event_min_heap->heap;
+	dn_umap_t *tracked_buffer_lists = event_min_heap->tracked_buffer_lists;
+
+	dn_vector_ptr_t *candidate_buffer_list_nodes = NULL;
+	dn_vector_ptr_t *thread_session_states_to_delete = NULL;
+	// Probably should use buffer_list for the nodes. We need synchronization logic to convert buffers to read-only
+	// This event_min_heap will only operate on read-only buffers.
+
+	// O(log(n))
+	// Pop root - Event to return, advance buffer to next event. Sift down O(log(n))
+	// If buffer exhausted, if root's TSS has next buffer yield to convert to read-only, insert at root. Sift down O(log(n))
+	// else untrack root TSS. If root TSS's thread is unregistered, delete TSS. insert tail at root.Sift down O(log(n))
+
+	// Apparently the API's contract requires the event to remain valid until the next call. So the root was read previously
+	EventPipeBufferList *root = buffer_manager_event_min_heap_get_root_node (heap);
+	if (root != NULL)
+	{
+		EP_ASSERT (root->head_buffer != NULL);
+		ep_buffer_move_next_read_event (root->head_buffer);
+
+		// Now that we've advanced the root buffer, we need to pop the node if the buffer is exhausted and delete the buffer,
+		// If there is another event, we need to reheapify with the buffer's new current event timestamp.
+		if (ep_buffer_get_current_read_event (root->head_buffer) != NULL) {
+			buffer_manager_event_min_heap_heapify_down (heap);
+		} else {
+			// We shouldn't advance to the next buffer in the buffer_list without ensuring all potential new thread_session_states buffer_lists
+			// are also considered for the min-heap. Otherwise we might miss older events.
+			dn_umap_erase_key (tracked_buffer_lists, root);
+
+			// Move the last node to the root and sift down
+			buffer_manager_event_min_heap_remove_root (heap);
+
+			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section1)
+				// delete the empty buffer
+				EventPipeBuffer *removed_buffer = ep_buffer_list_get_and_remove_head (root);
+				buffer_manager_deallocate_buffer (buffer_manager, removed_buffer);
+
+				// I can't delete the tss unless we switch to tracking tss as nodes instead of the buffer_list, which is fine. Or I should find another place to delete.
+				// but given this is where we know the buffer_list is empty, seems like a good place.
+				// if (root->head_buffer == NULL &&
+				// 	(ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0))
+				// 	buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1)
+		}
+
+		root = buffer_manager_event_min_heap_get_root_node (heap);
+		if (root && root->head_buffer != NULL)
+			result = ep_buffer_get_current_read_event (root->head_buffer);
+	}
+
+	// Idea: All new TSS's will have buffers older than buffers in the min-heap, except maybe the popped root's TSS's next buffer.
+
+	// foreach (thread_session_state in thread_session_state_list)
+	//   if thread_session_state is not tracked && O(n) * 1 + O(k) * below
+	//      buffer_list has buffers && yield to convert to read-only 
+	//      add to min-heap O(log(n + k))
+	candidate_buffer_list_nodes = dn_vector_ptr_alloc ();
+	thread_session_states_to_delete = dn_vector_ptr_alloc ();
+	if (candidate_buffer_list_nodes != NULL)
+	{
+		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section2)
+			EventPipeBufferList *buffer_list;
+			DN_LIST_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, buffer_manager->thread_session_state_list) {
+				buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
+				if (dn_umap_contains (tracked_buffer_lists, buffer_list))
+					continue;
+
+				if (buffer_list->head_buffer == NULL)
+				{
+					if (thread_session_states_to_delete != NULL &&
+						ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0)
+						dn_vector_ptr_push_back (thread_session_states_to_delete, thread_session_state);
+					continue;
+				}
+
+				// Optionally timestamp check can go here, so only buffer_lists whose head buffer is before stop_timestamp are added to the min_heap.
+				// Actually... if buffer A and B where A_1 < stop_timestamp < B_1 < A_n, we need to ensure Buffer B is in the heap before A_n is read.
+				dn_vector_ptr_push_back (candidate_buffer_list_nodes, buffer_list);
+				dn_umap_insert (tracked_buffer_lists, buffer_list, NULL);
+			} DN_LIST_FOREACH_END;
+		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
+
+		// Converting buffers to read-only requires the buffer_manager lock to not be held.
+		// This might be expensive for every get_next_event.
+		// We need an all-or-nothing approach when adding new nodes to the min heap
+		// otherwise if buffer A with t=2 is added and buffer B with t=1 isn't, the reader thread might return an older event first.
+		DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeBufferList *, buffer_list, candidate_buffer_list_nodes) {
+			buffer_manager_convert_buffer_to_read_only (buffer_manager, buffer_list->head_buffer);
+			dn_vector_ptr_push_back (heap, buffer_list);
+			buffer_manager_event_min_heap_heapify_up (heap);
+		} DN_VECTOR_PTR_FOREACH_END;
+
+		dn_vector_ptr_free (candidate_buffer_list_nodes);
+		candidate_buffer_list_nodes = NULL;
+	}
+
+	if (thread_session_states_to_delete != NULL)
+	{
+		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
+			DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, thread_session_states_to_delete) {
+				buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+			} DN_VECTOR_PTR_FOREACH_END;
+		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
+		dn_vector_ptr_free (thread_session_states_to_delete);
+		thread_session_states_to_delete = NULL;
+	}
+
+	root = buffer_manager_event_min_heap_get_root_node (heap);
+	if (root && root->head_buffer != NULL)
+		result = ep_buffer_get_current_read_event (root->head_buffer);
+
+ep_on_exit:
+	return result;
+
+ep_on_error:
+	ep_exit_error_handler ();
 }
 
 void
@@ -1380,6 +1540,190 @@ buffer_manager_remove_and_delete_thread_session_state (
 	dn_list_remove (buffer_manager->thread_session_state_list, thread_session_state);
 	ep_thread_set_session_state (ep_thread_session_state_get_thread (thread_session_state), ep_thread_session_state_get_session (thread_session_state), NULL);
 	ep_thread_session_state_free (thread_session_state);
+}
+
+EventPipeBufferManagerMinHeap *
+buffer_manager_event_min_heap_alloc ()
+{
+	EventPipeBufferManagerMinHeap *instance = ep_rt_object_alloc (EventPipeBufferManagerMinHeap);
+	ep_raise_error_if_nok (instance != NULL);
+
+	instance->heap = dn_vector_ptr_alloc ();
+	ep_raise_error_if_nok (instance->heap != NULL);
+
+	instance->tracked_buffer_lists = dn_umap_alloc ();
+	ep_raise_error_if_nok (instance->tracked_buffer_lists != NULL);
+
+ep_on_exit:
+	return instance;
+
+ep_on_error:
+	buffer_manager_event_min_heap_free (instance);
+	instance = NULL;
+	ep_exit_error_handler ();
+}
+
+static
+void
+buffer_manager_event_min_heap_free (EventPipeBufferManagerMinHeap *event_min_heap)
+{
+	ep_return_void_if_nok (event_min_heap != NULL);
+
+	// I think the heap should own the read-only buffers.
+
+	dn_umap_free (event_min_heap->tracked_buffer_lists);
+
+	dn_vector_ptr_free (event_min_heap->heap);
+
+	ep_rt_object_free (event_min_heap);
+}
+
+// Currently we only need to heapify from the root downwards or from the last element upwards
+// O(log n)
+// Node: EventPipeBufferList* with read-only head buffer.
+// Timestamp: ep_timestamp_t of head buffer's current read event.
+static
+void
+buffer_manager_event_min_heap_heapify_up (dn_vector_ptr_t *heap)
+{
+	EP_ASSERT (heap != NULL);
+	if (heap->size <= 1)
+		return;
+
+	uint32_t node_index = heap->size - 1;
+	uint32_t parent_index = node_index / 2;
+	while (node_index > 0) {
+		EventPipeBufferList *node = buffer_manager_event_min_heap_get_node (heap, node_index);
+		EventPipeBufferList *parent = buffer_manager_event_min_heap_get_node (heap, parent_index);
+		if (buffer_manager_event_min_heap_get_node_timestamp (parent) <= buffer_manager_event_min_heap_get_node_timestamp (node))
+			break;
+
+		buffer_manager_event_min_heap_swap_nodes (heap, parent_index, node_index);
+		node_index = parent_index;
+		parent_index = node_index / 2;
+	}
+}
+
+static
+void
+buffer_manager_event_min_heap_heapify_down (dn_vector_ptr_t *heap)
+{
+	EP_ASSERT (heap != NULL);
+	uint32_t size = heap->size;
+	if (size == 0)
+		return;
+
+	uint32_t node_index = 0;
+	while (true) {
+		uint32_t left_child_index = 2 * node_index + 1;
+		uint32_t right_child_index = 2 * node_index + 2;
+		uint32_t earliest_event_index = node_index;
+		ep_timestamp_t earliest_timestamp = buffer_manager_event_min_heap_get_node_timestamp (buffer_manager_event_min_heap_get_node (heap, earliest_event_index));
+
+		if (left_child_index < size) {
+			ep_timestamp_t left_child_timestamp = buffer_manager_event_min_heap_get_node_timestamp (buffer_manager_event_min_heap_get_node (heap, left_child_index));
+			if (left_child_timestamp < earliest_timestamp) {
+				earliest_event_index = left_child_index;
+				earliest_timestamp = left_child_timestamp;
+			}
+		}
+
+		if (right_child_index < size) {
+			ep_timestamp_t right_child_timestamp = buffer_manager_event_min_heap_get_node_timestamp (buffer_manager_event_min_heap_get_node (heap, right_child_index));
+			if (right_child_timestamp < earliest_timestamp) {
+				earliest_event_index = right_child_index;
+				earliest_timestamp = right_child_timestamp;
+			}
+		}
+
+		if (earliest_event_index == node_index)
+			break;
+
+		buffer_manager_event_min_heap_swap_nodes (heap, node_index, earliest_event_index);
+	}
+}
+
+static
+EventPipeBufferList *
+buffer_manager_event_min_heap_get_node (
+	dn_vector_ptr_t *heap,
+	uint32_t index)
+{
+	EP_ASSERT (heap != NULL);
+	EP_ASSERT (index < heap->size);
+
+	return (EventPipeBufferList *)*dn_vector_ptr_index (heap, index);
+}
+
+static
+void
+buffer_manager_event_min_heap_set_node (
+	dn_vector_ptr_t *heap,
+	uint32_t index,
+	EventPipeBufferList *buffer_list)
+{
+	EP_ASSERT (heap != NULL);
+	EP_ASSERT (index < heap->size);
+
+	*dn_vector_ptr_index (heap, index) = buffer_list;
+}
+
+static
+void
+buffer_manager_event_min_heap_swap_nodes (
+	dn_vector_ptr_t *heap,
+	uint32_t i,
+	uint32_t j)
+{
+	EP_ASSERT (heap != NULL);
+	EP_ASSERT (i < heap->size);
+	EP_ASSERT (j < heap->size);
+
+	EventPipeBufferList *tmp = buffer_manager_event_min_heap_get_node (heap, i);
+	buffer_manager_event_min_heap_set_node (heap, i, buffer_manager_event_min_heap_get_node (heap, j));
+	buffer_manager_event_min_heap_set_node (heap, j, tmp);
+}
+
+static
+ep_timestamp_t
+buffer_manager_event_min_heap_get_node_timestamp (EventPipeBufferList *buffer_list)
+{
+	EP_ASSERT (buffer_list != NULL);
+	EP_ASSERT (buffer_list->head_buffer != NULL);
+	EP_ASSERT (ep_buffer_get_volatile_state (buffer_list->head_buffer) == EP_BUFFER_STATE_READ_ONLY);
+
+	EventPipeEventInstance *event_instance = ep_buffer_get_current_read_event (buffer_list->head_buffer);
+	EP_ASSERT (event_instance != NULL);
+
+	return ep_event_instance_get_timestamp (event_instance);
+}
+
+static
+EventPipeBufferList *
+buffer_manager_event_min_heap_get_root_node (dn_vector_ptr_t *heap)
+{
+	EP_ASSERT (heap != NULL);
+
+	ep_return_null_if_nok (heap->size > 0);
+
+	return buffer_manager_event_min_heap_get_node (heap, 0);
+}
+
+static
+void
+buffer_manager_event_min_heap_remove_root (dn_vector_ptr_t *heap)
+{
+	EP_ASSERT (heap != NULL);
+	EP_ASSERT (heap->size > 0);
+
+	uint32_t last_index = heap->size - 1;
+	if (last_index != 0)
+		buffer_manager_event_min_heap_swap_nodes (heap, 0, last_index);
+
+	dn_vector_ptr_pop_back (heap);
+
+	if (heap->size > 0)
+		buffer_manager_event_min_heap_heapify_down (heap);
 }
 
 #endif /* !defined(EP_INCLUDE_SOURCE_FILES) || defined(EP_FORCE_INCLUDE_SOURCE_FILES) */
