@@ -139,6 +139,14 @@ void
 buffer_manager_event_min_heap_free (EventPipeBufferManagerMinHeap *event_min_heap);
 
 static
+bool
+buffer_manager_event_min_heap_should_grow (EventPipeBufferManagerMinHeap *event_min_heap);
+
+static
+void
+buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_heap, EventPipeBufferManager *buffer_manager);
+
+static
 EventPipeBufferManagerMinHeapNode *
 buffer_manager_event_min_heap_node_alloc (EventPipeBuffer *buffer, EventPipeThreadSessionState *thread_session_state, EventPipeBufferManager *buffer_manager);
 
@@ -1360,6 +1368,8 @@ ep_on_error:
 // This event_min_heap will only operate on read-only buffers.
 // buffer_manager's min heap of thread_session_state's read-only buffer's sorted by timestamps
 // n = existing tss's tracked, k = new tss's to track and add to heap
+// Apparently the API's contract requires the event to remain valid until the next call. So the root was read previously
+// Advance root node's buffer's current_event.
 EventPipeEventInstance *
 ep_buffer_manager_get_next_event (EventPipeBufferManager *buffer_manager)
 {
@@ -1367,149 +1377,158 @@ ep_buffer_manager_get_next_event (EventPipeBufferManager *buffer_manager)
 
 	ep_requires_lock_not_held ();
 
-	EventPipeEventInstance *next_event = NULL;
 	EventPipeBufferManagerMinHeap *event_min_heap = buffer_manager->event_min_heap;
+	ep_return_null_if_nok (event_min_heap != NULL);
+
 	dn_vector_ptr_t *heap = event_min_heap->heap;
-	dn_umap_t *tracked_thread_session_states = event_min_heap->tracked_thread_session_states;
-
-	dn_vector_ptr_t *candidate_nodes = NULL;
-	dn_vector_ptr_t *tandem_thread_session_states = NULL;
-	dn_vector_ptr_t *thread_session_states_to_delete = NULL;
-	EventPipeBufferManagerMinHeapNode *new_node = NULL;
-
-	// Apparently the API's contract requires the event to remain valid until the next call. So the root was read previously
-	// Advance root node's buffer's current_event.
-	// Once the buffer is exhausted:
-	// - It is freed
-	// - this node is removed from the min-heap and freed
-	// - the ties to the EventPipeThread is untracked
-	// - the EventPipeBufferManager reclaims the buffer size
-	// Otherwise, use the next event's timestamp and heapify down.
-	EventPipeBufferManagerMinHeapNode *root = buffer_manager_event_min_heap_get_root_node (heap);
-	if (root != NULL)
+	if (buffer_manager->current_event != NULL)
 	{
-		EventPipeBuffer *root_buffer = root->buffer;
-		EP_ASSERT (root_buffer != NULL);
-		EP_ASSERT (ep_buffer_get_volatile_state (root_buffer) == EP_BUFFER_STATE_READ_ONLY);
-		ep_buffer_move_next_read_event (root_buffer);
+		EventPipeBufferManagerMinHeapNode *prev_read_event_node = buffer_manager_event_min_heap_get_root_node (heap);
+		EP_ASSERT (prev_read_event_node != NULL);
+		EventPipeBuffer *prev_read_buffer = prev_read_event_node->buffer;
+		EP_ASSERT (prev_read_buffer != NULL);
+		EP_ASSERT (ep_buffer_get_volatile_state (prev_read_buffer) == EP_BUFFER_STATE_READ_ONLY);
+		ep_buffer_move_next_read_event (prev_read_buffer);
 
-		if (ep_buffer_get_current_read_event (root_buffer) != NULL) {
+		if (ep_buffer_get_current_read_event (prev_read_buffer) != NULL) {
 			buffer_manager_event_min_heap_heapify_down (heap);
 		} else {
-			EventPipeThreadSessionState *thread_session_state = root->thread_session_state;
-			if (thread_session_state != NULL)
-				dn_umap_erase_key (tracked_thread_session_states, thread_session_state);
-
+			dn_umap_erase_key (event_min_heap->tracked_thread_session_states, prev_read_event_node->thread_session_state);
 			buffer_manager_event_min_heap_free_root (heap);
 		}
 	}
+	buffer_manager->current_event = NULL;
 
-	// Idea: All new TSS's will have buffers older than buffers in the min-heap, except maybe the popped root's TSS's next buffer.
+	if (buffer_manager_event_min_heap_should_grow (event_min_heap))
+		buffer_manager_event_min_heap_grow (event_min_heap, buffer_manager);
 
-	// foreach (thread_session_state in thread_session_state_list)
-	//   if thread_session_state is not tracked && O(n) * 1 + O(k) * below
-	//      buffer_list has buffers && yield to convert to read-only 
-	//      add to min-heap O(log(n + k))
-	// Optionally timestamp check can go here, so only buffer_lists whose head buffer is before stop_timestamp are added to the min_heap.
-	// Actually... if buffer A and B where A_1 < stop_timestamp < B_1 < A_n, we need to ensure Buffer B is in the heap before A_n is read.
-	candidate_nodes = dn_vector_ptr_alloc ();
-	thread_session_states_to_delete = dn_vector_ptr_alloc ();
-	if (candidate_nodes != NULL)
-	{
-		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section1)
-			EventPipeBufferList *buffer_list;
-			DN_LIST_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, buffer_manager->thread_session_state_list) {
-				buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
-				if (buffer_list->head_buffer == NULL)
-				{
-					if (thread_session_states_to_delete != NULL &&
-						ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0)
-						dn_vector_ptr_push_back (thread_session_states_to_delete, thread_session_state);
-					continue;
-				}
+	EventPipeBufferManagerMinHeapNode *root_node = buffer_manager_event_min_heap_get_root_node (heap);
+	if (root_node && root_node->buffer != NULL)
+		buffer_manager->current_event = ep_buffer_get_current_read_event (root_node->buffer);
 
-				if (dn_umap_contains (tracked_thread_session_states, thread_session_state))
-					continue;
+	return buffer_manager->current_event;
+}
 
-				dn_vector_ptr_push_back (candidate_nodes, thread_session_state);
-			} DN_LIST_FOREACH_END;
-		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1)
+static
+bool
+buffer_manager_event_min_heap_should_grow (EventPipeBufferManagerMinHeap *event_min_heap)
+{
+	EP_ASSERT (event_min_heap != NULL);
+	EP_ASSERT (event_min_heap->heap != NULL);
 
-		new_node = NULL;
-		// Converting buffers to read-only requires the buffer_manager lock to not be held.
-		// This might be expensive for every get_next_event.
-		// We need an all-or-nothing approach when adding new nodes to the min heap
-		// otherwise if buffer A with t=2 is added and buffer B with t=1 isn't, the reader thread might return an older event first.
-		DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, candidate_nodes) {
-			EventPipeBufferList *buffer_list = NULL;
-			EventPipeBuffer *head_buffer = NULL;
-			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section1_5)
-				buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
-				EP_ASSERT (buffer_list != NULL);
-			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1_5)
+	uint32_t node_count = event_min_heap->heap->size;
+	ep_timestamp_t now = ep_perf_timestamp_get ();
+	uint32_t waited_ms = (uint32_t)(((now - event_min_heap->last_update) * 1000) / ep_rt_perf_frequency_query ());
+	if (node_count != 0 &&
+		waited_ms < 100)
+		return false;
 
-			head_buffer = buffer_list->head_buffer;
-			EP_ASSERT (head_buffer != NULL);
+	event_min_heap->last_update = now;
+	return true;
+}
 
-			buffer_manager_convert_buffer_to_read_only (buffer_manager, head_buffer);
-			if (ep_buffer_get_current_read_event (head_buffer) == NULL)
+// Idea: All new TSS's will have buffers older than buffers in the min-heap, except maybe the popped root's TSS's next buffer.
+// foreach (thread_session_state in thread_session_state_list)
+//   if thread_session_state is not tracked && O(n) * 1 + O(k) * below
+//      buffer_list has buffers && yield to convert to read-only 
+//      add to min-heap O(log(n + k))
+// Optionally timestamp check can go here, so only buffer_lists whose head buffer is before stop_timestamp are added to the min_heap.
+// Actually... if buffer A and B where A_1 < stop_timestamp < B_1 < A_n, we need to ensure Buffer B is in the heap before A_n is read.
+// We need an all-or-nothing approach when adding new nodes to the min heap
+// otherwise if buffer A with t=2 is added and buffer B with t=1 isn't, the reader thread might return an older event first.
+static
+void
+buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_heap, EventPipeBufferManager *buffer_manager)
+{
+	EP_ASSERT (event_min_heap != NULL);
+	EP_ASSERT (buffer_manager != NULL);
+	dn_vector_ptr_t *heap = event_min_heap->heap;
+	dn_umap_t *tracked_thread_session_states = event_min_heap->tracked_thread_session_states;
+	EventPipeBufferManagerMinHeapNode *new_node = NULL;
+
+	dn_vector_ptr_t *candidate_nodes = dn_vector_ptr_alloc ();
+	ep_return_void_if_nok (candidate_nodes != NULL);
+
+	dn_vector_ptr_t *thread_session_states_to_delete = dn_vector_ptr_alloc ();
+	EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section1)
+		EventPipeBufferList *buffer_list;
+		DN_LIST_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, buffer_manager->thread_session_state_list) {
+			buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
+			if (buffer_list->head_buffer == NULL)
 			{
-				// If this is an empty buffer, we want to skip it (current_read_event does not guarantee the EventPipeEventInstance is valid)
-				EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section2)
-					EventPipeBuffer *empty_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
-					EP_ASSERT (head_buffer == empty_buffer);
-					buffer_manager_deallocate_buffer (buffer_manager, empty_buffer);
-				EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
+				if (thread_session_states_to_delete != NULL &&
+					ep_rt_volatile_load_uint32_t_without_barrier (ep_thread_get_unregistered_ref (ep_thread_session_state_get_thread (thread_session_state))) > 0)
+					dn_vector_ptr_push_back (thread_session_states_to_delete, thread_session_state);
 				continue;
 			}
 
-			// Lets try to allocate the node, if we fail, don't transfer ownership of the buffer from the BufferList.
-			// We will try again next time we scan for candidate nodes.
-			new_node = buffer_manager_event_min_heap_node_alloc (head_buffer, thread_session_state, buffer_manager);
-			if (new_node == NULL)
+			if (dn_umap_contains (tracked_thread_session_states, thread_session_state))
 				continue;
 
-			// Now we can transfer ownership by popping from the BufferList.
-			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
-				EventPipeBuffer *node_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
-				// Ownership is now considered transferred to the node.
-			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
-
-			dn_vector_ptr_push_back (heap, new_node);
-			new_node = NULL; // ownership is transferred to the heap
-			buffer_manager_event_min_heap_heapify_up (heap);
-			dn_umap_insert (tracked_thread_session_states, thread_session_state, NULL);
-		} DN_VECTOR_PTR_FOREACH_END;
-
-		dn_vector_ptr_free (tandem_thread_session_states);
-		tandem_thread_session_states = NULL;
-		dn_vector_ptr_free (candidate_nodes);
-		candidate_nodes = NULL;
-	}
-
+			dn_vector_ptr_push_back (candidate_nodes, thread_session_state);
+		} DN_LIST_FOREACH_END;
+	EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1)
+	
 	if (thread_session_states_to_delete != NULL)
 	{
-		// Some pre-existing nodes may have references to the thread_session_state being deleted. we need to ensure nodes don't operate on the thread_session_state.
-		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section4)
-			DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, thread_session_states_to_delete) {
+		DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, thread_session_states_to_delete) {
+			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section2)
 				buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
-			} DN_VECTOR_PTR_FOREACH_END;
-		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section4)
+			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
+		} DN_VECTOR_PTR_FOREACH_END;
 		dn_vector_ptr_free (thread_session_states_to_delete);
 		thread_session_states_to_delete = NULL;
 	}
 
-	root = buffer_manager_event_min_heap_get_root_node (heap);
-	if (root && root->buffer != NULL)
-		next_event = ep_buffer_get_current_read_event (root->buffer);
+	DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, candidate_nodes) {
+		EventPipeBufferList *buffer_list = NULL;
+		EventPipeBuffer *head_buffer = NULL;
+		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
+			buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
+			EP_ASSERT (buffer_list != NULL);
+		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
 
+		head_buffer = buffer_list->head_buffer;
+		EP_ASSERT (head_buffer != NULL);
+
+		buffer_manager_convert_buffer_to_read_only (buffer_manager, head_buffer);
+		if (ep_buffer_get_current_read_event (head_buffer) == NULL)
+		{
+			// If this is an empty buffer, we want to skip it (current_read_event does not guarantee the EventPipeEventInstance is valid)
+			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section4)
+				EventPipeBuffer *empty_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
+				EP_ASSERT (head_buffer == empty_buffer);
+				buffer_manager_deallocate_buffer (buffer_manager, empty_buffer);
+			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section4)
+			continue;
+		}
+
+		// If node allocation fails, keep the read-only buffer in the BufferList for next time.
+		// During allocation, the node receives partial ownership of the buffer
+		// On success, the BufferList loses ownership of the buffer, making the node the sole owner.
+		new_node = buffer_manager_event_min_heap_node_alloc (head_buffer, thread_session_state, buffer_manager);
+		if (new_node == NULL)
+			continue;
+		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section5)
+			EventPipeBuffer *removed_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
+			EP_ASSERT (removed_buffer == head_buffer);
+		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section5)
+
+		dn_vector_ptr_push_back (heap, new_node);
+		new_node = NULL;
+		buffer_manager_event_min_heap_heapify_up (heap);
+		dn_umap_insert (tracked_thread_session_states, thread_session_state, NULL);
+	} DN_VECTOR_PTR_FOREACH_END;
+
+	dn_vector_ptr_free (candidate_nodes);
+	candidate_nodes = NULL;
+	
 ep_on_exit:
-	return next_event;
+	return;
 
 ep_on_error:
 	buffer_manager_event_min_heap_node_free (new_node);
 	dn_vector_ptr_free (thread_session_states_to_delete);
-	dn_vector_ptr_free (tandem_thread_session_states);
 	dn_vector_ptr_free (candidate_nodes);
 	ep_exit_error_handler ();
 }
@@ -1594,6 +1613,8 @@ buffer_manager_event_min_heap_alloc ()
 
 	instance->tracked_thread_session_states = dn_umap_alloc ();
 	ep_raise_error_if_nok (instance->tracked_thread_session_states != NULL);
+
+	instance->last_update = 0;
 
 ep_on_exit:
 	return instance;

@@ -109,6 +109,8 @@ struct _EventPipeBufferManagerMinHeap_Internal {
 	// the read-only buffer is exhausted. This allows us to quickly iterate over a buffer_manager's
 	// thread_session_state_list to append untracked thread_session_state's as nodes.
 	dn_umap_t *tracked_thread_session_states;
+	// The last time the min-heap consulted the buffer_manager's thread_session_state_list for new nodes.
+	ep_timestamp_t last_update;
 };
 
 /*
