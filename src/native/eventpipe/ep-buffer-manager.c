@@ -617,12 +617,15 @@ buffer_manager_move_next_event_any_thread (
 				if (buffer_manager_try_peek_sequence_point (buffer_manager, &current_sequence_point)) {
 					DN_LIST_FOREACH_BEGIN (EventPipeSequencePoint *, sequence_point, buffer_manager->sequence_points) {
 						dn_umap_t *thread_sequence_numbers = ep_sequence_point_get_thread_sequence_numbers (sequence_point);
+						dn_umap_it_t found = dn_umap_ptr_uint32_find (thread_sequence_numbers, thread_session_state);
 						if (current_sequence_point != sequence_point) {
-							dn_umap_erase_key (thread_sequence_numbers, thread_session_state);
+							if (!dn_umap_it_end (found)) {
+								ep_thread_release (ep_thread_session_state_get_thread (thread_session_state));
+								dn_umap_erase_key (thread_sequence_numbers, thread_session_state);
+							}
 							continue;
 						}
 
-						dn_umap_it_t found = dn_umap_ptr_uint32_find (thread_sequence_numbers, thread_session_state);
 						uint32_t thread_sequence_number = !dn_umap_it_end (found) ? dn_umap_it_value_uint32_t (found) : 0;
 						// Sequence numbers can overflow so we can't use a direct last_read > sequence_number comparison
 						// If a thread is able to drop more than 0x80000000 events in between sequence points then we will
@@ -707,12 +710,15 @@ buffer_manager_move_next_event_same_thread (
 			if (buffer_manager_try_peek_sequence_point (buffer_manager, &current_sequence_point)) {
 				DN_LIST_FOREACH_BEGIN (EventPipeSequencePoint *, sequence_point, buffer_manager->sequence_points) {
 					dn_umap_t *thread_sequence_numbers = ep_sequence_point_get_thread_sequence_numbers (sequence_point);
+					dn_umap_it_t found = dn_umap_ptr_uint32_find (thread_sequence_numbers, current_thread_session_state);
 					if (current_sequence_point != sequence_point) {
-						dn_umap_erase_key (thread_sequence_numbers, current_thread_session_state);
+						if (!dn_umap_it_end (found)) {
+							ep_thread_release (ep_thread_session_state_get_thread (current_thread_session_state));
+							dn_umap_erase_key (thread_sequence_numbers, current_thread_session_state);
+						}
 						continue;
 					}
 
-					dn_umap_it_t found = dn_umap_ptr_uint32_find (thread_sequence_numbers, current_thread_session_state);
 					uint32_t thread_sequence_number = !dn_umap_it_end (found) ? dn_umap_it_value_uint32_t (found) : 0;
 					// Sequence numbers can overflow so we can't use a direct last_read > sequence_number comparison
 					// If a thread is able to drop more than 0x80000000 events in between sequence points then we will
@@ -1251,9 +1257,9 @@ ep_buffer_manager_write_all_buffers_to_file_v4 (
 				// miscategorize it, but that seems unlikely.
 				uint32_t last_read_delta = last_read_sequence_number - thread_sequence_number;
 				if (0 < last_read_delta && last_read_delta < 0x80000000) {
-					dn_umap_ptr_uint32_insert_or_assign (ep_sequence_point_get_thread_sequence_numbers (sequence_point), session_state, last_read_sequence_number);
 					if (dn_umap_it_end (found))
 						ep_thread_addref (ep_thread_holder_get_thread (ep_thread_session_state_get_thread_holder_ref (session_state)));
+					dn_umap_ptr_uint32_insert_or_assign (ep_sequence_point_get_thread_sequence_numbers (sequence_point), session_state, last_read_sequence_number);
 				}
 			} DN_LIST_FOREACH_END;
 		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
