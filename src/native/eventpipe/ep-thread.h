@@ -300,7 +300,6 @@ struct _EventPipeThreadSessionState {
 };
 #endif
 
-EP_DEFINE_GETTER_REF(EventPipeThreadSessionState *, thread_session_state, EventPipeThreadHolder *, thread_holder)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeBufferList *, buffer_list)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, EventPipeSession *, session)
 EP_DEFINE_GETTER(EventPipeThreadSessionState *, thread_session_state, uint32_t, last_read_sequence_number);
