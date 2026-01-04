@@ -1469,13 +1469,14 @@ buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_hea
 		} DN_LIST_FOREACH_END;
 	EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section1)
 	
-	if (thread_session_states_to_delete != NULL)
-	{
-		DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, thread_session_states_to_delete) {
+	if (thread_session_states_to_delete != NULL) {
+		if (thread_session_states_to_delete->size > 0) {
 			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section2)
-				buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+				DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, thread_session_states_to_delete) {
+						buffer_manager_remove_and_delete_thread_session_state (buffer_manager, thread_session_state);
+				} DN_VECTOR_PTR_FOREACH_END;
 			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section2)
-		} DN_VECTOR_PTR_FOREACH_END;
+		}
 		dn_vector_ptr_free (thread_session_states_to_delete);
 		thread_session_states_to_delete = NULL;
 	}
@@ -1483,10 +1484,8 @@ buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_hea
 	DN_VECTOR_PTR_FOREACH_BEGIN (EventPipeThreadSessionState *, thread_session_state, candidate_nodes) {
 		EventPipeBufferList *buffer_list = NULL;
 		EventPipeBuffer *head_buffer = NULL;
-		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
-			buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
-			EP_ASSERT (buffer_list != NULL);
-		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
+		buffer_list = ep_thread_session_state_get_buffer_list (thread_session_state);
+		EP_ASSERT (buffer_list != NULL);
 
 		head_buffer = buffer_list->head_buffer;
 		EP_ASSERT (head_buffer != NULL);
@@ -1494,12 +1493,13 @@ buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_hea
 		buffer_manager_convert_buffer_to_read_only (buffer_manager, head_buffer);
 		if (ep_buffer_get_current_read_event (head_buffer) == NULL)
 		{
+			EventPipeBuffer *empty_buffer = NULL;
 			// If this is an empty buffer, we want to skip it (current_read_event does not guarantee the EventPipeEventInstance is valid)
-			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section4)
-				EventPipeBuffer *empty_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
-				EP_ASSERT (head_buffer == empty_buffer);
-				buffer_manager_deallocate_buffer (buffer_manager, empty_buffer);
-			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section4)
+			EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section3)
+				empty_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
+			EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section3)
+			EP_ASSERT (head_buffer == empty_buffer);
+			buffer_manager_deallocate_buffer (buffer_manager, empty_buffer);
 			continue;
 		}
 
@@ -1509,10 +1509,10 @@ buffer_manager_event_min_heap_grow (EventPipeBufferManagerMinHeap *event_min_hea
 		new_node = buffer_manager_event_min_heap_node_alloc (head_buffer, thread_session_state, buffer_manager);
 		if (new_node == NULL)
 			continue;
-		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section5)
+		EP_SPIN_LOCK_ENTER (&buffer_manager->rt_lock, section4)
 			EventPipeBuffer *removed_buffer = ep_buffer_list_get_and_remove_head (buffer_list);
 			EP_ASSERT (removed_buffer == head_buffer);
-		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section5)
+		EP_SPIN_LOCK_EXIT (&buffer_manager->rt_lock, section4)
 
 		dn_vector_ptr_push_back (heap, new_node);
 		new_node = NULL;
