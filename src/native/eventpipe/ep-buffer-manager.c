@@ -1380,6 +1380,7 @@ ep_buffer_manager_get_next_event (EventPipeBufferManager *buffer_manager)
 	EventPipeBufferManagerMinHeap *event_min_heap = buffer_manager->event_min_heap;
 	ep_return_null_if_nok (event_min_heap != NULL);
 
+	bool should_grow = false;
 	dn_vector_ptr_t *heap = event_min_heap->heap;
 	if (buffer_manager->current_event != NULL)
 	{
@@ -1395,11 +1396,15 @@ ep_buffer_manager_get_next_event (EventPipeBufferManager *buffer_manager)
 		} else {
 			dn_umap_erase_key (event_min_heap->tracked_thread_session_states, prev_read_event_node->thread_session_state);
 			buffer_manager_event_min_heap_free_root (heap);
+			// The next buffer from this thread_session_state might have events earlier than current nodes, but wasn't discovered yet.
+			// However, if the event the next buffer ends up being later, we need to guarantee all other thread_session_state's that
+			// might have written events before the next buffer get discovered as well.
+			should_grow = true;
 		}
 	}
 	buffer_manager->current_event = NULL;
 
-	if (buffer_manager_event_min_heap_should_grow (event_min_heap))
+	if (should_grow || buffer_manager_event_min_heap_should_grow (event_min_heap))
 		buffer_manager_event_min_heap_grow (event_min_heap, buffer_manager);
 
 	EventPipeBufferManagerMinHeapNode *root_node = buffer_manager_event_min_heap_get_root_node (heap);
