@@ -31,6 +31,10 @@
 #endif
 #include "exceptionhandling.h"
 
+#ifdef HOST_ANDROID
+extern "C" void CoreCLRMarkUnhandledExceptionForCrashLogging();
+#endif
+
 #include <errorrep.h>
 #ifndef TARGET_UNIX
 // Include definition of GenericModeBlock
@@ -4546,6 +4550,10 @@ DefaultCatchHandler(PEXCEPTION_POINTERS pExceptionPointers,
                     // this is stack heavy because of the CQuickWSTRBase, so we break it out
                     // and don't have to carry the weight through our other code paths.
                     DefaultCatchHandlerExceptionMessageWorker(pThread, throwable, buf, buf_size, sendWindowsEventLog);
+
+#ifdef HOST_ANDROID
+                    CoreCLRMarkUnhandledExceptionForCrashLogging();
+#endif
                 }
             }
             EX_CATCH

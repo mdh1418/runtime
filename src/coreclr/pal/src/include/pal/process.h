@@ -190,6 +190,10 @@ Parameters:
 --*/
 VOID PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool serialize);
 
+#ifdef HOST_ANDROID
+VOID PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

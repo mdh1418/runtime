@@ -357,6 +357,57 @@ inline void LogCallstackForLogWorker(Thread* pThread, PEXCEPTION_POINTERS pExcep
 #endif
 }
 
+#ifdef HOST_ANDROID
+static size_t s_unhandledExceptionThreadId;
+
+// Called from the PAL crash/abort paths to emit a managed stack trace to logcat.
+// This is best-effort only; it can fail in some crash contexts.
+extern "C" void CoreCLRLogManagedStackTraceForCrash()
+{
+    STATIC_CONTRACT_NOTHROW;
+    STATIC_CONTRACT_GC_TRIGGERS;
+    STATIC_CONTRACT_MODE_ANY;
+
+    static size_t s_loggingThreadId;
+    size_t currentThreadId = PAL_GetCurrentOSThreadId();
+
+    // Managed callstacks are emitted when an unhandled managed exception is being processed.
+    if (VolatileLoad(&s_unhandledExceptionThreadId) == currentThreadId)
+    {
+        return;
+    }
+
+    // let the first thread do the logging
+    if (InterlockedCompareExchangeT<size_t>(&s_loggingThreadId, currentThreadId, 0) != 0)
+    {
+        return;
+    }
+
+    EX_TRY
+    {
+        Thread* pThread = GetThreadNULLOk();
+        if (pThread)
+        {
+            PrintToStdErrA("\n--- Begin managed stack trace ---\n");
+            LogCallstackForLogWorker(pThread,  NULL);
+            PrintToStdErrA("--- End managed stack trace ---\n");
+        }
+    }
+    EX_CATCH
+    {
+    }
+    EX_END_CATCH
+}
+
+extern "C" void CoreCLRMarkUnhandledExceptionForCrashLogging()
+{
+    STATIC_CONTRACT_NOTHROW;
+
+    size_t currentThreadId = PAL_GetCurrentOSThreadId();
+    (void)InterlockedCompareExchangeT<size_t>(&s_unhandledExceptionThreadId, currentThreadId, 0);
+}
+#endif // HOST_ANDROID
+
 //---------------------------------------------------------------------------------------
 //
 // Print information on fatal error to stderr.

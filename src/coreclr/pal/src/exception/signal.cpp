@@ -486,6 +486,10 @@ static void sigill_handler(int code, siginfo_t *siginfo, void *context)
         }
     }
 
+#ifdef HOST_ANDROID
+    PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
+
     invoke_previous_action(&g_previous_sigill, code, siginfo, context);
 }
 
@@ -509,6 +513,10 @@ static void sigfpe_handler(int code, siginfo_t *siginfo, void *context)
             return;
         }
     }
+
+#ifdef HOST_ANDROID
+    PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
 
     invoke_previous_action(&g_previous_sigfpe, code, siginfo, context);
 }
@@ -721,6 +729,9 @@ static void sigsegv_handler(int code, siginfo_t *siginfo, void *context)
                     return;
                 }
             }
+#ifdef HOST_ANDROID
+            PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
         }
     }
 #endif // !HAVE_MACH_EXCEPTIONS
@@ -777,6 +788,10 @@ static void sigbus_handler(int code, siginfo_t *siginfo, void *context)
         }
     }
 
+#ifdef HOST_ANDROID
+    PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
+
     invoke_previous_action(&g_previous_sigbus, code, siginfo, context);
 }
 
@@ -793,6 +808,10 @@ Parameters :
 --*/
 static void sigabrt_handler(int code, siginfo_t *siginfo, void *context)
 {
+#ifdef HOST_ANDROID
+    PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
+
     invoke_previous_action(&g_previous_sigabrt, code, siginfo, context);
 }
 

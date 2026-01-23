@@ -2739,6 +2739,17 @@ Parameters:
 --*/
 #ifdef HOST_ANDROID
 #include <minipal/log.h>
+
+extern "C" void CoreCLRLogManagedStackTraceForCrash() __attribute__((weak));
+
+extern "C" VOID PAL_LogManagedStackTraceForCrashIfAvailable()
+{
+    if (CoreCLRLogManagedStackTraceForCrash != nullptr)
+    {
+        CoreCLRLogManagedStackTraceForCrash();
+    }
+}
+
 VOID
 PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool serialize)
 {
@@ -2849,6 +2860,10 @@ PROCAbort(int signal, siginfo_t* siginfo, void* context)
 {
     // Do any shutdown cleanup before aborting or creating a core dump
     PROCNotifyProcessShutdown();
+
+#ifdef HOST_ANDROID
+    PAL_LogManagedStackTraceForCrashIfAvailable();
+#endif
 
     PROCCreateCrashDumpIfEnabled(signal, siginfo, context, true);
 
