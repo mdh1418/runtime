@@ -82,6 +82,62 @@ void InProcCrashDump_SetStackWalker(InProcCrashDump_WalkStackCallback callback) 
 void InProcCrashDump_SetExceptionResolver(InProcCrashDump_GetExceptionCallback callback) { g_getExceptionCallback = callback; }
 void InProcCrashDump_SetThreadEnumerator(InProcCrashDump_EnumerateThreadsCallback callback) { g_enumerateThreadsCallback = callback; }
 
+// Extract register values from ucontext_t (platform-specific)
+static void WriteRegistersToJson(CrashJsonWriter* w, void* context)
+{
+    if (context == NULL) return;
+
+    ucontext_t* uctx = (ucontext_t*)context;
+    CrashJson_OpenObject(w, "ctx");
+
+#if defined(__x86_64__)
+    CrashJson_WriteHex(w, "IP", uctx->uc_mcontext.gregs[REG_RIP]);
+    CrashJson_WriteHex(w, "SP", uctx->uc_mcontext.gregs[REG_RSP]);
+    CrashJson_WriteHex(w, "BP", uctx->uc_mcontext.gregs[REG_RBP]);
+#elif defined(__aarch64__)
+    CrashJson_WriteHex(w, "IP", uctx->uc_mcontext.pc);
+    CrashJson_WriteHex(w, "SP", uctx->uc_mcontext.sp);
+    CrashJson_WriteHex(w, "BP", uctx->uc_mcontext.regs[29]);
+#elif defined(__arm__)
+    CrashJson_WriteHex(w, "IP", uctx->uc_mcontext.arm_pc);
+    CrashJson_WriteHex(w, "SP", uctx->uc_mcontext.arm_sp);
+    CrashJson_WriteHex(w, "BP", uctx->uc_mcontext.arm_fp);
+#endif
+
+    CrashJson_CloseObject(w);
+}
+
+// Write registers to fd for logcat/console display
+static void WriteRegistersToFd(int fd, void* context)
+{
+    if (context == NULL) return;
+
+    ucontext_t* uctx = (ucontext_t*)context;
+    char line[128];
+    int len;
+
+#if defined(__x86_64__)
+    len = snprintf(line, sizeof(line), "Registers: IP=0x%llx SP=0x%llx FP=0x%llx\n",
+        (unsigned long long)uctx->uc_mcontext.gregs[REG_RIP],
+        (unsigned long long)uctx->uc_mcontext.gregs[REG_RSP],
+        (unsigned long long)uctx->uc_mcontext.gregs[REG_RBP]);
+#elif defined(__aarch64__)
+    len = snprintf(line, sizeof(line), "Registers: IP=0x%llx SP=0x%llx FP=0x%llx\n",
+        (unsigned long long)uctx->uc_mcontext.pc,
+        (unsigned long long)uctx->uc_mcontext.sp,
+        (unsigned long long)uctx->uc_mcontext.regs[29]);
+#elif defined(__arm__)
+    len = snprintf(line, sizeof(line), "Registers: IP=0x%lx SP=0x%lx FP=0x%lx\n",
+        (unsigned long)uctx->uc_mcontext.arm_pc,
+        (unsigned long)uctx->uc_mcontext.arm_sp,
+        (unsigned long)uctx->uc_mcontext.arm_fp);
+#else
+    len = snprintf(line, sizeof(line), "Registers: (unsupported architecture)\n");
+#endif
+
+    if (len > 0) write(fd, line, len);
+}
+
 void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
 {
     static volatile int s_generating = 0;
@@ -137,9 +193,10 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
             GetSignalName(signal), signal, signalCode,
             (unsigned long long)faultAddr, pid, tid);
         WriteToLog(header, len);
+        WriteRegistersToFd(STDERR_FILENO, context);
     }
 
-    // TODO: Registers, modules, stack frames, exception info, JSON report
+    // TODO: Modules, stack frames, exception info, JSON report
 
     s_inCrashGuard = 0;
     sigaction(SIGSEGV, &oldSigsegv, NULL);
