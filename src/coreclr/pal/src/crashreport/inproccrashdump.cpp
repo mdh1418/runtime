@@ -360,11 +360,72 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
     CrashJson_WriteInt(&jsonWriter, "pid", pid);
     CrashJson_WriteInt(&jsonWriter, "tid", tid);
 
-    // threads array — single crashing thread
+    // threads array — enumerate all threads via VM callback
     CrashJson_OpenArray(&jsonWriter, "threads");
 
-    if (g_walkStackCallback != NULL)
+    if (g_enumerateThreadsCallback != NULL)
     {
+        // Context struct passed through callbacks to build JSON.
+        // threadCount tracks whether we need to close the previous thread's JSON.
+        struct MultiThreadJsonCtx {
+            CrashJsonWriter* writer;
+            void* signalContext;
+            int threadCount;
+        };
+        MultiThreadJsonCtx mtCtx = { &jsonWriter, context, 0 };
+
+        g_enumerateThreadsCallback(
+            tid,
+            // threadCallback — called at the start of each thread
+            [](uint64_t osThreadId, int isCrashThread,
+               const char* exceptionType, uint32_t exceptionHResult,
+               void* ctx) {
+                MultiThreadJsonCtx* mtCtx = (MultiThreadJsonCtx*)ctx;
+                CrashJsonWriter* w = mtCtx->writer;
+
+                // Close previous thread's stack_frames + object if not the first
+                if (mtCtx->threadCount > 0)
+                {
+                    CrashJson_CloseArray(w);   // stack_frames
+                    CrashJson_CloseObject(w);  // thread
+                }
+                mtCtx->threadCount++;
+
+                CrashJson_OpenObject(w, NULL);
+                CrashJson_WriteBool(w, "crashed", isCrashThread);
+                CrashJson_WriteHex(w, "native_thread_id", osThreadId);
+
+                if (exceptionType != NULL && exceptionType[0] != '\0')
+                {
+                    CrashJson_WriteString(w, "managed_exception_type", exceptionType);
+                    CrashJson_WriteHex(w, "managed_exception_hresult", exceptionHResult);
+                }
+
+                if (isCrashThread)
+                {
+                    WriteRegistersToJson(w, mtCtx->signalContext);
+                }
+
+                CrashJson_OpenArray(w, "stack_frames");
+            },
+            // frameCallback — extracts CrashJsonWriter from MultiThreadJsonCtx
+            [](uint64_t ip, const char* methodName, const char* className,
+               const char* moduleName, uint32_t nativeOffset, uint32_t token, void* ctx) {
+                MultiThreadJsonCtx* mtCtx = (MultiThreadJsonCtx*)ctx;
+                JsonFrameCallback(ip, methodName, className, moduleName, nativeOffset, token, mtCtx->writer);
+            },
+            &mtCtx);
+
+        // Close the last thread's stack_frames + object
+        if (mtCtx.threadCount > 0)
+        {
+            CrashJson_CloseArray(&jsonWriter);   // stack_frames
+            CrashJson_CloseObject(&jsonWriter);  // thread
+        }
+    }
+    else if (g_walkStackCallback != NULL)
+    {
+        // Fallback: single-thread mode (crashing thread only)
         CrashJson_OpenObject(&jsonWriter, NULL);
         CrashJson_WriteBool(&jsonWriter, "crashed", 1);
         CrashJson_WriteHex(&jsonWriter, "native_thread_id", tid);

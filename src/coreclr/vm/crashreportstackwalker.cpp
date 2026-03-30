@@ -118,6 +118,71 @@ static int CrashReport_GetExceptionForThread(
     return 1;
 }
 
+// Enumerate all managed threads, walk each one's stack, report via callbacks.
+// Iterates ThreadStore linked list lock-free. For each thread:
+//   - Calls threadCallback with thread info
+//   - Calls frameCallback for each managed frame
+// For non-crashing threads, attempts StackWalkFramesEx with saved context.
+static void CrashReport_EnumerateThreads(
+    uint64_t crashingTid,
+    InProcCrashDump_ThreadCallback threadCallback,
+    InProcCrashDump_FrameCallback frameCallback,
+    void* ctx)
+{
+    Thread* pCrashThread = GetThreadNULLOk();
+
+    // First: walk the crashing thread (most important, always works)
+    if (pCrashThread != NULL)
+    {
+        uint64_t crashOsId = (uint64_t)pCrashThread->GetOSThreadId();
+
+        char exTypeBuf[256] = {0};
+        uint32_t exHresult = 0;
+        CrashReport_GetExceptionForThread(pCrashThread, exTypeBuf, sizeof(exTypeBuf), &exHresult);
+
+        threadCallback(crashOsId, 1, exTypeBuf, exHresult, ctx);
+
+        WalkContext walkCtx = { frameCallback, ctx };
+        pCrashThread->StackWalkFrames(FrameCallbackAdapter, &walkCtx,
+            QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
+    }
+
+    // Then: enumerate other threads from ThreadStore
+    Thread* pThread = ThreadStore::GetThreadList(NULL);
+    while (pThread != NULL)
+    {
+        // Skip the crashing thread (already handled above)
+        if (pThread == pCrashThread)
+        {
+            pThread = ThreadStore::GetThreadList(pThread);
+            continue;
+        }
+
+        uint64_t osThreadId = (uint64_t)pThread->GetOSThreadId();
+        if (osThreadId == 0)
+        {
+            pThread = ThreadStore::GetThreadList(pThread);
+            continue;
+        }
+
+        threadCallback(osThreadId, 0, "", 0, ctx);
+
+        // Only walk threads in preemptive mode with a frame chain
+        if (pThread->PreemptiveGCDisabled() == FALSE)
+        {
+            Frame* pFrame = pThread->GetFrame();
+            if (pFrame != NULL && pFrame != FRAME_TOP)
+            {
+                WalkContext walkCtx = { frameCallback, ctx };
+                pThread->StackWalkFrames(FrameCallbackAdapter, &walkCtx,
+                    QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
+            }
+        }
+
+        pThread = ThreadStore::GetThreadList(pThread);
+    }
+}
+
 // Get managed exception info from the current thread (legacy single-thread callback).
 static int CrashReport_GetException(
     char* exceptionTypeBuf, int exceptionTypeBufSize,
@@ -137,6 +202,7 @@ void CrashReport_RegisterStackWalker()
 {
     InProcCrashDump_SetStackWalker(CrashReport_WalkStack);
     InProcCrashDump_SetExceptionResolver(CrashReport_GetException);
+    InProcCrashDump_SetThreadEnumerator(CrashReport_EnumerateThreads);
 }
 
 #endif // HOST_ANDROID
