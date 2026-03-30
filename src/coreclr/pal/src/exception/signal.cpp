@@ -18,6 +18,7 @@ Abstract:
 --*/
 
 #include "pal/dbgmsg.h"
+
 SET_DEFAULT_DEBUG_CHANNEL(EXCEPT); // some headers have code with asserts, so do this first
 
 #include "pal/corunix.hpp"
@@ -103,7 +104,9 @@ bool g_registered_signal_handlers = false;
 #if !HAVE_MACH_EXCEPTIONS
 bool g_enable_alternate_stack_check = false;
 #endif // !HAVE_MACH_EXCEPTIONS
-// When true, generate crash dump before invoking previously registered signal handler
+// When true, generate crash dump before invoking previously registered signal handler.
+// On Android, this is set to true at startup via DOTNET_CrashReportBeforeSignalChaining
+// in monodroid-coreclr.c → PAL_EnableCrashReportBeforeSignalChaining().
 static bool g_crash_report_before_signal_chaining = false;
 
 static bool g_registered_sigterm_handler = false;
@@ -470,10 +473,16 @@ static void invoke_previous_action(struct sigaction* action, int code, siginfo_t
 
     if (g_crash_report_before_signal_chaining)
     {
-        PROCNotifyProcessShutdown(IsRunningOnAlternateStack(context));
-
+#ifndef HOST_ANDROID
         PROCLogManagedCallstackForSignal(code);
+#endif
+        PROCNotifyProcessShutdown(IsRunningOnAlternateStack(context));
         PROCCreateCrashDumpIfEnabled(code, siginfo, context, true);
+#ifdef HOST_ANDROID
+        // After the crash reporter runs, abort. Without this, the previous handler
+        // (debuggerd) returns, the signal restarts, and the process loops.
+        PROCAbort(code, siginfo, context);
+#endif
     }
 
     if (IsSaSigInfo(action))
@@ -493,7 +502,9 @@ static void invoke_previous_action(struct sigaction* action, int code, siginfo_t
     {
         PROCNotifyProcessShutdown(IsRunningOnAlternateStack(context));
 
+#ifndef HOST_ANDROID
         PROCLogManagedCallstackForSignal(code);
+#endif
         PROCCreateCrashDumpIfEnabled(code, siginfo, context, true);
     }
 }

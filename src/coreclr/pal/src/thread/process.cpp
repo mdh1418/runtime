@@ -2787,15 +2787,15 @@ Parameters:
 (no return value)
 --*/
 #ifdef HOST_ANDROID
-#include <minipal/log.h>
+#include "crashreport/inproccrashdump.h"
 VOID
 PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool serialize)
 {
     // Preserve context pointer to prevent optimization
     DoNotOptimize(&context);
 
-    // TODO: Dump stress log into logcat and/or file when enabled?
-    minipal_log_write_fatal("Aborting process.\n");
+    // Generate async-signal-safe in-proc crash report
+    InProcCrashDump_Generate(signal, siginfo, context);
 }
 #else
 VOID
