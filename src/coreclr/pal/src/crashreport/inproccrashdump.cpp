@@ -30,6 +30,47 @@ static void WriteToLog(const char* msg, int len)
 #endif
 }
 
+static const char* GetSignalName(int signal)
+{
+    switch (signal)
+    {
+        case SIGSEGV: return "SIGSEGV";
+        case SIGABRT: return "SIGABRT";
+        case SIGBUS:  return "SIGBUS";
+        case SIGILL:  return "SIGILL";
+        case SIGFPE:  return "SIGFPE";
+        case SIGTRAP: return "SIGTRAP";
+        case SIGTERM: return "SIGTERM";
+        default:      return "UNKNOWN";
+    }
+}
+
+static const char* GetExceptionTypeCode(int signal)
+{
+    switch (signal)
+    {
+        case SIGSEGV: return "0x20000000";
+        case SIGABRT: return "0x30000000";
+        case SIGBUS:  return "0x60000000";
+        case SIGILL:  return "0x50000000";
+        case SIGFPE:  return "0x70000000";
+        case SIGTRAP: return "0x03000000";
+        case SIGTERM: return "0x02000000";
+        default:      return "0x00000000";
+    }
+}
+
+// sigsetjmp buffer for catching secondary crashes
+static sigjmp_buf s_crashGuardJmpBuf;
+static volatile int s_inCrashGuard = 0;
+
+static void CrashGuardSignalHandler(int sig, siginfo_t* info, void* context)
+{
+    if (s_inCrashGuard)
+        siglongjmp(s_crashGuardJmpBuf, sig);
+    _exit(128 + sig);
+}
+
 // Registered callbacks from VM
 static volatile InProcCrashDump_ResolveMethodCallback g_resolveMethodCallback = NULL;
 static volatile InProcCrashDump_WalkStackCallback g_walkStackCallback = NULL;
@@ -43,11 +84,64 @@ void InProcCrashDump_SetThreadEnumerator(InProcCrashDump_EnumerateThreadsCallbac
 
 void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
 {
-    // Serialize — only one thread should generate the crash report
     static volatile int s_generating = 0;
     if (__sync_val_compare_and_swap(&s_generating, 0, 1) != 0)
         return;
 
-    // TODO: Signal info, registers, modules, stack frames, exception info
-    WriteToLog("*** DOTNET CRASH *** (in-proc crash reporter skeleton)\n", 55);
+    int signalCode = (siginfo != NULL) ? siginfo->si_code : 0;
+    uint64_t faultAddr = (siginfo != NULL) ? (uint64_t)siginfo->si_addr : 0;
+    pid_t pid = getpid();
+    pid_t tid = 0;
+#ifdef __linux__
+    tid = gettid();
+#endif
+
+    // Install outer sigsetjmp guard for the entire crash report
+    struct sigaction guardAction = {0}, oldSigsegv = {0}, oldSigbus = {0};
+    guardAction.sa_sigaction = CrashGuardSignalHandler;
+    guardAction.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    sigemptyset(&guardAction.sa_mask);
+    sigaction(SIGSEGV, &guardAction, &oldSigsegv);
+    sigaction(SIGBUS, &guardAction, &oldSigbus);
+
+    s_inCrashGuard = 1;
+    int guardResult = sigsetjmp(s_crashGuardJmpBuf, 1);
+    if (guardResult != 0)
+    {
+        s_inCrashGuard = 0;
+        sigaction(SIGSEGV, &oldSigsegv, NULL);
+        sigaction(SIGBUS, &oldSigbus, NULL);
+        char msg[128];
+        int msgLen = snprintf(msg, sizeof(msg),
+            "Crash report aborted (secondary signal %d during generation)\n", guardResult);
+        if (msgLen > 0) WriteToLog(msg, msgLen);
+        return;
+    }
+
+    // --- Signal info to logcat ---
+    {
+        char header[512];
+        int len = snprintf(header, sizeof(header),
+            "\n*** DOTNET CRASH ***\n"
+            "Signal: %s (%d), code=%d, addr=0x%llx\n"
+            "PID: %d, TID: %d\n"
+#if defined(__x86_64__)
+            "Architecture: x64\n",
+#elif defined(__aarch64__)
+            "Architecture: arm64\n",
+#elif defined(__arm__)
+            "Architecture: arm\n",
+#else
+            "Architecture: unknown\n",
+#endif
+            GetSignalName(signal), signal, signalCode,
+            (unsigned long long)faultAddr, pid, tid);
+        WriteToLog(header, len);
+    }
+
+    // TODO: Registers, modules, stack frames, exception info, JSON report
+
+    s_inCrashGuard = 0;
+    sigaction(SIGSEGV, &oldSigsegv, NULL);
+    sigaction(SIGBUS, &oldSigbus, NULL);
 }
