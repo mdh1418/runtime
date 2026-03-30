@@ -83,10 +83,60 @@ static void CrashReport_WalkStack(InProcCrashDump_FrameCallback frameCallback, v
         QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
 }
 
+// Get exception info for a specific thread.
+static int CrashReport_GetExceptionForThread(
+    Thread* pThread,
+    char* exceptionTypeBuf, int exceptionTypeBufSize,
+    uint32_t* hresult)
+{
+    OBJECTREF throwable = pThread->GetThrowable();
+    if (throwable == NULL)
+        return 0;
+
+    MethodTable* pMT = throwable->GetMethodTable();
+    if (pMT != NULL)
+    {
+        mdTypeDef cl = pMT->GetCl();
+        Module* pModule = pMT->GetModule();
+        if (pModule != NULL)
+        {
+            IMDInternalImport* pImport = pModule->GetMDImport();
+            if (pImport != NULL && cl != mdTypeDefNil)
+            {
+                LPCUTF8 className = NULL;
+                LPCUTF8 namespaceName = NULL;
+                pImport->GetNameOfTypeDef(cl, &className, &namespaceName);
+                if (namespaceName != NULL && namespaceName[0] != '\0')
+                    snprintf(exceptionTypeBuf, exceptionTypeBufSize, "%s.%s", namespaceName, className ? className : "");
+                else if (className != NULL)
+                    snprintf(exceptionTypeBuf, exceptionTypeBufSize, "%s", className);
+            }
+        }
+    }
+
+    *hresult = ((EXCEPTIONREF)throwable)->GetHResult();
+    return 1;
+}
+
+// Get managed exception info from the current thread (legacy single-thread callback).
+static int CrashReport_GetException(
+    char* exceptionTypeBuf, int exceptionTypeBufSize,
+    char* exceptionMsgBuf, int exceptionMsgBufSize,
+    uint32_t* hresult)
+{
+    Thread* pThread = GetThreadNULLOk();
+    if (pThread == NULL)
+        return 0;
+
+    exceptionMsgBuf[0] = '\0';
+    return CrashReport_GetExceptionForThread(pThread, exceptionTypeBuf, exceptionTypeBufSize, hresult);
+}
+
 // Called during VM initialization to register callbacks with the PAL crash reporter
 void CrashReport_RegisterStackWalker()
 {
     InProcCrashDump_SetStackWalker(CrashReport_WalkStack);
+    InProcCrashDump_SetExceptionResolver(CrashReport_GetException);
 }
 
 #endif // HOST_ANDROID

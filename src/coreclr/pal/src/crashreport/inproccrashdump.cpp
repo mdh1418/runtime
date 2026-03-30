@@ -233,6 +233,36 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
     tid = gettid();
 #endif
 
+    // --- Gather exception info (used by both logcat and JSON phases) ---
+    // Only attempt for signals that may have managed exception state (SIGABRT from managed FailFast).
+    // SIGSEGV crashes in native code don't have a managed throwable — attempting to read one faults.
+    char exTypeBuf[256] = {0};
+    char exMsgBuf[512] = {0};
+    uint32_t exHresult = 0;
+    int hasException = 0;
+    if (g_getExceptionCallback != NULL && signal != SIGSEGV && signal != SIGBUS)
+    {
+        struct sigaction guardAction = {0}, oldSigsegv = {0}, oldSigbus = {0};
+        guardAction.sa_sigaction = CrashGuardSignalHandler;
+        guardAction.sa_flags = SA_SIGINFO;
+        sigemptyset(&guardAction.sa_mask);
+        sigaction(SIGSEGV, &guardAction, &oldSigsegv);
+        sigaction(SIGBUS, &guardAction, &oldSigbus);
+
+        s_inCrashGuard = 1;
+        int guardResult = sigsetjmp(s_crashGuardJmpBuf, 1);
+        if (guardResult == 0)
+        {
+            hasException = g_getExceptionCallback(exTypeBuf, sizeof(exTypeBuf),
+                exMsgBuf, sizeof(exMsgBuf), &exHresult);
+        }
+        // If guardResult != 0, exception info faulted — skip it
+        s_inCrashGuard = 0;
+
+        sigaction(SIGSEGV, &oldSigsegv, NULL);
+        sigaction(SIGBUS, &oldSigbus, NULL);
+    }
+
     // --- Phase 1: Write crash summary to logcat/console ---
     // Install sigsetjmp guard for the entire crash report generation.
     // On SIGSEGV, the context pointer or runtime state may be invalid.
@@ -280,6 +310,19 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
         WriteToLog(header, len);
         WriteRegistersToFd(STDERR_FILENO, context);
 
+        // Show exception info if available
+        if (hasException)
+        {
+            char exLine[800];
+            int exLen = snprintf(exLine, sizeof(exLine), "Exception: %s (0x%08x)\n", exTypeBuf, exHresult);
+            if (exLen > 0) write(STDERR_FILENO, exLine, exLen);
+            if (exMsgBuf[0] != '\0')
+            {
+                exLen = snprintf(exLine, sizeof(exLine), "Message: %s\n", exMsgBuf);
+                if (exLen > 0) write(STDERR_FILENO, exLine, exLen);
+            }
+        }
+
         // Walk managed stack for logcat output (covered by outer sigsetjmp guard)
         if (g_walkStackCallback != NULL)
         {
@@ -325,6 +368,12 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
         CrashJson_OpenObject(&jsonWriter, NULL);
         CrashJson_WriteBool(&jsonWriter, "crashed", 1);
         CrashJson_WriteHex(&jsonWriter, "native_thread_id", tid);
+
+        if (hasException)
+        {
+            CrashJson_WriteString(&jsonWriter, "managed_exception_type", exTypeBuf);
+            CrashJson_WriteHex(&jsonWriter, "managed_exception_hresult", exHresult);
+        }
 
         WriteRegistersToJson(&jsonWriter, context);
 
