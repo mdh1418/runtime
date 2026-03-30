@@ -174,7 +174,7 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
         return;
     }
 
-    // --- Signal info to logcat ---
+    // --- Phase 1: Write crash summary to logcat/console ---
     {
         char header[512];
         int len = snprintf(header, sizeof(header),
@@ -194,9 +194,11 @@ void InProcCrashDump_Generate(int signal, siginfo_t* siginfo, void* context)
             (unsigned long long)faultAddr, pid, tid);
         WriteToLog(header, len);
         WriteRegistersToFd(STDERR_FILENO, context);
+
+        CrashModules_WriteToFd(STDERR_FILENO);
     }
 
-    // TODO: Modules, stack frames, exception info, JSON report
+    // TODO: Stack frames, exception info, JSON report
 
     s_inCrashGuard = 0;
     sigaction(SIGSEGV, &oldSigsegv, NULL);
