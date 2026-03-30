@@ -696,6 +696,10 @@ void EEStartupHelper()
 
 #ifdef HOST_ANDROID
         PAL_SetLogManagedCallstackForSignalCallback(EEPolicy::LogManagedCallstackForSignal);
+
+        // Register the signal-safe stack walker for the in-proc crash reporter
+        extern void CrashReport_RegisterStackWalker();
+        CrashReport_RegisterStackWalker();
 #endif // HOST_ANDROID
 
 #ifdef STRESS_LOG
