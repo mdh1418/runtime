@@ -22,6 +22,13 @@ void RemoveThreadFromSignalSafeMap(size_t osThread, void* pThread);
 // * return - A pointer to the thread object associated with the OS thread ID, or NULL if not found.
 void* FindThreadInSignalSafeMap(size_t osThread);
 
+typedef void (*SignalSafeThreadMapCallback)(size_t osThread, void* pThread, void* context);
+
+// Enumerate the current contents of the signal-safe map.
+// The callback may observe a best-effort snapshot if other threads are attaching
+// or detaching concurrently, but the traversal itself uses only atomic loads.
+void EnumerateThreadsInSignalSafeMap(SignalSafeThreadMapCallback callback, void* context);
+
 #endif // TARGET_UNIX && !TARGET_WASM
 
 #endif // __SIGNALSAFETHREADMAP_H__

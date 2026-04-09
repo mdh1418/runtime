@@ -12,6 +12,7 @@
 #include "common.h"
 #include "method.hpp"
 #include "codeman.h"
+#include "SignalSafeThreadMap.h"
 
 #ifdef HOST_ANDROID
 
@@ -129,11 +130,33 @@ static int CrashReport_GetExceptionForThread(
     return 1;
 }
 
-// Enumerate all managed threads, walk each one's stack, report via callbacks.
-// Iterates ThreadStore linked list lock-free. For each thread:
-//   - Calls threadCallback with thread info
-//   - Calls frameCallback for each managed frame
-// For non-crashing threads, attempts StackWalkFramesEx with saved context.
+struct EnumerateThreadsContext
+{
+    uint64_t crashingTid;
+    Thread* pCrashThread;
+    InProcCrashDump_ThreadCallback threadCallback;
+    InProcCrashDump_FrameCallback frameCallback;
+    void* callbackContext;
+};
+
+static void EnumerateThreadFromSignalSafeMap(size_t osThread, void* pThreadObject, void* context)
+{
+    EnumerateThreadsContext* enumerateContext = (EnumerateThreadsContext*)context;
+    Thread* pThread = (Thread*)pThreadObject;
+    int isCrashThread = osThread == enumerateContext->crashingTid ? 1 : 0;
+
+    enumerateContext->threadCallback((uint64_t)osThread, isCrashThread, "", 0, enumerateContext->callbackContext);
+
+    if (isCrashThread && pThread == enumerateContext->pCrashThread)
+    {
+        WalkContext walkCtx = { enumerateContext->frameCallback, enumerateContext->callbackContext };
+        pThread->StackWalkFrames(FrameCallbackAdapter, &walkCtx,
+            QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
+    }
+}
+
+// Enumerate managed threads through the signal-safe thread map. This avoids
+// walking the live ThreadStore list from the crash signal path.
 static void CrashReport_EnumerateThreads(
     uint64_t crashingTid,
     InProcCrashReport_ThreadCallback threadCallback,
@@ -141,62 +164,8 @@ static void CrashReport_EnumerateThreads(
     void* ctx)
 {
     Thread* pCrashThread = GetThreadAsyncSafe();
-    bool crashThreadHandled = false;
-
-    // First: walk the crashing thread (most important, always works)
-    if (pCrashThread != NULL)
-    {
-        uint64_t crashOsId = (uint64_t)pCrashThread->GetOSThreadId();
-        if (crashOsId == crashingTid)
-        {
-            threadCallback(crashOsId, 1, "", 0, ctx);
-
-            WalkContext walkCtx = { frameCallback, ctx };
-            pCrashThread->StackWalkFrames(FrameCallbackAdapter, &walkCtx,
-                QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
-            crashThreadHandled = true;
-        }
-    }
-
-    // Then: enumerate other threads from ThreadStore
-    Thread* pThread = ThreadStore::GetThreadList(NULL);
-    while (pThread != NULL)
-    {
-        // Skip the crashing thread (already handled above)
-        if (crashThreadHandled && pThread == pCrashThread)
-        {
-            pThread = ThreadStore::GetThreadList(pThread);
-            continue;
-        }
-
-        uint64_t osThreadId = (uint64_t)pThread->GetOSThreadId();
-        if (osThreadId == 0)
-        {
-            pThread = ThreadStore::GetThreadList(pThread);
-            continue;
-        }
-
-        bool isCrashThread = !crashThreadHandled && osThreadId == crashingTid;
-        threadCallback(osThreadId, isCrashThread ? 1 : 0, "", 0, ctx);
-        if (isCrashThread)
-        {
-            crashThreadHandled = true;
-        }
-
-        // Only walk threads in preemptive mode with a frame chain
-        if (pThread->PreemptiveGCDisabled() == FALSE)
-        {
-            Frame* pFrame = pThread->GetFrame();
-            if (pFrame != NULL && pFrame != FRAME_TOP)
-            {
-                WalkContext walkCtx = { frameCallback, ctx };
-                pThread->StackWalkFrames(FrameCallbackAdapter, &walkCtx,
-                    QUICKUNWIND | FUNCTIONSONLY | ALLOW_ASYNC_STACK_WALK);
-            }
-        }
-
-        pThread = ThreadStore::GetThreadList(pThread);
-    }
+    EnumerateThreadsContext enumerateContext = { crashingTid, pCrashThread, threadCallback, frameCallback, ctx };
+    EnumerateThreadsInSignalSafeMap(EnumerateThreadFromSignalSafeMap, &enumerateContext);
 }
 
 // Get managed exception info from the current thread (legacy single-thread callback).

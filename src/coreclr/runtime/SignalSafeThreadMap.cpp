@@ -124,3 +124,27 @@ void *FindThreadInSignalSafeMap(size_t osThread)
     }
     return NULL;
 }
+
+void EnumerateThreadsInSignalSafeMap(SignalSafeThreadMapCallback callback, void* context)
+{
+    if (callback == NULL)
+    {
+        return;
+    }
+
+    ThreadSegment* pSegment = __atomic_load_n(&s_pSignalSafeThreadMapHead, __ATOMIC_ACQUIRE);
+    while (pSegment != NULL)
+    {
+        for (size_t i = 0; i < MAX_THREADS_IN_SEGMENT; i++)
+        {
+            size_t osThread = __atomic_load_n(&pSegment->entries[i].osThread, __ATOMIC_ACQUIRE);
+            void* pThread = __atomic_load_n(&pSegment->entries[i].pThread, __ATOMIC_ACQUIRE);
+            if (osThread != 0 && pThread != NULL)
+            {
+                callback(osThread, pThread, context);
+            }
+        }
+
+        pSegment = __atomic_load_n(&pSegment->pNext, __ATOMIC_ACQUIRE);
+    }
+}
