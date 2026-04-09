@@ -37,6 +37,7 @@ endif(CORECLR_SET_RPATH)
 # Include directories
 
 include_directories(include)
+include_directories(${CLR_ARTIFACTS_OBJ_DIR})
 
 # Compile options
 

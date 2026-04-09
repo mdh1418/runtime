@@ -497,7 +497,12 @@ static void invoke_previous_action(struct sigaction* action, int code, siginfo_t
     {
         PROCNotifyProcessShutdown(IsRunningOnAlternateStack(context));
 
-#ifndef HOST_ANDROID
+#ifdef HOST_ANDROID
+        if (!PROCIsCrashReportEnabled())
+        {
+            PROCLogManagedCallstackForSignal(code);
+        }
+#else
         PROCLogManagedCallstackForSignal(code);
 #endif
         PROCCreateCrashDumpIfEnabled(code, siginfo, context, true);

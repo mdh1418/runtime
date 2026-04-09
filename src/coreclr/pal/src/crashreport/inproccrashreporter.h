@@ -1,12 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// Async-signal-safe in-proc crash report generation.
-// All functions in this file MUST be async-signal-safe:
-// - No malloc/free/new/delete
-// - No stdio (fopen/fgets/fprintf)
-// - No locks (mutex, spinlock)
-// - Only POSIX async-signal-safe functions: write, open, close, read, getpid, snprintf, etc.
+// In-proc crash report generation.
+//
+// The default crash path is designed around signal-time inputs such as
+// siginfo_t, ucontext_t, and /proc/self/maps. Richer managed details are wired
+// through the callback interfaces below, but those callbacks are best-effort
+// only and are not part of the default crash-time tier.
 
 #pragma once
 
@@ -17,29 +17,28 @@
 extern "C" {
 #endif
 
-// Callback to resolve an instruction pointer to a method name.
-// The VM registers this at startup. The implementation MUST be signal-safe
-// (no malloc, no locks — use only cached metadata reads).
-// Returns: 1 if resolved, 0 if not. Writes into pre-allocated buffers.
-typedef int (*InProcCrashReport_ResolveMethodCallback)(
-    uint64_t ip,
-    char* methodNameBuf, int methodNameBufSize,    // "MethodName"
-    char* classNameBuf, int classNameBufSize,      // "Namespace.ClassName"
-    char* moduleNameBuf, int moduleNameBufSize,    // "Assembly.dll"
-    uint32_t* nativeOffset);
-
-// Register the method resolver callback. Called during VM initialization.
-void InProcCrashReport_SetMethodResolver(InProcCrashReport_ResolveMethodCallback callback);
+// Initialize the in-proc crash reporter state from startup code, outside the
+// signal handler. This pre-publishes options that would otherwise require
+// getenv() or other non-crash-time-safe work during report generation.
+void InProcCrashReport_Initialize(int writeToFile, const char* dumpPath, const char* defaultDirectory, int enableBestEffort);
 
 // Generate an in-proc crash report. Called from PROCCreateCrashDumpIfEnabled.
 // All arguments come from the signal handler and are signal-safe to read.
 void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context);
 
+// Callback to determine whether the current thread is attached to the runtime.
+// This is used for the default crash thread entry and should rely only on
+// the signal-safe thread map / pre-published state.
+typedef int (*InProcCrashReport_IsManagedThreadCallback)();
+
+void InProcCrashReport_SetCurrentThreadManagedResolver(InProcCrashReport_IsManagedThreadCallback callback);
+
 // Callback to walk the managed stack and report frames.
-// The VM registers this at startup. Called from the signal handler.
+// The VM registers this at startup. Called from the signal handler only in the
+// best-effort mode; it is not part of the default crash-time path.
 // frameCallback is called for each frame with the resolved method info.
 typedef void (*InProcCrashReport_FrameCallback)(
-    uint64_t ip, const char* methodName, const char* className,
+    uint64_t ip, uint64_t stackPointer, const char* methodName, const char* className,
     const char* moduleName, uint32_t nativeOffset, uint32_t token, void* ctx);
 
 typedef void (*InProcCrashReport_WalkStackCallback)(
@@ -48,7 +47,8 @@ typedef void (*InProcCrashReport_WalkStackCallback)(
 void InProcCrashReport_SetStackWalker(InProcCrashReport_WalkStackCallback callback);
 
 // Callback to enumerate all threads and walk each one's managed stack.
-// The VM registers this at startup. Called from the signal handler.
+// The VM registers this at startup. Called from the signal handler only in the
+// best-effort mode; it is not part of the default crash-time path.
 // threadCallback is called for each thread. crashingTid identifies the crashing thread.
 // For each thread, the VM calls frameCallback for each managed frame.
 typedef void (*InProcCrashReport_ThreadCallback)(
@@ -65,6 +65,8 @@ typedef void (*InProcCrashReport_EnumerateThreadsCallback)(
 void InProcCrashReport_SetThreadEnumerator(InProcCrashReport_EnumerateThreadsCallback callback);
 
 // Callback to get managed exception info from the current thread.
+// Best-effort only: this may inspect runtime/GC state and is therefore not part
+// of the default crash-time path.
 // Writes exception type and message into pre-allocated buffers.
 // Returns: 1 if an exception is available, 0 if not.
 typedef int (*InProcCrashReport_GetExceptionCallback)(

@@ -35,6 +35,10 @@ SET_DEFAULT_DEBUG_CHANNEL(PROCESS); // some headers have code with asserts, so d
 #include <generatedumpflags.h>
 #include <clrconfignocache.h>
 
+#ifdef HOST_ANDROID
+#include "crashreport/inproccrashreporter.h"
+#endif
+
 #include <errno.h>
 #if HAVE_POLL
 #include <poll.h>
@@ -189,6 +193,10 @@ Volatile<PLOGMANAGEDCALLSTACKFORSIGNAL_CALLBACK> g_logManagedCallstackForSignalC
 // Crash dump generating program arguments. Initialized in PROCAbortInitialize().
 #define MAX_ARGV_ENTRIES 32
 const char* g_argvCreateDump[MAX_ARGV_ENTRIES] = { nullptr };
+
+#ifdef HOST_ANDROID
+static bool g_inProcCrashReportEnabled = false;
+#endif
 
 //
 // Key used for associating CPalThread's with the underlying pthread
@@ -2618,11 +2626,36 @@ PROCAbortInitialize()
     CLRConfigNoCache enabledCfg = CLRConfigNoCache::Get("DbgEnableMiniDump", /*noprefix*/ false, &getenv);
 
     DWORD enabled = 0;
-    if (enabledCfg.IsSet() && enabledCfg.TryAsInteger(10, enabled) && enabled)
-    {
-        CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
-        const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
+    bool enableMiniDump = enabledCfg.IsSet() && enabledCfg.TryAsInteger(10, enabled) && enabled != 0;
 
+    CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
+    const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
+
+    CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
+    DWORD reportEnabled = 0;
+    bool enableCrashReport = enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, reportEnabled) && reportEnabled == 1;
+
+    CLRConfigNoCache enabledReportOnlyCfg = CLRConfigNoCache::Get("EnableCrashReportOnly", /*noprefix*/ false, &getenv);
+    DWORD reportOnlyEnabled = 0;
+    bool enableCrashReportOnly = enabledReportOnlyCfg.IsSet() && enabledReportOnlyCfg.TryAsInteger(10, reportOnlyEnabled) && reportOnlyEnabled == 1;
+
+#ifdef HOST_ANDROID
+    CLRConfigNoCache bestEffortCfg = CLRConfigNoCache::Get("CrashReportBestEffort", /*noprefix*/ false, &getenv);
+    DWORD bestEffort = 0;
+    bool enableBestEffort = bestEffortCfg.IsSet() && bestEffortCfg.TryAsInteger(10, bestEffort) && bestEffort == 1;
+
+    const char* defaultReportDirectory = getenv("TMPDIR");
+    if (defaultReportDirectory == nullptr)
+    {
+        defaultReportDirectory = getenv("HOME");
+    }
+
+    g_inProcCrashReportEnabled = enableMiniDump || enableCrashReport || enableCrashReportOnly;
+    InProcCrashReport_Initialize(g_inProcCrashReportEnabled ? 1 : 0, dumpName, defaultReportDirectory, enableBestEffort ? 1 : 0);
+#endif
+
+    if (enableMiniDump)
+    {
         CLRConfigNoCache dmpLogToFileCfg = CLRConfigNoCache::Get("CreateDumpLogToFile", /*noprefix*/ false, &getenv);
         const char* logFilePath = dmpLogToFileCfg.IsSet() ? dmpLogToFileCfg.AsString() : nullptr;
 
@@ -2650,15 +2683,11 @@ PROCAbortInitialize()
         {
             flags |= GenerateDumpFlagsVerboseLoggingEnabled;
         }
-        CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
-        val = 0;
-        if (enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, val) && val == 1)
+        if (enableCrashReport)
         {
             flags |= GenerateDumpFlagsCrashReportEnabled;
         }
-        CLRConfigNoCache enabledReportOnlyCfg = CLRConfigNoCache::Get("EnableCrashReportOnly", /*noprefix*/ false, &getenv);
-        val = 0;
-        if (enabledReportOnlyCfg.IsSet() && enabledReportOnlyCfg.TryAsInteger(10, val) && val == 1)
+        if (enableCrashReportOnly)
         {
             flags |= GenerateDumpFlagsCrashReportOnlyEnabled;
         }
@@ -2771,6 +2800,16 @@ PROCLogManagedCallstackForSignal(int signal)
     }
 }
 
+BOOL
+PROCIsCrashReportEnabled()
+{
+#ifdef HOST_ANDROID
+    return g_inProcCrashReportEnabled ? TRUE : FALSE;
+#else
+    return g_argvCreateDump[0] != nullptr;
+#endif
+}
+
 /*++
 Function:
   PROCCreateCrashDumpIfEnabled
@@ -2794,8 +2833,10 @@ PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool
     // Preserve context pointer to prevent optimization
     DoNotOptimize(&context);
 
-    // Generate async-signal-safe in-proc crash report
-    InProcCrashReport_Generate(signal, siginfo, context);
+    if (g_inProcCrashReportEnabled)
+    {
+        InProcCrashReport_Generate(signal, siginfo, context);
+    }
 }
 #else
 VOID
