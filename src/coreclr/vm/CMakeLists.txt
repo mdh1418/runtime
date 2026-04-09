@@ -321,6 +321,7 @@ set(VM_SOURCES_WKS
     eecontract.cpp
     eepolicy.cpp
     eetoprofinterfaceimpl.cpp
+    crashreportstackwalker.cpp
     eventpipeinternal.cpp
     fcall.cpp
     fieldmarshaler.cpp
