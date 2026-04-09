@@ -61,6 +61,11 @@ public:
     void                SetThrowable(OBJECTREF throwable DEBUG_ARG(SetThrowableErrorChecking stecFlags = STEC_All));
     OBJECTREF           GetThrowable();
     OBJECTHANDLE        GetThrowableAsHandle();
+    BOOL                TryGetPublishedCrashReportException(
+                            uint64_t* objectAddress,
+                            char* exceptionTypeBuf, int exceptionTypeBufSize,
+                            char* exceptionMessageBuf, int exceptionMessageBufSize,
+                            uint32_t* hresult);
     DWORD               GetExceptionCode();
     BOOL                IsComPlusException();
     EXCEPTION_POINTERS* GetExceptionPointers();
@@ -124,8 +129,16 @@ public:
 
 private:
     Thread* GetMyThread();
+    void UpdatePublishedCrashReportException(OBJECTREF throwable);
 
     PTR_ExInfo m_pCurrentTracker;
+    ULONG m_crashReportExceptionVersion;
+    TADDR m_crashReportExceptionObject;
+    DWORD m_crashReportExceptionHResult;
+    static const int CrashReportExceptionTypeLength = 128;
+    static const int CrashReportExceptionMessageLength = 256;
+    char m_crashReportExceptionType[CrashReportExceptionTypeLength];
+    char m_crashReportExceptionMessage[CrashReportExceptionMessageLength];
 public:
     PTR_ExInfo GetCurrentExceptionTracker()
     {

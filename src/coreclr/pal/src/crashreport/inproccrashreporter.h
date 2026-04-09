@@ -50,10 +50,11 @@ void InProcCrashReport_SetStackWalker(InProcCrashReport_WalkStackCallback callba
 // The VM registers this at startup. Called from the signal handler only in the
 // best-effort mode; it is not part of the default crash-time path.
 // threadCallback is called for each thread. crashingTid identifies the crashing thread.
-// For each thread, the VM calls frameCallback for each managed frame.
+// For each thread, the VM calls frameCallback for each managed frame and can
+// publish a precomputed managed exception object/type/HRESULT summary.
 typedef void (*InProcCrashReport_ThreadCallback)(
     uint64_t osThreadId, int isCrashThread,
-    const char* exceptionType, uint32_t exceptionHResult,
+    uint64_t exceptionObject, const char* exceptionType, uint32_t exceptionHResult,
     void* ctx);
 
 typedef void (*InProcCrashReport_EnumerateThreadsCallback)(
@@ -67,9 +68,11 @@ void InProcCrashReport_SetThreadEnumerator(InProcCrashReport_EnumerateThreadsCal
 // Callback to get managed exception info from the current thread.
 // Best-effort only: this may inspect runtime/GC state and is therefore not part
 // of the default crash-time path.
-// Writes exception type and message into pre-allocated buffers.
+// Writes a managed exception object/type/message/HRESULT snapshot into
+// pre-allocated outputs.
 // Returns: 1 if an exception is available, 0 if not.
 typedef int (*InProcCrashReport_GetExceptionCallback)(
+    uint64_t* exceptionObject,
     char* exceptionTypeBuf, int exceptionTypeBufSize,    // "System.NullReferenceException"
     char* exceptionMsgBuf, int exceptionMsgBufSize,      // "Object reference not set..."
     uint32_t* hresult);

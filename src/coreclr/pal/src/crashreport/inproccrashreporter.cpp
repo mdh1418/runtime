@@ -383,6 +383,7 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
     // Gather optional managed exception data for the JSON report.
     // Only attempt for signals that may have managed exception state (SIGABRT from managed FailFast).
     // SIGSEGV crashes in native code don't have a managed throwable — attempting to read one faults.
+    uint64_t exObject = 0;
     char exTypeBuf[256] = {0};
     char exMsgBuf[512] = {0};
     uint32_t exHresult = 0;
@@ -401,7 +402,7 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
         int guardResult = sigsetjmp(s_crashGuardJmpBuf, 1);
         if (guardResult == 0)
         {
-            hasException = g_getExceptionCallback(exTypeBuf, sizeof(exTypeBuf),
+            hasException = g_getExceptionCallback(&exObject, exTypeBuf, sizeof(exTypeBuf),
                 exMsgBuf, sizeof(exMsgBuf), &exHresult);
         }
         // If guardResult != 0, exception info faulted — skip it
@@ -498,16 +499,17 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
             int threadCount;
             int sawCrashThread;
             int hasCrashException;
+            uint64_t crashExceptionObject;
             const char* crashExceptionType;
             uint32_t crashExceptionHResult;
         };
-        MultiThreadJsonCtx mtCtx = { &jsonWriter, context, 0, 0, hasException, exTypeBuf, exHresult };
+        MultiThreadJsonCtx mtCtx = { &jsonWriter, context, 0, 0, hasException, exObject, exTypeBuf, exHresult };
 
         g_enumerateThreadsCallback(
             tid,
             // threadCallback — called at the start of each thread
             [](uint64_t osThreadId, int isCrashThread,
-               const char* exceptionType, uint32_t exceptionHResult,
+               uint64_t exceptionObject, const char* exceptionType, uint32_t exceptionHResult,
                void* ctx) {
                 MultiThreadJsonCtx* mtCtx = (MultiThreadJsonCtx*)ctx;
                 CrashJsonWriter* w = mtCtx->writer;
@@ -531,11 +533,19 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
 
                 if (isCrashThread && mtCtx->hasCrashException)
                 {
+                    if (mtCtx->crashExceptionObject != 0)
+                    {
+                        CrashJson_WriteHex(w, "managed_exception_object", mtCtx->crashExceptionObject);
+                    }
                     CrashJson_WriteString(w, "managed_exception_type", mtCtx->crashExceptionType);
                     CrashJson_WriteHex(w, "managed_exception_hresult", mtCtx->crashExceptionHResult);
                 }
                 else if (exceptionType != NULL && exceptionType[0] != '\0')
                 {
+                    if (exceptionObject != 0)
+                    {
+                        CrashJson_WriteHex(w, "managed_exception_object", exceptionObject);
+                    }
                     CrashJson_WriteString(w, "managed_exception_type", exceptionType);
                     CrashJson_WriteHex(w, "managed_exception_hresult", exceptionHResult);
                 }
@@ -575,6 +585,10 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
             CrashJson_WriteHex(&jsonWriter, "native_thread_id", tid);
             if (mtCtx.hasCrashException)
             {
+                if (mtCtx.crashExceptionObject != 0)
+                {
+                    CrashJson_WriteHex(&jsonWriter, "managed_exception_object", mtCtx.crashExceptionObject);
+                }
                 CrashJson_WriteString(&jsonWriter, "managed_exception_type", mtCtx.crashExceptionType);
                 CrashJson_WriteHex(&jsonWriter, "managed_exception_hresult", mtCtx.crashExceptionHResult);
             }
@@ -597,6 +611,10 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
 
         if (bestEffortEnabled && hasException)
         {
+            if (exObject != 0)
+            {
+                CrashJson_WriteHex(&jsonWriter, "managed_exception_object", exObject);
+            }
             CrashJson_WriteString(&jsonWriter, "managed_exception_type", exTypeBuf);
             CrashJson_WriteHex(&jsonWriter, "managed_exception_hresult", exHresult);
         }

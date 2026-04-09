@@ -13,6 +13,66 @@
 #include "comutilnative.h"      // for assertions only
 #endif
 
+namespace
+{
+void CopyUtf8String(const char* source, char* destination, int destinationLength)
+{
+    if (destination == NULL || destinationLength <= 0)
+    {
+        return;
+    }
+
+    int index = 0;
+    if (source != NULL)
+    {
+        while (source[index] != '\0' && index < destinationLength - 1)
+        {
+            destination[index] = source[index];
+            index++;
+        }
+    }
+
+    destination[index] = '\0';
+}
+
+void AppendUtf8String(char* destination, int destinationLength, int* position, const char* source)
+{
+    if (destination == NULL || position == NULL || source == NULL)
+    {
+        return;
+    }
+
+    while (*source != '\0' && *position < destinationLength - 1)
+    {
+        destination[*position] = *source;
+        (*position)++;
+        source++;
+    }
+}
+
+void CopyStringRefToAscii(STRINGREF source, char* destination, int destinationLength)
+{
+    if (destination == NULL || destinationLength <= 0)
+    {
+        return;
+    }
+
+    int position = 0;
+    if (source != NULL)
+    {
+        DWORD stringLength = source->GetStringLength();
+        const WCHAR* chars = source->GetBuffer();
+        for (DWORD i = 0; i < stringLength && position < destinationLength - 1; i++)
+        {
+            WCHAR ch = chars[i];
+            destination[position++] = ch <= 0x7f ? (char)ch : '?';
+        }
+    }
+
+    destination[position] = '\0';
+}
+}
+
 OBJECTHANDLE ThreadExceptionState::GetThrowableAsHandle()
 {
     WRAPPER_NO_CONTRACT;
@@ -29,8 +89,12 @@ OBJECTHANDLE ThreadExceptionState::GetThrowableAsHandle()
 ThreadExceptionState::ThreadExceptionState()
 {
     m_pCurrentTracker = NULL;
-
     m_flag = TEF_None;
+    m_crashReportExceptionVersion = 0;
+    m_crashReportExceptionObject = 0;
+    m_crashReportExceptionHResult = 0;
+    m_crashReportExceptionType[0] = '\0';
+    m_crashReportExceptionMessage[0] = '\0';
 
 #ifndef TARGET_UNIX
     // Init the UE Watson BucketTracker
@@ -70,6 +134,110 @@ OBJECTREF ThreadExceptionState::GetThrowable()
     }
 
     return NULL;
+}
+
+void ThreadExceptionState::UpdatePublishedCrashReportException(OBJECTREF throwable)
+{
+    WRAPPER_NO_CONTRACT;
+
+    __atomic_add_fetch(&m_crashReportExceptionVersion, 1, __ATOMIC_ACQ_REL);
+    m_crashReportExceptionObject = 0;
+    m_crashReportExceptionHResult = 0;
+    m_crashReportExceptionType[0] = '\0';
+    m_crashReportExceptionMessage[0] = '\0';
+
+    if (throwable != NULL)
+    {
+        m_crashReportExceptionObject = (TADDR)OBJECTREFToObject(throwable);
+        m_crashReportExceptionHResult = (DWORD)((EXCEPTIONREF)throwable)->GetHResult();
+
+        MethodTable* pMethodTable = throwable->GetMethodTable();
+        if (pMethodTable != NULL)
+        {
+            mdTypeDef classToken = pMethodTable->GetCl();
+            Module* pModule = pMethodTable->GetModule();
+            if (pModule != NULL)
+            {
+                IMDInternalImport* pImport = pModule->GetMDImport();
+                if (pImport != NULL && classToken != mdTypeDefNil)
+                {
+                    LPCUTF8 className = NULL;
+                    LPCUTF8 namespaceName = NULL;
+                    pImport->GetNameOfTypeDef(classToken, &className, &namespaceName);
+
+                    int position = 0;
+                    AppendUtf8String(m_crashReportExceptionType, CrashReportExceptionTypeLength, &position, namespaceName);
+                    if (namespaceName != NULL && namespaceName[0] != '\0' && className != NULL && className[0] != '\0')
+                    {
+                        AppendUtf8String(m_crashReportExceptionType, CrashReportExceptionTypeLength, &position, ".");
+                    }
+                    AppendUtf8String(m_crashReportExceptionType, CrashReportExceptionTypeLength, &position, className);
+                    m_crashReportExceptionType[position] = '\0';
+                }
+            }
+        }
+
+        CopyStringRefToAscii(((EXCEPTIONREF)throwable)->GetMessage(), m_crashReportExceptionMessage, CrashReportExceptionMessageLength);
+    }
+
+    __atomic_add_fetch(&m_crashReportExceptionVersion, 1, __ATOMIC_RELEASE);
+}
+
+BOOL ThreadExceptionState::TryGetPublishedCrashReportException(
+    uint64_t* objectAddress,
+    char* exceptionTypeBuf, int exceptionTypeBufSize,
+    char* exceptionMessageBuf, int exceptionMessageBufSize,
+    uint32_t* hresult)
+{
+    LIMITED_METHOD_CONTRACT;
+
+    if (objectAddress != NULL)
+    {
+        *objectAddress = 0;
+    }
+    if (exceptionTypeBuf != NULL && exceptionTypeBufSize > 0)
+    {
+        exceptionTypeBuf[0] = '\0';
+    }
+    if (exceptionMessageBuf != NULL && exceptionMessageBufSize > 0)
+    {
+        exceptionMessageBuf[0] = '\0';
+    }
+    if (hresult != NULL)
+    {
+        *hresult = 0;
+    }
+
+    ULONG startVersion = __atomic_load_n(&m_crashReportExceptionVersion, __ATOMIC_ACQUIRE);
+    if ((startVersion & 1) != 0)
+    {
+        return FALSE;
+    }
+
+    TADDR localObject = m_crashReportExceptionObject;
+    DWORD localHResult = m_crashReportExceptionHResult;
+
+    if (objectAddress != NULL)
+    {
+        *objectAddress = (uint64_t)localObject;
+    }
+
+    if (hresult != NULL)
+    {
+        *hresult = localHResult;
+    }
+
+    CopyUtf8String(m_crashReportExceptionType, exceptionTypeBuf, exceptionTypeBufSize);
+    CopyUtf8String(m_crashReportExceptionMessage, exceptionMessageBuf, exceptionMessageBufSize);
+
+    __atomic_thread_fence(__ATOMIC_ACQUIRE);
+    ULONG endVersion = __atomic_load_n(&m_crashReportExceptionVersion, __ATOMIC_ACQUIRE);
+    if (startVersion != endVersion || (endVersion & 1) != 0)
+    {
+        return FALSE;
+    }
+
+    return localObject != 0 || (exceptionTypeBuf != NULL && exceptionTypeBuf[0] != '\0');
 }
 
 void ThreadExceptionState::SetThrowable(OBJECTREF throwable DEBUG_ARG(SetThrowableErrorChecking stecFlags))
@@ -128,6 +296,8 @@ void ThreadExceptionState::SetThrowable(OBJECTREF throwable DEBUG_ARG(SetThrowab
             m_pCurrentTracker->m_hThrowable = hNewThrowable;
         }
     }
+
+    UpdatePublishedCrashReportException(throwable);
 }
 
 DWORD ThreadExceptionState::GetExceptionCode()

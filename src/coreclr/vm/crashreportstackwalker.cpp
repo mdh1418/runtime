@@ -25,6 +25,28 @@ struct WalkContext {
     void* userCtx;
 };
 
+static void CopyStringRefToAscii(STRINGREF source, char* destination, int destinationLength)
+{
+    if (destination == NULL || destinationLength <= 0)
+    {
+        return;
+    }
+
+    int position = 0;
+    if (source != NULL)
+    {
+        DWORD stringLength = source->GetStringLength();
+        const WCHAR* chars = source->GetBuffer();
+        for (DWORD i = 0; i < stringLength && position < destinationLength - 1; i++)
+        {
+            WCHAR ch = chars[i];
+            destination[position++] = ch <= 0x7f ? (char)ch : '?';
+        }
+    }
+
+    destination[position] = '\0';
+}
+
 static StackWalkAction FrameCallbackAdapter(CrawlFrame* pCF, VOID* pData)
 {
     WalkContext* ctx = (WalkContext*)pData;
@@ -98,12 +120,45 @@ static int CrashReport_IsCurrentThreadManaged()
 // Get exception info for a specific thread.
 static int CrashReport_GetExceptionForThread(
     Thread* pThread,
+    uint64_t* exceptionObject,
     char* exceptionTypeBuf, int exceptionTypeBufSize,
+    char* exceptionMessageBuf, int exceptionMessageBufSize,
     uint32_t* hresult)
 {
+    if (exceptionObject != NULL)
+    {
+        *exceptionObject = 0;
+    }
+    if (exceptionTypeBuf != NULL && exceptionTypeBufSize > 0)
+    {
+        exceptionTypeBuf[0] = '\0';
+    }
+    if (exceptionMessageBuf != NULL && exceptionMessageBufSize > 0)
+    {
+        exceptionMessageBuf[0] = '\0';
+    }
+    if (hresult != NULL)
+    {
+        *hresult = 0;
+    }
+
+    if (pThread->GetExceptionState()->TryGetPublishedCrashReportException(
+            exceptionObject,
+            exceptionTypeBuf, exceptionTypeBufSize,
+            exceptionMessageBuf, exceptionMessageBufSize,
+            hresult))
+    {
+        return 1;
+    }
+
     OBJECTREF throwable = pThread->GetThrowable();
     if (throwable == NULL)
         return 0;
+
+    if (exceptionObject != NULL)
+    {
+        *exceptionObject = (uint64_t)(TADDR)OBJECTREFToObject(throwable);
+    }
 
     MethodTable* pMT = throwable->GetMethodTable();
     if (pMT != NULL)
@@ -126,7 +181,11 @@ static int CrashReport_GetExceptionForThread(
         }
     }
 
-    *hresult = ((EXCEPTIONREF)throwable)->GetHResult();
+    if (hresult != NULL)
+    {
+        *hresult = ((EXCEPTIONREF)throwable)->GetHResult();
+    }
+    CopyStringRefToAscii(((EXCEPTIONREF)throwable)->GetMessage(), exceptionMessageBuf, exceptionMessageBufSize);
     return 1;
 }
 
@@ -144,8 +203,24 @@ static void EnumerateThreadFromSignalSafeMap(size_t osThread, void* pThreadObjec
     EnumerateThreadsContext* enumerateContext = (EnumerateThreadsContext*)context;
     Thread* pThread = (Thread*)pThreadObject;
     int isCrashThread = osThread == enumerateContext->crashingTid ? 1 : 0;
+    uint64_t exceptionObject = 0;
+    uint32_t exceptionHResult = 0;
+    char exceptionType[128];
+    exceptionType[0] = '\0';
 
-    enumerateContext->threadCallback((uint64_t)osThread, isCrashThread, "", 0, enumerateContext->callbackContext);
+    pThread->GetExceptionState()->TryGetPublishedCrashReportException(
+        &exceptionObject,
+        exceptionType, (int)ARRAY_SIZE(exceptionType),
+        NULL, 0,
+        &exceptionHResult);
+
+    enumerateContext->threadCallback(
+        (uint64_t)osThread,
+        isCrashThread,
+        exceptionObject,
+        exceptionType,
+        exceptionHResult,
+        enumerateContext->callbackContext);
 
     if (isCrashThread && pThread == enumerateContext->pCrashThread)
     {
@@ -170,6 +245,7 @@ static void CrashReport_EnumerateThreads(
 
 // Get managed exception info from the current thread (legacy single-thread callback).
 static int CrashReport_GetException(
+    uint64_t* exceptionObject,
     char* exceptionTypeBuf, int exceptionTypeBufSize,
     char* exceptionMsgBuf, int exceptionMsgBufSize,
     uint32_t* hresult)
@@ -178,8 +254,12 @@ static int CrashReport_GetException(
     if (pThread == NULL)
         return 0;
 
-    exceptionMsgBuf[0] = '\0';
-    return CrashReport_GetExceptionForThread(pThread, exceptionTypeBuf, exceptionTypeBufSize, hresult);
+    return CrashReport_GetExceptionForThread(
+        pThread,
+        exceptionObject,
+        exceptionTypeBuf, exceptionTypeBufSize,
+        exceptionMsgBuf, exceptionMsgBufSize,
+        hresult);
 }
 
 // Called during VM initialization to register callbacks with the PAL crash reporter
