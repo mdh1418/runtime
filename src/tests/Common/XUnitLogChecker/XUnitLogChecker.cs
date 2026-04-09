@@ -464,6 +464,7 @@ public class XUnitLogChecker
     {
         WriteLineTimestamp("Checking for dumps...");
         IEnumerable<string>? dumpsFound = null;
+        IEnumerable<string>? crashReportsFound = null;
 
         // In CoreCLR, the test results log has the test's run time recorded.
         // We extract it and use it to only retrieve the dumps that were created
@@ -492,20 +493,27 @@ public class XUnitLogChecker
             dumpsFound = Directory
                          .GetFiles(s_configuration.DumpsPath, "*.dmp")
                          .Where(dmp =>
-                                    DateTime.Compare(File.GetCreationTime(dmp),
-                                                     testRunDateTime) >= 0);
+                                     DateTime.Compare(File.GetCreationTime(dmp),
+                                                      testRunDateTime) >= 0);
+            crashReportsFound = Directory
+                                .GetFiles(s_configuration.DumpsPath, "*.crashreport.json")
+                                .Where(report =>
+                                            DateTime.Compare(File.GetCreationTime(report),
+                                                             testRunDateTime) >= 0);
         }
         else
         {
             dumpsFound = Directory.GetFiles(s_configuration.DumpsPath, "*.dmp");
+            crashReportsFound = Directory.GetFiles(s_configuration.DumpsPath, "*.crashreport.json");
         }
 
-        if (dumpsFound.Count() == 0)
+        if (dumpsFound.Count() == 0 && (OperatingSystem.IsWindows() || crashReportsFound.Count() == 0))
         {
-            WriteLineTimestamp("No crash dumps found. Continuing...");
+            WriteLineTimestamp("No crash dumps or crash reports found. Continuing...");
             return ;
         }
 
+        HashSet<string> processedCrashReports = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (string dumpPath in dumpsFound)
         {
             if (OperatingSystem.IsWindows())
@@ -523,6 +531,24 @@ public class XUnitLogChecker
                 {
                     WriteLineTimestamp("There was no crash report for the"
                                     + $" dump '{dumpPath}'. Skipping...");
+                    continue;
+                }
+
+                processedCrashReports.Add(crashReportPath);
+
+                WriteLineTimestamp($"Reading crash report '{crashReportPath}'...");
+                WriteLineTimestamp("Stack Trace Found:\n");
+
+                TryPrintStackTraceFromCrashReport(crashReportPath, Console.Out);
+            }
+        }
+
+        if (!OperatingSystem.IsWindows())
+        {
+            foreach (string crashReportPath in crashReportsFound)
+            {
+                if (!processedCrashReports.Add(crashReportPath))
+                {
                     continue;
                 }
 
