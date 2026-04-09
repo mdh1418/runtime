@@ -163,6 +163,11 @@ NESTED_ENTRY JIT_PInvokeBegin, _TEXT, NoHandler
         // pThread->m_pFrame = pFrame;
         mov             qword ptr [rax + OFFSETOF__Thread__m_pFrame], r14
 
+#ifdef HOST_ANDROID
+        mov             rdi, rax
+        call            C_FUNC(JIT_PublishCrashReportStack)
+#endif
+
         // pThread->m_fPreemptiveGCDisabled = 0
         mov             dword ptr [rax + OFFSETOF__Thread__m_fPreemptiveGCDisabled], 0
 

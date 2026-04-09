@@ -2076,6 +2076,29 @@ public:
     // Enumerate all frames.
     //************************************************************************
 
+#ifdef HOST_ANDROID
+    static const int CrashReportStackFrameCount = 16;
+    static const int CrashReportMethodNameLength = 96;
+    static const int CrashReportClassNameLength = 160;
+    static const int CrashReportModuleNameLength = 80;
+    static const int CrashReportModuleMvidLength = 33;
+
+    struct PublishedCrashReportFrame
+    {
+        TADDR InstructionPointer;
+        TADDR StackPointer;
+        DWORD NativeOffset;
+        DWORD IlOffset;
+        DWORD Token;
+        DWORD TimeStamp;
+        DWORD ImageSize;
+        char MethodName[CrashReportMethodNameLength];
+        char ClassName[CrashReportClassNameLength];
+        char ModuleName[CrashReportModuleNameLength];
+        char Mvid[CrashReportModuleMvidLength];
+    };
+#endif // HOST_ANDROID
+
     /* Flags used for StackWalkFramesEx */
 
     // FUNCTIONSONLY excludes all functionless frames and all funclets
@@ -2171,6 +2194,11 @@ public:
                         VOID *pData,
                         unsigned flags = 0,
                         PTR_Frame pStartFrame = PTR_NULL);
+
+#ifdef HOST_ANDROID
+    void RefreshPublishedCrashReportStackFrames(PEXCEPTION_POINTERS pExceptionInfo = NULL);
+    BOOL TryGetPublishedCrashReportStackFrames(PublishedCrashReportFrame* frames, int frameCapacity, int* frameCount);
+#endif // HOST_ANDROID
 
     bool InitRegDisplay(const PREGDISPLAY, const PT_CONTEXT, bool validContext);
     void FillRegDisplay(const PREGDISPLAY pRD, PT_CONTEXT pctx, bool fLightUnwind = false);
@@ -2705,6 +2733,11 @@ private:
     void SetLastThrownObjectHandle(OBJECTHANDLE h);
 
     ThreadExceptionState  m_ExceptionState;
+#ifdef HOST_ANDROID
+    ULONG m_crashReportStackFramesVersion;
+    ULONG m_crashReportStackFramesCount;
+    PublishedCrashReportFrame m_crashReportStackFrames[CrashReportStackFrameCount];
+#endif // HOST_ANDROID
 
 private:
     //---------------------------------------------------------------

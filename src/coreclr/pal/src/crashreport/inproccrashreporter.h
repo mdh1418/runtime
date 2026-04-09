@@ -4,9 +4,9 @@
 // In-proc crash report generation.
 //
 // The default crash path is designed around signal-time inputs such as
-// siginfo_t, ucontext_t, and /proc/self/maps. Richer managed details are wired
-// through the callback interfaces below, but those callbacks are best-effort
-// only and are not part of the default crash-time tier.
+// siginfo_t, ucontext_t, and /proc/self/maps, plus any managed data that the VM
+// has already published into fixed snapshots. Live VM inspection callbacks
+// remain best-effort only and are called out below where applicable.
 
 #pragma once
 
@@ -36,10 +36,11 @@ void InProcCrashReport_SetCurrentThreadManagedResolver(InProcCrashReport_IsManag
 // Callback to walk the managed stack and report frames.
 // The VM registers this at startup. Called from the signal handler only in the
 // best-effort mode; it is not part of the default crash-time path.
-// frameCallback is called for each frame with the resolved method info.
+// frameCallback is called for each frame with the resolved method/module info.
 typedef void (*InProcCrashReport_FrameCallback)(
     uint64_t ip, uint64_t stackPointer, const char* methodName, const char* className,
-    const char* moduleName, uint32_t nativeOffset, uint32_t token, void* ctx);
+    const char* moduleName, uint32_t nativeOffset, uint32_t ilOffset, uint32_t token,
+    uint32_t timeStamp, uint32_t imageSize, const char* mvid, void* ctx);
 
 typedef void (*InProcCrashReport_WalkStackCallback)(
     InProcCrashReport_FrameCallback frameCallback, void* ctx);
@@ -47,8 +48,9 @@ typedef void (*InProcCrashReport_WalkStackCallback)(
 void InProcCrashReport_SetStackWalker(InProcCrashReport_WalkStackCallback callback);
 
 // Callback to enumerate all threads and walk each one's managed stack.
-// The VM registers this at startup. Called from the signal handler only in the
-// best-effort mode; it is not part of the default crash-time path.
+// The VM registers this at startup. The default crash-time path can use it when
+// it only replays published thread snapshots; implementations must avoid live
+// VM inspection if they are intended for the strict path.
 // threadCallback is called for each thread. crashingTid identifies the crashing thread.
 // For each thread, the VM calls frameCallback for each managed frame and can
 // publish a precomputed managed exception object/type/HRESULT summary.
@@ -64,6 +66,13 @@ typedef void (*InProcCrashReport_EnumerateThreadsCallback)(
     void* ctx);
 
 void InProcCrashReport_SetThreadEnumerator(InProcCrashReport_EnumerateThreadsCallback callback);
+
+// Callback to refresh published thread snapshots before report generation.
+// Best-effort only: the VM may do live stack walks here to seed the snapshot
+// cache for the subsequent strict-style replay path.
+typedef void (*InProcCrashReport_PublishThreadSnapshotsCallback)();
+
+void InProcCrashReport_SetThreadSnapshotPublisher(InProcCrashReport_PublishThreadSnapshotsCallback callback);
 
 // Callback to get managed exception info from the current thread.
 // Best-effort only: this may inspect runtime/GC state and is therefore not part

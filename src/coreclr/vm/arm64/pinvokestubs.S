@@ -118,6 +118,10 @@ LOCAL_LABEL(\__PInvokeStubFuncName\()_0):
         // pThread->m_pFrame = pFrame;
         str     x19, [x0, #Thread_m_pFrame]
 
+#ifdef HOST_ANDROID
+        bl      C_FUNC(JIT_PublishCrashReportStack)
+#endif
+
         // pThread->m_fPreemptiveGCDisabled = 0
         str     wzr, [x0, #Thread_m_fPreemptiveGCDisabled]
 

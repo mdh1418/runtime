@@ -3,9 +3,9 @@
 
 // In-proc crash report generator.
 // The default crash-time path avoids live managed introspection and relies on
-// signal-time inputs such as siginfo_t, ucontext_t, and /proc/self/maps.
-// Richer managed details are only added through the best-effort callbacks when
-// they are explicitly enabled.
+// signal-time inputs such as siginfo_t, ucontext_t, and /proc/self/maps, plus
+// any managed thread / frame data the VM has already published into snapshots.
+// Live VM inspection remains opt-in best-effort behavior.
 
 #include "inproccrashreporter.h"
 #include "crashjsonwriter.h"
@@ -158,13 +158,14 @@ static volatile int g_bestEffortEnabled = 0;
 static char g_reportPath[256];
 static char g_defaultReportDirectory[256];
 
-// Registered callbacks from VM — best-effort callbacks are only used when
-// explicitly enabled. The current-thread managed check is used in the strict
-// path and should rely only on the signal-safe thread map.
+// Registered callbacks from VM. The current-thread managed check and published
+// thread enumeration participate in the default crash path, while live
+// exception / stack inspection and snapshot publication remain best-effort.
 static volatile InProcCrashReport_IsManagedThreadCallback g_isManagedThreadCallback = NULL;
 static volatile InProcCrashReport_WalkStackCallback g_walkStackCallback = NULL;
 static volatile InProcCrashReport_GetExceptionCallback g_getExceptionCallback = NULL;
 static volatile InProcCrashReport_EnumerateThreadsCallback g_enumerateThreadsCallback = NULL;
+static volatile InProcCrashReport_PublishThreadSnapshotsCallback g_publishThreadSnapshotsCallback = NULL;
 
 void InProcCrashReport_Initialize(int writeToFile, const char* dumpPath, const char* defaultDirectory, int enableBestEffort)
 {
@@ -205,6 +206,7 @@ void InProcCrashReport_SetCurrentThreadManagedResolver(InProcCrashReport_IsManag
 void InProcCrashReport_SetStackWalker(InProcCrashReport_WalkStackCallback callback) { g_walkStackCallback = callback; }
 void InProcCrashReport_SetExceptionResolver(InProcCrashReport_GetExceptionCallback callback) { g_getExceptionCallback = callback; }
 void InProcCrashReport_SetThreadEnumerator(InProcCrashReport_EnumerateThreadsCallback callback) { g_enumerateThreadsCallback = callback; }
+void InProcCrashReport_SetThreadSnapshotPublisher(InProcCrashReport_PublishThreadSnapshotsCallback callback) { g_publishThreadSnapshotsCallback = callback; }
 
 // Extract register values from ucontext_t (platform-specific)
 static void WriteRegistersToJson(CrashJsonWriter* w, void* context)
@@ -316,7 +318,8 @@ static void CrashGuardSignalHandler(int sig, siginfo_t* info, void* context)
 
 // Callback for writing stack frames to JSON
 static void JsonFrameCallback(uint64_t ip, uint64_t stackPointer, const char* methodName, const char* className,
-    const char* moduleName, uint32_t nativeOffset, uint32_t token, void* ctx)
+    const char* moduleName, uint32_t nativeOffset, uint32_t ilOffset, uint32_t token,
+    uint32_t timeStamp, uint32_t imageSize, const char* mvid, void* ctx)
 {
     CrashJsonWriter* w = (CrashJsonWriter*)ctx;
     uint64_t moduleBase = 0;
@@ -349,6 +352,8 @@ static void JsonFrameCallback(uint64_t ip, uint64_t stackPointer, const char* me
         CrashJson_WriteHex(w, "sizeofimage", imageSize);
         if (moduleName != NULL)
             CrashJson_WriteString(w, "filename", moduleName);
+        if (mvid != NULL && mvid[0] != '\0')
+            CrashJson_WriteString(w, "guid", mvid);
     }
     else
     {
@@ -443,6 +448,11 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
             if (msgLen > 0) WriteToLog(msg, msgLen);
             return;
         }
+
+        if (bestEffortEnabled && g_publishThreadSnapshotsCallback != NULL)
+        {
+            g_publishThreadSnapshotsCallback();
+        }
     }
 
     // --- Build the JSON crash report ---
@@ -489,7 +499,7 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
     // with live current-thread exception or stack inspection when enabled.
     CrashJson_OpenArray(&jsonWriter, "threads");
 
-    if (bestEffortEnabled && g_enumerateThreadsCallback != NULL)
+    if (g_enumerateThreadsCallback != NULL)
     {
         // Context struct passed through callbacks to build JSON.
         // threadCount tracks whether we need to close the previous thread's JSON.
@@ -563,9 +573,22 @@ void InProcCrashReport_Generate(int signal, siginfo_t* siginfo, void* context)
             },
             // frameCallback — extracts CrashJsonWriter from MultiThreadJsonCtx
             [](uint64_t ip, uint64_t stackPointer, const char* methodName, const char* className,
-               const char* moduleName, uint32_t nativeOffset, uint32_t token, void* ctx) {
+               const char* moduleName, uint32_t nativeOffset, uint32_t ilOffset, uint32_t token,
+               uint32_t timeStamp, uint32_t imageSize, const char* mvid, void* ctx) {
                 MultiThreadJsonCtx* mtCtx = (MultiThreadJsonCtx*)ctx;
-                JsonFrameCallback(ip, stackPointer, methodName, className, moduleName, nativeOffset, token, mtCtx->writer);
+                JsonFrameCallback(
+                    ip,
+                    stackPointer,
+                    methodName,
+                    className,
+                    moduleName,
+                    nativeOffset,
+                    ilOffset,
+                    token,
+                    timeStamp,
+                    imageSize,
+                    mvid,
+                    mtCtx->writer);
             },
             &mtCtx);
 

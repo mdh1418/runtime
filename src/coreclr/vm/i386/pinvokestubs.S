@@ -45,6 +45,13 @@ LEAF_ENTRY JIT_PInvokeBegin, _TEXT
         // pThread->m_pFrame = pFrame;
         mov             dword ptr [edx + Thread_m_pFrame], ecx
 
+#ifdef HOST_ANDROID
+        push            edx
+        call            C_FUNC(JIT_PublishCrashReportStack)
+        add             esp, 4
+        mov             edx, eax
+#endif
+
         // pThread->m_fPreemptiveGCDisabled = 0
         mov             dword ptr [edx + Thread_m_fPreemptiveGCDisabled], 0
 

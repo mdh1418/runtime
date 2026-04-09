@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "common.h"
+#include "crashreportstackwalker.h"
 #include "eepolicy.h"
 #include "corhost.h"
 #include "dbginterface.h"
@@ -441,6 +442,9 @@ void LogInfoForFatalError(UINT exitCode, LPCWSTR pszMessage, PEXCEPTION_POINTERS
         PrintToStdErrA("\n");
 
         Thread* pThread = GetThreadNULLOk();
+#ifdef HOST_ANDROID
+        CrashReport_PublishThreadSnapshotsForFatalError(pExceptionInfo);
+#endif
         if (pThread && errorSource == NULL)
         {
             LogCallstackForLogWorker(pThread, pExceptionInfo);

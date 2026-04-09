@@ -1241,6 +1241,11 @@ Thread::Thread()
 
     m_LastThrownObjectHandle = NULL;
     m_ltoIsUnhandled = FALSE;
+#ifdef HOST_ANDROID
+    m_crashReportStackFramesVersion = 0;
+    m_crashReportStackFramesCount = 0;
+    memset(m_crashReportStackFrames, 0, sizeof(m_crashReportStackFrames));
+#endif // HOST_ANDROID
 
     m_debuggerFilterContext = NULL;
     m_fInteropDebuggingHijacked = FALSE;

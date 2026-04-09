@@ -107,6 +107,10 @@
         // pThread->m_pFrame = pFrame;
         str     r4, [r0, #Thread_m_pFrame]
 
+#ifdef HOST_ANDROID
+        bl      C_FUNC(JIT_PublishCrashReportStack)
+#endif
+
         // pThread->m_fPreemptiveGCDisabled = 0
         mov     r1, 0
         str     r1, [r0, #Thread_m_fPreemptiveGCDisabled]

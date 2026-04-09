@@ -30,6 +30,10 @@
 #include "process.h"
 #endif // !TARGET_UNIX
 
+#ifdef HOST_ANDROID
+EXTERN_C BOOL PROCIsCrashReportEnabled();
+#endif
+
 #ifdef PROFILING_SUPPORTED
 #include "proftoeeinterfaceimpl.h"
 #endif
@@ -2204,6 +2208,16 @@ Thread * JIT_InitPInvokeFrame(InlinedCallFrame *pFrame)
     // The JIT messed up and is initializing a frame that is already live on the stack?!?!?!?!
     _ASSERTE(pFrame != pThread->GetFrame());
 
+#ifdef HOST_ANDROID
+    if (PROCIsCrashReportEnabled())
+    {
+        // Capture the last purely managed stack before the P/Invoke transition
+        // mutates the frame chain. The strict crash reporter can replay this
+        // published snapshot if the fatal signal lands in native code.
+        pThread->RefreshPublishedCrashReportStackFrames();
+    }
+#endif
+
     pFrame->Init();
     pFrame->m_Next = pThread->GetFrame();
 
@@ -2211,6 +2225,25 @@ Thread * JIT_InitPInvokeFrame(InlinedCallFrame *pFrame)
 }
 
 #endif // HOST_64BIT
+
+#ifdef HOST_ANDROID
+EXTERN_C Thread* JIT_PublishCrashReportStack(Thread* pThread)
+{
+    CONTRACTL
+    {
+        NOTHROW;
+        GC_NOTRIGGER;
+        MODE_COOPERATIVE;
+    } CONTRACTL_END;
+
+    if (pThread != NULL && PROCIsCrashReportEnabled())
+    {
+        pThread->RefreshPublishedCrashReportStackFrames();
+    }
+
+    return pThread;
+}
+#endif
 
 EXTERN_C void JIT_PInvokeBegin(InlinedCallFrame* pFrame);
 EXTERN_C void JIT_PInvokeEnd(InlinedCallFrame* pFrame);
