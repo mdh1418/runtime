@@ -3440,6 +3440,13 @@ PAL_InjectActivation(
     IN HANDLE hThread
 );
 
+// Crash-time thread suspension.  When armed, the activation signal handler
+// parks the receiving thread on a pipe read instead of running the normal
+// activation path.  PAL_ReleaseCrashSuspend closes the pipe to wake all
+// parked threads simultaneously.
+PALIMPORT void PALAPI PAL_ArmCrashSuspend(void);
+PALIMPORT void PALAPI PAL_ReleaseCrashSuspend(void);
+
 typedef struct _SYSTEM_INFO {
     WORD wProcessorArchitecture_PAL_Undefined;
     WORD wReserved_PAL_Undefined; // NOTE: diff from winbase.h - no obsolete dwOemId union

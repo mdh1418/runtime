@@ -8,11 +8,24 @@
 #include "dbginterface.h"
 #include "method.hpp"
 #include "peassembly.h"
+#include <clrconfignocache.h>
 #include <minipal/guid.h>
 
 #ifdef HOST_ANDROID
 
 #include "debug/crashreport/inproccrashreporter.h"
+#include <sys/syscall.h>
+#include <signal.h>
+#include <unistd.h>
+
+// Match the activation signal used by the PAL (signal.cpp).
+#ifdef SIGRTMIN
+#define INJECT_ACTIVATION_SIGNAL SIGRTMIN
+#else
+#define INJECT_ACTIVATION_SIGNAL SIGUSR1
+#endif
+
+extern "C" void PROCEnableInProcCrashReport();
 
 struct WalkContext
 {
@@ -285,6 +298,46 @@ CrashReportGetException(
     return CrashReportGetExceptionForThread(pThread, exceptionTypeBuf, exceptionTypeBufSize, hresult);
 }
 
+// Suspend non-crashing threads so their managed stacks can be walked
+// reliably.  Uses a crash-specific fast path in the PAL activation signal
+// handler that parks threads on a pipe without entering the GC mode state
+// machine.
+//
+// 1. Arm the crash-suspend pipe gate in the PAL.
+// 2. Send the activation signal directly (via tgkill) to every non-crashing
+//    managed thread.  The handler sees the armed flag and blocks on a pipe
+//    read — all async-signal-safe.
+// 3. Brief spin-wait for threads to park.
+// 4. After walking stacks, the caller releases parked threads via
+//    PAL_ReleaseCrashSuspend which closes the pipe write end.
+static
+void
+CrashReportSuspendThreads(Thread* pCrashThread)
+{
+    PAL_ArmCrashSuspend();
+
+    // Send the activation signal directly to all non-crashing managed threads.
+    // tgkill is async-signal-safe and bypasses PAL handle machinery.
+    pid_t pid = getpid();
+    Thread* pThread = ThreadStore::GetThreadList(NULL);
+    while (pThread != NULL)
+    {
+        if (pThread != pCrashThread)
+        {
+            DWORD tid = pThread->GetOSThreadId();
+            if (tid != 0)
+            {
+                syscall(SYS_tgkill, pid, static_cast<pid_t>(tid), INJECT_ACTIVATION_SIGNAL);
+            }
+        }
+        pThread = ThreadStore::GetThreadList(pThread);
+    }
+
+    // Brief wait for threads to park in the activation handler.
+    // 50ms upper bound; most threads respond within microseconds.
+    usleep(50000);
+}
+
 static
 void
 CrashReportEnumerateThreads(
@@ -293,10 +346,11 @@ CrashReportEnumerateThreads(
     InProcCrashReportFrameCallback frameCallback,
     void* ctx)
 {
-    // This minimal lift intentionally reuses the existing ThreadStore traversal
-    // and StackWalkFrames as a best-effort source for managed thread state.
     Thread* pCrashThread = GetThreadAsyncSafe();
     bool crashThreadHandled = false;
+
+    // Quiesce non-crashing threads before walking any stacks.
+    CrashReportSuspendThreads(pCrashThread);
 
     // Emit the crashing thread first so the report keeps the most important
     // thread even if later enumeration is incomplete.
@@ -335,24 +389,75 @@ CrashReportEnumerateThreads(
         bool isCrashThread = !crashThreadHandled && osThreadId == crashingTid;
         char exceptionType[256];
         uint32_t hresult = 0;
-        int hasException = CrashReportGetExceptionForThread(pThread, exceptionType, sizeof(exceptionType), &hresult);
+        int hasException = 0;
+
+        // Only inspect exceptions on the crashing thread.  For other threads
+        // CrashReportGetExceptionForThread calls GCX_COOP which would
+        // deadlock because g_TrapReturningThreads is set.
+        if (isCrashThread)
+        {
+            hasException = CrashReportGetExceptionForThread(pThread, exceptionType, sizeof(exceptionType), &hresult);
+        }
 
         threadCallback(osThreadId, isCrashThread ? 1 : 0, hasException ? exceptionType : "", hresult, ctx);
+
         if (isCrashThread)
         {
             CrashReportWalkThread(pThread, frameCallback, ctx);
             crashThreadHandled = true;
         }
-        // Avoid walking live non-crashing threads here. Stack walking a running
-        // thread without suspending it is unreliable and can destabilize crash reporting.
+        else
+        {
+            // Non-crashing threads have been parked by the crash-suspend
+            // signal handler.  Their managed stacks are frozen and safe
+            // to walk regardless of their original GC mode.
+            CrashReportWalkThread(pThread, frameCallback, ctx);
+        }
 
         pThread = ThreadStore::GetThreadList(pThread);
     }
+
+    // Release all parked threads so the process can terminate naturally.
+    PAL_ReleaseCrashSuspend();
 }
 
 void
 CrashReportRegisterStackWalker()
 {
+    // Read crash report configuration here rather than in PROCAbortInitialize
+    // because on Android the DOTNET_* environment variables are set via JNI
+    // after PAL_Initialize has already run.
+    CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
+    DWORD reportEnabled = 0;
+    bool enableCrashReport = enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, reportEnabled) && reportEnabled == 1;
+
+    CLRConfigNoCache enabledReportOnlyCfg = CLRConfigNoCache::Get("EnableCrashReportOnly", /*noprefix*/ false, &getenv);
+    DWORD reportOnlyEnabled = 0;
+    bool enableCrashReportOnly = enabledReportOnlyCfg.IsSet() && enabledReportOnlyCfg.TryAsInteger(10, reportOnlyEnabled) && reportOnlyEnabled == 1;
+
+    if (!enableCrashReport && !enableCrashReportOnly)
+    {
+        return;
+    }
+
+    CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
+    const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
+
+    const char* defaultReportDirectory = getenv("HOME");
+    if (defaultReportDirectory == nullptr || defaultReportDirectory[0] == '\0')
+    {
+        defaultReportDirectory = getenv("TMPDIR");
+    }
+    if (defaultReportDirectory == nullptr || defaultReportDirectory[0] == '\0')
+    {
+        defaultReportDirectory = "/data/local/tmp";
+    }
+
+    InProcCrashReportInitialize(1, dumpName, defaultReportDirectory);
+
+    // Set the PAL flag so PROCCreateCrashDumpIfEnabled knows to call the reporter.
+    PROCEnableInProcCrashReport();
+
     InProcCrashReportSetCurrentThreadManagedResolver(CrashReportIsCurrentThreadManaged);
     InProcCrashReportSetStackWalker(CrashReportWalkStack);
     InProcCrashReportSetExceptionResolver(CrashReportGetException);

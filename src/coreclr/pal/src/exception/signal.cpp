@@ -114,6 +114,12 @@ struct sigaction g_previous_sigterm;
 struct sigaction g_previous_activation;
 #endif
 
+// Crash-time thread suspension state.  When armed, the activation signal
+// handler parks the receiving thread on a pipe read instead of running
+// the normal activation/hijack path.
+static volatile int g_crashSuspendArmed = 0;
+static int g_crashResumePipe[2] = { -1, -1 };
+
 struct sigaction g_previous_sigill;
 struct sigaction g_previous_sigtrap;
 struct sigaction g_previous_sigfpe;
@@ -929,6 +935,19 @@ Parameters :
 --*/
 static void inject_activation_handler(int code, siginfo_t *siginfo, void *context)
 {
+    // Crash-suspend fast path — when armed by the crash reporter, park this
+    // thread immediately without entering the normal activation/hijack
+    // machinery (which does GC mode transitions that deadlock from the crash
+    // signal handler).  read() is async-signal-safe and blocks until the
+    // crash reporter closes the write end of the pipe.
+    if (__atomic_load_n(&g_crashSuspendArmed, __ATOMIC_ACQUIRE))
+    {
+        char buf;
+        while (read(g_crashResumePipe[0], &buf, 1) == -1 && errno == EINTR)
+            ;
+        return;
+    }
+
     // Only accept activations from the current process
     if (g_activationFunction != NULL && (siginfo->si_pid == getpid()
 #ifdef HOST_OSX
@@ -1037,6 +1056,31 @@ PAL_ERROR InjectActivationInternal(CorUnix::CPalThread* pThread)
     return NO_ERROR;
 #else
     return ERROR_CANCELLED;
+#endif
+}
+
+void PALAPI PAL_ArmCrashSuspend(void)
+{
+#ifdef INJECT_ACTIVATION_SIGNAL
+    // Create the pipe that parked threads will block on.
+    if (pipe(g_crashResumePipe) != 0)
+    {
+        g_crashResumePipe[0] = -1;
+        g_crashResumePipe[1] = -1;
+    }
+    __atomic_store_n(&g_crashSuspendArmed, 1, __ATOMIC_RELEASE);
+#endif
+}
+
+void PALAPI PAL_ReleaseCrashSuspend(void)
+{
+#ifdef INJECT_ACTIVATION_SIGNAL
+    // Closing the write end wakes all threads blocked on read().
+    if (g_crashResumePipe[1] != -1)
+    {
+        close(g_crashResumePipe[1]);
+        g_crashResumePipe[1] = -1;
+    }
 #endif
 }
 
