@@ -11,7 +11,7 @@
 #include <clrconfignocache.h>
 #include <minipal/guid.h>
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 
 #include "debug/crashreport/inproccrashreporter.h"
 #include "threadsuspend.h"
@@ -396,6 +396,18 @@ CrashReportRegisterStackWalker()
     // Read crash report configuration here rather than in PROCAbortInitialize
     // because on Android the DOTNET_* environment variables are set via JNI
     // after PAL_Initialize has already run.
+    //
+    // On Android (which has no createdump utility), the in-proc reporter is
+    // the only crash-report path and is opted in via DOTNET_EnableCrashReport
+    // (the same knob that would toggle createdump's JSON report on platforms
+    // where createdump exists).
+    //
+    // On other POSIX platforms (Linux, macOS, iOS), createdump is the
+    // incumbent implementation for DOTNET_EnableCrashReport. To avoid silently
+    // replacing that path, the in-proc reporter is opted in explicitly via
+    // DOTNET_EnableInProcessCrashReport and takes precedence over createdump
+    // only when it is set.
+#if defined(HOST_ANDROID)
     CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
     DWORD reportEnabled = 0;
     bool enableCrashReport = enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, reportEnabled) && reportEnabled == 1;
@@ -408,6 +420,16 @@ CrashReportRegisterStackWalker()
     {
         return;
     }
+#else
+    CLRConfigNoCache enabledInProcCfg = CLRConfigNoCache::Get("EnableInProcessCrashReport", /*noprefix*/ false, &getenv);
+    DWORD inProcEnabled = 0;
+    bool enableInProcCrashReport = enabledInProcCfg.IsSet() && enabledInProcCfg.TryAsInteger(10, inProcEnabled) && inProcEnabled == 1;
+
+    if (!enableInProcCrashReport)
+    {
+        return;
+    }
+#endif
 
     CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
     const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
@@ -447,4 +469,4 @@ CrashReportRegisterStackWalker()
     InProcCrashReportSetThreadEnumerator(CrashReportEnumerateThreads);
 }
 
-#endif // HOST_ANDROID
+#endif // HOST_UNIX

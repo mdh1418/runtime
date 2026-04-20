@@ -37,9 +37,9 @@ endif(CORECLR_SET_RPATH)
 # Include directories
 
 include_directories(include)
-if(CLR_CMAKE_TARGET_ANDROID)
+if(CLR_CMAKE_TARGET_LINUX OR CLR_CMAKE_TARGET_APPLE)
   include_directories(${CLR_DIR})
-endif(CLR_CMAKE_TARGET_ANDROID)
+endif(CLR_CMAKE_TARGET_LINUX OR CLR_CMAKE_TARGET_APPLE)
 
 # Compile options
 
@@ -228,7 +228,7 @@ add_library(coreclrpal_objects
 
 add_library(coreclrpal STATIC
   $<TARGET_OBJECTS:coreclrpal_objects>
-  $<$<BOOL:${CLR_CMAKE_TARGET_ANDROID}>:$<TARGET_OBJECTS:inproccrashreport>>
+  $<$<OR:$<BOOL:${CLR_CMAKE_TARGET_LINUX}>,$<BOOL:${CLR_CMAKE_TARGET_APPLE}>>:$<TARGET_OBJECTS:inproccrashreport>>
   ${LIBUNWIND_OBJECTS}
 )
 

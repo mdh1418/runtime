@@ -4,10 +4,10 @@
 #ifndef CRASHREPORTSTACKWALKER_H
 #define CRASHREPORTSTACKWALKER_H
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 
 void CrashReportRegisterStackWalker();
 
-#endif // HOST_ANDROID
+#endif // HOST_UNIX
 
 #endif // CRASHREPORTSTACKWALKER_H
