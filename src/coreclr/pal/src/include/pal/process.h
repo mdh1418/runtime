@@ -172,7 +172,7 @@ Parameters:
 --*/
 VOID PROCLogManagedCallstackForSignal(int signal);
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 void PROCEnableInProcCrashReport();
 #endif
 

@@ -35,7 +35,7 @@ SET_DEFAULT_DEBUG_CHANNEL(PROCESS); // some headers have code with asserts, so d
 #include <generatedumpflags.h>
 #include <clrconfignocache.h>
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 #include "debug/crashreport/inproccrashreporter.h"
 #endif
 
@@ -194,7 +194,7 @@ Volatile<PLOGMANAGEDCALLSTACKFORSIGNAL_CALLBACK> g_logManagedCallstackForSignalC
 #define MAX_ARGV_ENTRIES 32
 const char* g_argvCreateDump[MAX_ARGV_ENTRIES] = { nullptr };
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 // Read from the fatal-signal path (PROCCreateCrashDumpIfEnabled) and written
 // once during startup (PROCEnableInProcCrashReport); use Volatile<bool> to
 // match the signal-path publication of g_logManagedCallstackForSignalCallback.
@@ -2799,11 +2799,15 @@ Parameters:
 --*/
 #ifdef HOST_ANDROID
 #include <minipal/log.h>
+#endif
+
+#if defined(HOST_UNIX)
 void
 PROCEnableInProcCrashReport()
 {
     g_inProcCrashReportEnabled = true;
 }
+#endif
 
 VOID
 PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool serialize)
@@ -2811,20 +2815,22 @@ PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool
     // Preserve context pointer to prevent optimization
     DoNotOptimize(&context);
 
-    // TODO: Dump stress log into logcat and/or file when enabled?
+#if defined(HOST_UNIX)
+    // If in-proc crash reporting is enabled, generate the report and return.
+    // The in-proc reporter is an alternative to createdump (not a supplement),
+    // so skip the createdump launch path below when it is active.
     if (g_inProcCrashReportEnabled)
     {
+        // TODO: Dump stress log into logcat and/or file when enabled?
         InProcCrashReportGenerate(signal, siginfo, context);
+#if defined(HOST_ANDROID)
+        minipal_log_write_fatal("Aborting process.\n");
+#endif
+        return;
     }
-    minipal_log_write_fatal("Aborting process.\n");
-}
-#else
-VOID
-PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool serialize)
-{
-    // Preserve context pointer to prevent optimization
-    DoNotOptimize(&context);
+#endif // HOST_UNIX
 
+#if !defined(HOST_ANDROID)
     // If enabled, launch the create minidump utility and wait until it completes
     if (g_argvCreateDump[0] != nullptr)
     {
@@ -2894,8 +2900,8 @@ PROCCreateCrashDumpIfEnabled(int signal, siginfo_t* siginfo, void* context, bool
         free(signalErrnoArg);
         free(signalAddressArg);
     }
+#endif // !HOST_ANDROID
 }
-#endif
 
 /*++
 Function:

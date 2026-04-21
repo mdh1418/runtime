@@ -11,7 +11,7 @@
 #include <clrconfignocache.h>
 #include <minipal/guid.h>
 
-#ifdef HOST_ANDROID
+#if defined(HOST_UNIX)
 
 #include "debug/crashreport/inproccrashreporter.h"
 #include "threadsuspend.h"
@@ -389,6 +389,21 @@ CrashReportRegisterStackWalker()
     // Read crash report configuration here rather than in PROCAbortInitialize
     // because on Android the DOTNET_* environment variables are set via JNI
     // after PAL_Initialize has already run.
+    //
+    // Mobile platforms (Android, iOS, tvOS, MacCatalyst) have no createdump
+    // utility, so DOTNET_EnableCrashReport / DOTNET_EnableCrashReportOnly --
+    // the knobs that would toggle createdump's JSON report on platforms where
+    // createdump exists -- instead opt in to the in-proc reporter here.
+    // DOTNET_EnableInProcessCrashReport is accepted on mobile as well so a
+    // uniform opt-in can be used across all platforms that support this
+    // reporter.
+    //
+    // On desktop POSIX platforms (Linux, macOS), createdump is the incumbent
+    // implementation for DOTNET_EnableCrashReport. To avoid silently
+    // replacing that path, the in-proc reporter is opted in explicitly via
+    // DOTNET_EnableInProcessCrashReport only and takes precedence over
+    // createdump when it is set.
+#if defined(HOST_ANDROID) || defined(HOST_IOS) || defined(HOST_TVOS) || defined(HOST_MACCATALYST)
     CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
     DWORD reportEnabled = 0;
     bool enableCrashReport = enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, reportEnabled) && reportEnabled == 1;
@@ -397,10 +412,24 @@ CrashReportRegisterStackWalker()
     DWORD reportOnlyEnabled = 0;
     bool enableCrashReportOnly = enabledReportOnlyCfg.IsSet() && enabledReportOnlyCfg.TryAsInteger(10, reportOnlyEnabled) && reportOnlyEnabled == 1;
 
-    if (!enableCrashReport && !enableCrashReportOnly)
+    CLRConfigNoCache enabledInProcCfg = CLRConfigNoCache::Get("EnableInProcessCrashReport", /*noprefix*/ false, &getenv);
+    DWORD inProcEnabled = 0;
+    bool enableInProcCrashReport = enabledInProcCfg.IsSet() && enabledInProcCfg.TryAsInteger(10, inProcEnabled) && inProcEnabled == 1;
+
+    if (!enableCrashReport && !enableCrashReportOnly && !enableInProcCrashReport)
     {
         return;
     }
+#else
+    CLRConfigNoCache enabledInProcCfg = CLRConfigNoCache::Get("EnableInProcessCrashReport", /*noprefix*/ false, &getenv);
+    DWORD inProcEnabled = 0;
+    bool enableInProcCrashReport = enabledInProcCfg.IsSet() && enabledInProcCfg.TryAsInteger(10, inProcEnabled) && inProcEnabled == 1;
+
+    if (!enableInProcCrashReport)
+    {
+        return;
+    }
+#endif
 
     CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
     const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
@@ -440,4 +469,4 @@ CrashReportRegisterStackWalker()
     InProcCrashReportSetThreadEnumerator(CrashReportEnumerateThreads);
 }
 
-#endif // HOST_ANDROID
+#endif // HOST_UNIX
