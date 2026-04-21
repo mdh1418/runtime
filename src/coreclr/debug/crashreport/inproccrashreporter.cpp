@@ -15,6 +15,9 @@
 #include <string.h>
 #include <ucontext.h>
 #include <minipal/thread.h>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#endif
 
 // Include the .NET version string instead of linking because it is "static".
 #if __has_include("_version.c")
@@ -32,6 +35,26 @@ static volatile InProcCrashReportWalkStackCallback g_walkStackCallback = NULL;
 static volatile InProcCrashReportGetExceptionCallback g_getExceptionCallback = NULL;
 static volatile InProcCrashReportEnumerateThreadsCallback g_enumerateThreadsCallback = NULL;
 static char g_reportPath[256];
+
+#ifdef __APPLE__
+// Query a sysctl by name into a caller-supplied stack buffer and write it to the JSON writer.
+// sysctlbyname is async-signal-safe and avoids heap allocation, matching the createdump
+// behavior (see src/coreclr/debug/createdump/crashreportwriter.cpp WriteSysctl).
+static void WriteSysctlString(CrashJsonWriter* writer, const char* sysctlName, const char* valueName)
+{
+    char buffer[256];
+    size_t size = sizeof(buffer);
+    if (sysctlbyname(sysctlName, buffer, &size, NULL, 0) == 0 && size > 0)
+    {
+        buffer[sizeof(buffer) - 1] = '\0';
+        CrashJsonWriteString(writer, valueName, buffer);
+    }
+    else
+    {
+        CrashJsonWriteString(writer, valueName, "");
+    }
+}
+#endif // __APPLE__
 
 struct MultiThreadJsonContext
 {
@@ -336,8 +359,8 @@ InProcCrashReportGenerate(
     (void)snprintf(signalBuf, sizeof(signalBuf), "%d", signal);
     CrashJsonWriteString(&s_jsonWriter, "signal", signalBuf);
 #ifdef __APPLE__
-    CrashJsonWriteString(&s_jsonWriter, "OSVersion", "");
-    CrashJsonWriteString(&s_jsonWriter, "SystemModel", "");
+    WriteSysctlString(&s_jsonWriter, "kern.osproductversion", "OSVersion");
+    WriteSysctlString(&s_jsonWriter, "hw.model", "SystemModel");
     CrashJsonWriteString(&s_jsonWriter, "SystemManufacturer", "apple");
 #endif
     CrashJsonCloseObject(&s_jsonWriter);
