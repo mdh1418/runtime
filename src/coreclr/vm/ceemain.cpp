@@ -697,8 +697,11 @@ void EEStartupHelper()
 
 #ifdef HOST_ANDROID
         PAL_SetLogManagedCallstackForSignalCallback(EEPolicy::LogManagedCallstackForSignal);
-        CrashReportRegisterStackWalker();
 #endif // HOST_ANDROID
+
+#if defined(HOST_UNIX)
+        CrashReportRegisterStackWalker();
+#endif // HOST_UNIX
 
 #ifdef STRESS_LOG
         if (CLRConfig::GetConfigValue(CLRConfig::UNSUPPORTED_StressLog, g_pConfig->StressLog()) != 0) {
