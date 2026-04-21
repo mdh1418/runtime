@@ -397,17 +397,20 @@ CrashReportRegisterStackWalker()
     // because on Android the DOTNET_* environment variables are set via JNI
     // after PAL_Initialize has already run.
     //
-    // On Android (which has no createdump utility), the in-proc reporter is
-    // the only crash-report path and is opted in via DOTNET_EnableCrashReport
-    // (the same knob that would toggle createdump's JSON report on platforms
-    // where createdump exists).
+    // Mobile platforms (Android, iOS, tvOS, MacCatalyst) have no createdump
+    // utility, so DOTNET_EnableCrashReport / DOTNET_EnableCrashReportOnly --
+    // the knobs that would toggle createdump's JSON report on platforms where
+    // createdump exists -- instead opt in to the in-proc reporter here.
+    // DOTNET_EnableInProcessCrashReport is accepted on mobile as well so a
+    // uniform opt-in can be used across all platforms that support this
+    // reporter.
     //
-    // On other POSIX platforms (Linux, macOS, iOS), createdump is the
-    // incumbent implementation for DOTNET_EnableCrashReport. To avoid silently
+    // On desktop POSIX platforms (Linux, macOS), createdump is the incumbent
+    // implementation for DOTNET_EnableCrashReport. To avoid silently
     // replacing that path, the in-proc reporter is opted in explicitly via
-    // DOTNET_EnableInProcessCrashReport and takes precedence over createdump
-    // only when it is set.
-#if defined(HOST_ANDROID)
+    // DOTNET_EnableInProcessCrashReport only and takes precedence over
+    // createdump when it is set.
+#if defined(HOST_ANDROID) || defined(HOST_IOS) || defined(HOST_TVOS) || defined(HOST_MACCATALYST)
     CLRConfigNoCache enabledReportCfg = CLRConfigNoCache::Get("EnableCrashReport", /*noprefix*/ false, &getenv);
     DWORD reportEnabled = 0;
     bool enableCrashReport = enabledReportCfg.IsSet() && enabledReportCfg.TryAsInteger(10, reportEnabled) && reportEnabled == 1;
@@ -416,7 +419,11 @@ CrashReportRegisterStackWalker()
     DWORD reportOnlyEnabled = 0;
     bool enableCrashReportOnly = enabledReportOnlyCfg.IsSet() && enabledReportOnlyCfg.TryAsInteger(10, reportOnlyEnabled) && reportOnlyEnabled == 1;
 
-    if (!enableCrashReport && !enableCrashReportOnly)
+    CLRConfigNoCache enabledInProcCfg = CLRConfigNoCache::Get("EnableInProcessCrashReport", /*noprefix*/ false, &getenv);
+    DWORD inProcEnabled = 0;
+    bool enableInProcCrashReport = enabledInProcCfg.IsSet() && enabledInProcCfg.TryAsInteger(10, inProcEnabled) && inProcEnabled == 1;
+
+    if (!enableCrashReport && !enableCrashReportOnly && !enableInProcCrashReport)
     {
         return;
     }
