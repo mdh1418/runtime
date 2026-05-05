@@ -172,6 +172,18 @@ Parameters:
 --*/
 VOID PROCLogManagedCallstackForSignal(int signal);
 
+/*++
+Function:
+  PROCGetSignalName
+
+  Returns a static, async-signal-safe wide name for the given POSIX signal
+  number (e.g. "SIGABRT" for 6), or "Unknown signal" for an unrecognized
+  value. Pointer is stable for the process lifetime; callers must not free
+  or modify the returned buffer. The returned string is pure ASCII so
+  callers wanting a narrow form can copy the low byte of each WCHAR.
+--*/
+LPCWSTR PROCGetSignalName(int signal);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

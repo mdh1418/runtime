@@ -6,6 +6,7 @@
 // Streams a createdump-shaped JSON skeleton to a crashreport.json file.
 
 #include "inproccrashreporter.h"
+#include "signalsafeconsolewriter.h"
 #include "signalsafejsonwriter.h"
 
 #include "pal.h"
@@ -22,6 +23,12 @@
 #include <mach/mach.h>
 #include <sys/sysctl.h>
 #endif
+
+extern "C" LPCWSTR PROCGetSignalName(int signal);
+
+static const char CRASHREPORT_PROTOCOL_VERSION[] = "1.0.0";
+
+static SignalSafeConsoleWriter s_consoleWriter;
 
 // Include the .NET version string instead of linking because it is "static".
 #if __has_include("_version.c")
@@ -250,13 +257,15 @@ InProcCrashReporter::CreateReport(
 
     (void)siginfo;
 
+    EmitConsoleHeader(signal);
+
     CrashReportOutputContext outputContext(fd);
 
     m_jsonWriter.Init(&CrashReportOutputContext::ChunkCallback, &outputContext);
 
     m_jsonWriter.OpenObject();
     m_jsonWriter.OpenObject("payload");
-    m_jsonWriter.WriteString("protocol_version", "1.0.0");
+    m_jsonWriter.WriteString("protocol_version", CRASHREPORT_PROTOCOL_VERSION);
 
     m_jsonWriter.OpenObject("configuration");
 #if defined(__x86_64__)
@@ -327,6 +336,8 @@ InProcCrashReporter::CreateReport(
             unlink(reportPath);
         }
     }
+
+    EmitConsoleModulesAndFooter();
 }
 
 InProcCrashReporter&
@@ -1098,4 +1109,56 @@ InProcCrashReporter::EmitSynthesizedCrashThread(
     }
     m_jsonWriter.CloseArray(); // stack_frames
     m_jsonWriter.CloseObject(); // thread
+}
+
+// --- InProcCrashReporter: console header and footer ------------------------
+
+void
+InProcCrashReporter::EmitConsoleHeader(int signal)
+{
+    s_consoleWriter.WriteSeparator();
+    s_consoleWriter.AppendStr(".NET Crash Report v");
+    s_consoleWriter.AppendStr(CRASHREPORT_PROTOCOL_VERSION);
+    s_consoleWriter.EndLine();
+
+    char version[sizeof(sccsid)];
+    CrashReportHelpers::GetVersionString(version, sizeof(version));
+    if (version[0] != '\0')
+    {
+        s_consoleWriter.WriteKeyValueStr("Build", version);
+    }
+
+#if defined(__x86_64__)
+    s_consoleWriter.WriteKeyValueStr("ABI", "amd64");
+#elif defined(__aarch64__)
+    s_consoleWriter.WriteKeyValueStr("ABI", "arm64");
+#elif defined(__arm__)
+    s_consoleWriter.WriteKeyValueStr("ABI", "arm");
+#endif
+
+    if (m_processName[0] != '\0')
+    {
+        s_consoleWriter.WriteKeyValueStr("Cmdline", m_processName);
+    }
+
+    s_consoleWriter.WriteKeyValueDecimal("pid", static_cast<uint64_t>(GetCurrentProcessId()));
+
+    s_consoleWriter.AppendStr("signal ");
+    s_consoleWriter.AppendSignedDecimal(signal);
+    s_consoleWriter.AppendStr(" (");
+    // PROCGetSignalName returns a wide ASCII literal; narrow inline so the
+    // compact log shares one source of truth for the signal-name table with
+    // the wide-char EE policy callback in PROCLogManagedCallstackForSignal.
+    for (LPCWSTR name = PROCGetSignalName(signal); *name != L'\0'; ++name)
+    {
+        s_consoleWriter.AppendChar(static_cast<char>(*name));
+    }
+    s_consoleWriter.AppendChar(')');
+    s_consoleWriter.EndLine();
+}
+
+void
+InProcCrashReporter::EmitConsoleModulesAndFooter()
+{
+    s_consoleWriter.WriteSeparator();
 }

@@ -88,6 +88,9 @@ private:
         void* context,
         bool walkStack);
 
+    void EmitConsoleHeader(int signal);
+    void EmitConsoleModulesAndFooter();
+
     SignalSafeJsonWriter m_jsonWriter;
     InProcCrashReportIsManagedThreadCallback m_isManagedThreadCallback = nullptr;
     InProcCrashReportWalkStackCallback m_walkStackCallback = nullptr;
