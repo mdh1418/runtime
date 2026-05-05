@@ -18,6 +18,7 @@
 #include <time.h>
 #include <ucontext.h>
 #include <minipal/getexepath.h>
+#include <minipal/guid.h>
 #include <minipal/thread.h>
 #ifdef __APPLE__
 #include <mach/mach.h>
@@ -57,6 +58,71 @@ static void CacheSysctlString(const char* sysctlName, char* buffer, size_t buffe
     }
 }
 #endif // __APPLE__
+
+// Bounded module name/GUID table that interns each unique module observed
+// during a single crash report. Frames in the compact log refer to modules
+// by short ``[N]`` indices instead of repeating the (often verbose) filename
+// + GUID on every line; the matching ``modules:`` block at the end of the
+// report maps each index back to the full data.
+//
+// Capacity is fixed (no heap on the fatal-signal path); modules beyond the
+// cap render as ``[?]`` in frames and never reach the modules block.
+//
+// Single-instance because CreateReport is one-shot per process (guarded by
+// the ``s_generating`` InterlockedCompareExchange in CreateReport).
+
+static constexpr size_t MAX_MODULES_IN_TABLE = 32;
+
+class ModuleTable
+{
+public:
+    int Intern(const char* moduleName, const char* moduleGuid)
+    {
+        if (moduleName == nullptr || moduleName[0] == '\0' ||
+            moduleGuid == nullptr || moduleGuid[0] == '\0')
+        {
+            return -1;
+        }
+
+        for (size_t i = 0; i < m_count; ++i)
+        {
+            if (strncmp(m_entries[i].guid, moduleGuid, MINIPAL_GUID_BUFFER_LEN) == 0)
+            {
+                return static_cast<int>(i);
+            }
+        }
+
+        if (m_count >= MAX_MODULES_IN_TABLE)
+        {
+            return -1;
+        }
+
+        Entry& entry = m_entries[m_count];
+        size_t nameLen = strnlen(moduleName, sizeof(entry.name) - 1);
+        memcpy(entry.name, moduleName, nameLen);
+        entry.name[nameLen] = '\0';
+        size_t guidLen = strnlen(moduleGuid, sizeof(entry.guid) - 1);
+        memcpy(entry.guid, moduleGuid, guidLen);
+        entry.guid[guidLen] = '\0';
+        return static_cast<int>(m_count++);
+    }
+
+    size_t Count() const { return m_count; }
+    const char* Name(size_t i) const { return m_entries[i].name; }
+    const char* Guid(size_t i) const { return m_entries[i].guid; }
+
+private:
+    struct Entry
+    {
+        char name[CRASHREPORT_STRING_BUFFER_SIZE];
+        char guid[MINIPAL_GUID_BUFFER_LEN];
+    };
+
+    Entry m_entries[MAX_MODULES_IN_TABLE];
+    size_t m_count;
+};
+
+static ModuleTable s_moduleTable;
 
 class ThreadEnumerationContext
 {
@@ -244,6 +310,7 @@ public:
     static void WriteFrameToConsole(
         SignalSafeConsoleWriter* consoleWriter,
         uint32_t frameIndex,
+        int moduleIndex,
         uint64_t ip,
         const char* methodName,
         const char* className,
@@ -1048,6 +1115,7 @@ void
 CrashReportHelpers::WriteFrameToConsole(
     SignalSafeConsoleWriter* consoleWriter,
     uint32_t frameIndex,
+    int moduleIndex,
     uint64_t ip,
     const char* methodName,
     const char* className,
@@ -1061,7 +1129,6 @@ CrashReportHelpers::WriteFrameToConsole(
         return;
     }
 
-    // Frame index always two digits ("#04 ..."); matches Android/AOSP debuggerd.
     consoleWriter->AppendStr("  #");
     if (frameIndex < 10)
     {
@@ -1069,6 +1136,17 @@ CrashReportHelpers::WriteFrameToConsole(
     }
     consoleWriter->AppendDecimal(static_cast<uint64_t>(frameIndex));
     consoleWriter->AppendChar(' ');
+
+    consoleWriter->AppendChar('[');
+    if (moduleIndex < 0)
+    {
+        consoleWriter->AppendChar('?');
+    }
+    else
+    {
+        consoleWriter->AppendDecimal(static_cast<uint64_t>(moduleIndex));
+    }
+    consoleWriter->AppendStr("] ");
 
     if (methodName != nullptr)
     {
@@ -1122,10 +1200,12 @@ CrashReportHelpers::FrameSinkCallback(
         ? *sinks->currentThreadFrameCount
         : 0;
 
+    int moduleIndex = s_moduleTable.Intern(moduleName, moduleGuid);
+
     WriteFrameToJson(sinks->writer, ip, stackPointer, methodName, className, moduleName,
         nativeOffset, token, ilOffset, moduleTimestamp, moduleSize, moduleGuid);
 
-    WriteFrameToConsole(sinks->consoleWriter, frameIndex, ip, methodName, className, moduleName,
+    WriteFrameToConsole(sinks->consoleWriter, frameIndex, moduleIndex, ip, methodName, className, moduleName,
         nativeOffset, token, ilOffset);
 
     if (sinks->currentThreadFrameCount != nullptr)
@@ -1398,5 +1478,21 @@ InProcCrashReporter::EmitConsoleHeader(int signal)
 void
 InProcCrashReporter::EmitConsoleModulesAndFooter()
 {
+    if (s_moduleTable.Count() != 0)
+    {
+        s_consoleWriter.WriteBlank();
+        s_consoleWriter.WriteLine("modules:");
+        for (size_t i = 0; i < s_moduleTable.Count(); ++i)
+        {
+            s_consoleWriter.AppendStr("  [");
+            s_consoleWriter.AppendDecimal(static_cast<uint64_t>(i));
+            s_consoleWriter.AppendStr("] ");
+            s_consoleWriter.AppendStr(CrashReportHelpers::GetFilename(s_moduleTable.Name(i)));
+            s_consoleWriter.AppendChar(' ');
+            s_consoleWriter.AppendStr(s_moduleTable.Guid(i));
+            s_consoleWriter.EndLine();
+        }
+    }
+
     s_consoleWriter.WriteSeparator();
 }
