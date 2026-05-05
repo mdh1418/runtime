@@ -345,6 +345,12 @@ public:
         const char* buffer,
         size_t len);
 
+    // SignalSafeJsonWriter callback that drops everything: used when the
+    // crash report is running in compact-log-only mode (no DbgMiniDumpName)
+    // so the JSON formatter still keeps its bookkeeping consistent without
+    // emitting bytes anywhere.
+    static bool DiscardOutputCallback(const char* buffer, size_t len, void* ctx);
+
     static bool BuildReportPath(
         char* buffer,
         size_t bufferSize,
@@ -375,15 +381,22 @@ InProcCrashReporter::CreateReport(
     char reportPath[CRASHREPORT_PATH_BUFFER_SIZE];
     reportPath[0] = '\0';
 
-    if (m_reportPath[0] == '\0' || !CrashReportHelpers::BuildReportPath(reportPath, sizeof(reportPath), m_reportPath, m_processName, m_hostName))
-    {
-        return;
-    }
+    // The JSON file sink is only enabled when DbgMiniDumpName supplied a
+    // template AND the template expanded to a valid path. Otherwise the
+    // crash report runs in compact-log-only mode: the JSON emitter still
+    // executes (so it can keep its bookkeeping consistent) but writes go
+    // to a no-op DiscardOutputCallback instead of an open fd.
+    bool jsonEnabled = m_reportPath[0] != '\0' &&
+        CrashReportHelpers::BuildReportPath(reportPath, sizeof(reportPath), m_reportPath, m_processName, m_hostName);
 
-    int fd = open(reportPath, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-    if (fd == -1)
+    int fd = -1;
+    if (jsonEnabled)
     {
-        return;
+        fd = open(reportPath, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        if (fd == -1)
+        {
+            jsonEnabled = false;
+        }
     }
 
     (void)siginfo;
@@ -392,7 +405,14 @@ InProcCrashReporter::CreateReport(
 
     CrashReportOutputContext outputContext(fd);
 
-    m_jsonWriter.Init(&CrashReportOutputContext::ChunkCallback, &outputContext);
+    if (jsonEnabled)
+    {
+        m_jsonWriter.Init(&CrashReportOutputContext::ChunkCallback, &outputContext);
+    }
+    else
+    {
+        m_jsonWriter.Init(&CrashReportHelpers::DiscardOutputCallback, nullptr);
+    }
 
     m_jsonWriter.OpenObject();
     m_jsonWriter.OpenObject("payload");
@@ -456,7 +476,7 @@ InProcCrashReporter::CreateReport(
 
     m_jsonWriter.CloseObject(); // root
 
-    if (fd != -1)
+    if (jsonEnabled)
     {
         bool writeSucceeded = m_jsonWriter.Finish() &&
             !outputContext.WriteFailed() &&
@@ -466,6 +486,10 @@ InProcCrashReporter::CreateReport(
         {
             unlink(reportPath);
         }
+    }
+    else
+    {
+        (void)m_jsonWriter.Finish();
     }
 
     EmitConsoleModulesAndFooter();
@@ -584,6 +608,15 @@ CrashReportHelpers::WriteToFile(
         return false;
     }
 
+    return true;
+}
+
+bool
+CrashReportHelpers::DiscardOutputCallback(
+    const char* /*buffer*/,
+    size_t /*len*/,
+    void* /*ctx*/)
+{
     return true;
 }
 
