@@ -63,6 +63,7 @@ struct InProcCrashReporterSettings
     InProcCrashReportIsManagedThreadCallback isManagedThreadCallback;
     InProcCrashReportWalkStackCallback walkStackCallback;
     InProcCrashReportEnumerateThreadsCallback enumerateThreadsCallback;
+    uint32_t frameLimitPerThread;
 };
 
 class InProcCrashReporter
@@ -88,6 +89,9 @@ private:
         void* context,
         bool walkStack);
 
+    void EmitConsoleHeader(int signal);
+    void EmitConsoleModulesAndFooter();
+
     SignalSafeJsonWriter m_jsonWriter;
     InProcCrashReportIsManagedThreadCallback m_isManagedThreadCallback = nullptr;
     InProcCrashReportWalkStackCallback m_walkStackCallback = nullptr;
@@ -99,6 +103,7 @@ private:
     char m_osVersion[CRASHREPORT_STRING_BUFFER_SIZE] = {};
     char m_systemModel[CRASHREPORT_STRING_BUFFER_SIZE] = {};
 #endif
+    uint32_t m_frameLimitPerThread = 0;
 };
 
 // Free-function entry point used by the runtime to wire the in-proc crash

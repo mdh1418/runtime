@@ -2,6 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CRASHREPORT_SOURCES
     signalsafejsonwriter.cpp
+    signalsafeconsolewriter.cpp
     inproccrashreporter.cpp
 )
 

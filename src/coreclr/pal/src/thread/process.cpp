@@ -2044,7 +2044,7 @@ static void DoNotOptimize(const void* p)
     (void)p;
 }
 
-static LPCWSTR GetSignalName(int signal)
+LPCWSTR PROCGetSignalName(int signal)
 {
     switch (signal)
     {
@@ -2076,7 +2076,7 @@ PROCLogManagedCallstackForSignal(int signal)
 {
     if (g_logManagedCallstackForSignalCallback != nullptr)
     {
-        LPCWSTR signalName = GetSignalName(signal);
+        LPCWSTR signalName = PROCGetSignalName(signal);
         g_logManagedCallstackForSignalCallback(signalName);
     }
 }

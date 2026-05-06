@@ -427,16 +427,13 @@ CrashReportConfigure()
 
     CLRConfigNoCache dmpNameCfg = CLRConfigNoCache::Get("DbgMiniDumpName", /*noprefix*/ false, &getenv);
     const char* dumpName = dmpNameCfg.IsSet() ? dmpNameCfg.AsString() : nullptr;
-    if (dumpName == nullptr || dumpName[0] == '\0')
-    {
-        return;
-    }
 
     InProcCrashReporterSettings settings = {};
     settings.reportPath = dumpName;
     settings.isManagedThreadCallback = CrashReportIsCurrentThreadManaged;
     settings.walkStackCallback = CrashReportWalkStack;
     settings.enumerateThreadsCallback = CrashReportEnumerateThreads;
+    settings.frameLimitPerThread = CLRConfig::GetConfigValue(CLRConfig::INTERNAL_CrashReportFrameLimitPerThread);
 
     // Initialize the reporter and register the PAL signal-path callback last
     // so PAL only observes the reporter after all VM callbacks are wired in.
