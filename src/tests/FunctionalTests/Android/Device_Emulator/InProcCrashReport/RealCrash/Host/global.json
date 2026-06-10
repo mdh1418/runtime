@@ -1,0 +1,8 @@
+{
+  "comment": "Pin a stable, standalone SDK for the host harness so it does not use the runtime repo's preview SDK. This file shadows the repo-root global.json for this folder.",
+  "sdk": {
+    "version": "9.0.301",
+    "allowPrerelease": false,
+    "rollForward": "latestFeature"
+  }
+}
