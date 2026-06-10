@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Host-driven xUnit harness for the in-proc crash reporter's REAL-crash output
+    fidelity (Layer 2). This is a DESKTOP test project: it runs on the host (or, in
+    CI, on the Android Helix agent), shells out to `adb`, drives the CrashApp APK once
+    per crash scenario, then validates the pulled *.crashreport.json and the
+    DOTNET_CRASH logcat output for stable structure (never byte-for-byte).
+
+    It is deliberately isolated from the dotnet/runtime build (empty Directory.Build.*
+    plus a local NuGet.config) and is built/run with a standalone .NET SDK:
+
+        dotnet test
+
+    Configuration via environment variables (all optional; sensible defaults):
+      INPROC_CRASH_DEVICE_ID  adb device/emulator id (-s). Default: the only attached
+                              device, else INPROC_CRASH_DEVICE_ID must be set.
+      INPROC_CRASH_APK        path to the CrashApp .apk. Default: the repo artifacts
+                              path baked in as assembly metadata at build time.
+      INPROC_CRASH_ADB        path to the adb executable. Default: "adb" on PATH.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- This project must never be picked up by the runtime repo's traversal build. -->
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
+
+    <_RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\..\..\..\..\..\'))</_RepoRoot>
+    <DefaultApkPath>$(_RepoRoot)artifacts\bin\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp\Release\net11.0\android-x64\AppBundle\bin\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp.apk</DefaultApkPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The default APK location, resolved at build time, so a local `dotnet test`
+         works with no environment setup after building the CrashApp. -->
+    <AssemblyMetadata Include="DefaultApkPath" Value="$(DefaultApkPath)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+<!-- Intentionally empty.
+
+     This file stops MSBuild's upward search for Directory.Build.props so the
+     host-driven xUnit harness does NOT inherit the dotnet/runtime test-build
+     infrastructure (which would try to package it as an Android app). The host
+     harness is an ordinary desktop xUnit project that shells out to `adb`; it is
+     built and run with a standalone .NET SDK, not the runtime repo build. -->
+<Project>
+</Project>
