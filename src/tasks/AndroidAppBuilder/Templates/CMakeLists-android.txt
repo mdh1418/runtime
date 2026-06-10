@@ -2,13 +2,26 @@ cmake_minimum_required(VERSION 3.10)
 
 project(monodroid)
 
-enable_language(C ASM)
+enable_language(C CXX ASM)
 
 if(ANDROID_NDK_MAJOR VERSION_LESS "23")
     message(FATAL_ERROR "Error: need at least Android NDK 23, got ${ANDROID_NDK_REVISION}!")
 endif()
 
-add_compile_options(-Werror=missing-prototypes -Werror=missing-declarations -Wall -std=c99)
+# The C-only diagnostics (-std=c99 and the missing-prototypes/-declarations errors) are scoped to C
+# translation units so C++ ExtraNativeSources (for example recompiled CoreCLR diagnostic sources) can
+# be added to the app without the C++ compiler rejecting C-only flags.
+add_compile_options(-Wall)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Werror=missing-prototypes>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Werror=missing-declarations>)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-std=c99>)
+# C++ ExtraNativeSources are built without exceptions/RTTI: the app links ANDROID_STL=none, so the
+# libc++abi exception runtime (__cxa_*, __gxx_personality_v0, std::terminate) is unavailable. This
+# also matches how CoreCLR compiles these diagnostic sources, which run in signal-handling contexts.
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(
     monodroid
