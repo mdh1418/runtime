@@ -1,0 +1,34 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+// Minimal <new> shim for the Layer 1 in-proc crash reporter test.
+//
+// The Android app builder configures the NDK toolchain with ANDROID_STL=none
+// (so -nostdinc++ is in effect and no C++ standard library headers are on the
+// include path). The recompiled reporter sources only reach for a single C++
+// standard header -- <new>, for `new (std::nothrow) ...` -- so this header (found
+// via the test directory on the include path) supplies just that surface. The
+// matching operator definitions live in cxx_runtime_shim.cpp. This keeps the
+// shared app-builder STL configuration untouched.
+
+#pragma once
+
+#include <stddef.h>
+
+namespace std
+{
+    struct nothrow_t { explicit nothrow_t() = default; };
+    extern const nothrow_t nothrow;
+}
+
+void* operator new(size_t size, const std::nothrow_t&) noexcept;
+void* operator new[](size_t size, const std::nothrow_t&) noexcept;
+void operator delete(void* ptr, const std::nothrow_t&) noexcept;
+void operator delete[](void* ptr, const std::nothrow_t&) noexcept;
+
+// Standard placement forms (not currently used by the reporter, but kept so the
+// header behaves like a real <new> for any placement-new in recompiled sources).
+inline void* operator new(size_t, void* ptr) noexcept { return ptr; }
+inline void* operator new[](size_t, void* ptr) noexcept { return ptr; }
+inline void operator delete(void*, void*) noexcept {}
+inline void operator delete[](void*, void*) noexcept {}

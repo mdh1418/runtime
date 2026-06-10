@@ -1,0 +1,55 @@
+<Project>
+  <!--
+    Shared configuration for the in-proc crash reporter Layer-1 fidelity tests.
+
+    Each scenario is a separate functional-test project (its own app launch),
+    because the reporter generates exactly one report per process (CreateReport
+    has a one-shot, never-reset s_generating guard). A per-scenario project picks
+    its scenario by adding an INPROC_SCENARIO_* compile constant; everything else
+    (managed harness, native driver, shims, reporter sources) is shared from this
+    Shared/ directory by this props file.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <TestRuntime>true</TestRuntime>
+    <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
+    <ExpectedExitCode>100</ExpectedExitCode>
+    <!-- The reporter sources are recompiled into the app; keep the runtime dynamically
+         linked so they do not collide with the copy already inside libcoreclr_static.a. -->
+    <StaticLinkedRuntime>false</StaticLinkedRuntime>
+  </PropertyGroup>
+
+  <!-- Single source of truth: the real in-proc crash reporter sources are compiled
+       (by relative path) into the test app alongside a synthetic driver and small
+       PAL/watchdog/minipal shims. Paths are resolved relative to this props file so
+       they are identical no matter which scenario subfolder imports it. -->
+  <PropertyGroup>
+    <CrashReportSharedDir>$(MSBuildThisFileDirectory)</CrashReportSharedDir>
+    <CrashReportSourceDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', '..', '..', '..', '..', 'coreclr', 'debug', 'crashreport'))</CrashReportSourceDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(CrashReportSharedDir)Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafeformatter.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafejsonwriter.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafeconsolewriter.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)inproccrashreporter.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSharedDir)inproccrashreportwatchdog_teststub.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSharedDir)inproccrashreport_test_driver.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSharedDir)cxx_runtime_shim.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSharedDir)android_log_interpose.c" />
+    <ExtraAppNativeSources Include="$(CrashReportSharedDir)minipal_log_shim.c" />
+  </ItemGroup>
+
+  <!-- Put the shared directory (PAL/volatile/<new> shims, interop header) and the
+       reporter source directory (real reporter + watchdog headers) on the native
+       compile include path. -->
+  <ItemGroup>
+    <RuntimeHeaders Include="$(CrashReportSharedDir.TrimEnd('\').TrimEnd('/'))" />
+    <RuntimeHeaders Include="$(CrashReportSourceDir.TrimEnd('\').TrimEnd('/'))" />
+  </ItemGroup>
+</Project>
