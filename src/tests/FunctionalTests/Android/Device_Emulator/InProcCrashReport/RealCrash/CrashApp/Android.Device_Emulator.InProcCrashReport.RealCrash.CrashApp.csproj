@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Layer-2 real-crash app for the in-proc crash reporter integration tests.
+
+    This is a single CoreCLR Android app that triggers a REAL fatal crash handled
+    by the REAL reporter in libcoreclr. It is NOT run as a standalone functional
+    test: a real fatal signal in the instrumentation process is always classified
+    by XHarness as APP_CRASH (it can never be a green /t:Test), so IgnoreForCI keeps
+    it out of the CI test archive. Instead the host-driven test (../Host) installs
+    this APK and launches it once per scenario via `am instrument -e env:KEY VALUE`,
+    then validates the pulled *.crashreport.json and the DOTNET_CRASH logcat output.
+
+    No scenario state is baked into the APK; the host selects the scenario
+    (CRASH_SCENARIO), the report path (DOTNET_DbgMiniDumpName) and the reporter-enable
+    flag (DOTNET_EnableCrashReport) at launch time.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <TestRuntime>true</TestRuntime>
+    <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <AssemblyName>Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp</AssemblyName>
+    <MainLibraryFileName>Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp.dll</MainLibraryFileName>
+
+    <!-- Driven by the host test, never auto-run as a standalone CI test (it always
+         ends in APP_CRASH). Keep it out of the CI test archive. -->
+    <IgnoreForCI>true</IgnoreForCI>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="RealCrashProgram.cs" />
+  </ItemGroup>
+</Project>
