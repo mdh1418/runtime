@@ -16,6 +16,8 @@ public sealed class CrashAppDevice : IDisposable
     private const string AssemblyName = "Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp";
     public const string PackageId = "net.dot." + AssemblyName;
     private const string Instrumentation = PackageId + "/net.dot.MonoRunner";
+    private const string ReportRoot = "/data/data/" + PackageId + "/files";
+    private const string ReportDirectory = "files/.dotnet/crash-reports";
 
     private static readonly TimeSpan s_shortTimeout = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan s_instrumentTimeout = TimeSpan.FromSeconds(180);
@@ -47,23 +49,12 @@ public sealed class CrashAppDevice : IDisposable
     /// Launches the app for <paramref name="scenario"/>, waits for the crash, and returns
     /// the pulled crash-report JSON and the captured DOTNET_CRASH console output. When
     /// <paramref name="collectJson"/> is <see langword="false"/> the reporter is enabled
-    /// without a dump path, so it must emit the console report but write no JSON file; the
+    /// without a report root, so it must emit the console report but write no JSON file; the
     /// returned <see cref="CrashOutputs.Json"/> is empty and the absence of a file is verified.
     /// </summary>
     public CrashOutputs RunScenario(string scenario, bool collectJson = true)
     {
-        string reportFileName = $"inproc_{scenario}.coredump.crashreport.json";
-        string dumpName = $"/data/data/{PackageId}/files/inproc_{scenario}.coredump";
-
-        // Remove any stale report(s) so we never validate old data. In console-only mode we
-        // can't pre-clear other scenarios' reports (uid/SELinux), so snapshot the existing
-        // set instead and assert the crash adds nothing to it.
-        if (collectJson)
-        {
-            _adb.Shell(s_shortTimeout, "run-as", PackageId, "rm", "-f", "files/" + reportFileName);
-        }
-
-        string[] reportsBefore = collectJson ? [] : ListReportFiles();
+        string[] reportsBefore = ListReportFiles();
 
         // Scope logcat to this run.
         _adb.Run(["logcat", "-c"], s_shortTimeout);
@@ -78,43 +69,53 @@ public sealed class CrashAppDevice : IDisposable
         };
         if (collectJson)
         {
-            instrument.AddRange(["-e", "env:DOTNET_DbgMiniDumpName", dumpName]);
+            instrument.AddRange(["-e", "env:DOTNET_CrashReportRootPath", ReportRoot]);
         }
 
         instrument.Add(Instrumentation);
         _adb.Shell(s_instrumentTimeout, [.. instrument]);
 
-        string json = collectJson ? PollForReport(reportFileName) : VerifyNoNewReport(reportsBefore);
+        string json = collectJson ? PollForReport(reportsBefore) : VerifyNoNewReport(reportsBefore);
         string console = CaptureConsoleReport();
         return new CrashOutputs(json, console);
     }
 
-    private string PollForReport(string reportFileName)
+    private string PollForReport(string[] reportsBefore)
     {
         DateTime deadline = DateTime.UtcNow + s_reportPollTimeout;
         string lastError = "report file never appeared";
 
         while (DateTime.UtcNow < deadline)
         {
-            AdbResult cat = _adb.ExecOut(s_shortTimeout, "run-as", PackageId, "cat", "files/" + reportFileName);
-            if (cat.Succeeded)
+            string[] added = ListReportFiles().Except(reportsBefore, StringComparer.Ordinal).ToArray();
+            if (added.Length > 1)
             {
-                string content = cat.StandardOutput.Trim();
-                if (content.StartsWith("{", StringComparison.Ordinal) && TryParse(content, out lastError))
-                {
-                    return content;
-                }
+                throw new InvalidOperationException(
+                    "Crash produced multiple lifecycle-managed reports: " + string.Join(", ", added));
             }
-            else
+
+            if (added.Length == 1)
             {
-                lastError = cat.CombinedOutput.Trim();
+                AdbResult cat = _adb.ExecOut(s_shortTimeout, "run-as", PackageId, "cat", ReportDirectory + "/" + added[0]);
+                if (cat.Succeeded)
+                {
+                    string content = cat.StandardOutput.Trim();
+                    if (content.StartsWith("{", StringComparison.Ordinal) && TryParse(content, out lastError))
+                    {
+                        return content;
+                    }
+                }
+                else
+                {
+                    lastError = cat.CombinedOutput.Trim();
+                }
             }
 
             Thread.Sleep(500);
         }
 
         throw new InvalidOperationException(
-            $"Crash report '{reportFileName}' was not produced/complete within {s_reportPollTimeout.TotalSeconds:0}s. Last: {lastError}");
+            $"A lifecycle-managed crash report was not produced/complete within {s_reportPollTimeout.TotalSeconds:0}s. Last: {lastError}");
     }
 
     private static bool TryParse(string content, out string error)
@@ -147,20 +148,26 @@ public sealed class CrashAppDevice : IDisposable
     }
 
     /// <summary>
-    /// Lists the app's <c>*.crashreport.json</c> files (read via run-as as the app uid).
+    /// Lists the app's lifecycle-managed <c>*.crashreport.json</c> files.
     /// </summary>
     private string[] ListReportFiles()
     {
-        AdbResult ls = _adb.ExecOut(s_shortTimeout, "run-as", PackageId, "ls", "files/");
+        AdbResult ls = _adb.ExecOut(s_shortTimeout, "run-as", PackageId, "ls", ReportDirectory);
+        if (!ls.Succeeded)
+        {
+            return [];
+        }
+
         return ls.StandardOutput
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(name => name.EndsWith(".crashreport.json", StringComparison.Ordinal))
+            .Where(name => name.StartsWith("report-", StringComparison.Ordinal) &&
+                           name.EndsWith(".crashreport.json", StringComparison.Ordinal))
             .ToArray();
     }
 
     /// <summary>
     /// Asserts the console-only crash produced no new JSON report (the reporter ran without a
-    /// dump path), returning an empty JSON string.
+    /// report root), returning an empty JSON string.
     /// </summary>
     private string VerifyNoNewReport(string[] reportsBefore)
     {
@@ -168,7 +175,7 @@ public sealed class CrashAppDevice : IDisposable
         if (added.Length > 0)
         {
             throw new InvalidOperationException(
-                "Reporter was enabled without a dump path but still wrote a JSON report: " + string.Join(", ", added));
+                "Reporter was enabled without a report root but still wrote a JSON report: " + string.Join(", ", added));
         }
 
         return string.Empty;

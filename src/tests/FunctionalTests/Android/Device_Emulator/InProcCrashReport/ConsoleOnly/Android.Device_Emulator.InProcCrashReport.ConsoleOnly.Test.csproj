@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- ConsoleOnly: same synthetic crash data as RichSigsegv, but the reporter is
-       given an empty report path so the JSON file sink is disabled (compact-log-only
+       given an empty report root so the JSON file sink is disabled (compact-log-only
        mode). Exercises the jsonEnabled==false / DiscardOutputCallback path and
        asserts no *.crashreport.json is produced while the console report still is. -->
   <PropertyGroup>
@@ -11,4 +11,3 @@
 
   <Import Project="../Shared/InProcCrashReport.Common.props" />
 </Project>
-

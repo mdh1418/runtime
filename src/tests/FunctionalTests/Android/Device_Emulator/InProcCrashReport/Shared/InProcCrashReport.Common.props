@@ -37,6 +37,8 @@
     <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafeformatter.cpp" />
     <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafejsonwriter.cpp" />
     <ExtraAppNativeSources Include="$(CrashReportSourceDir)signalsafeconsolewriter.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)crashreportstringutils.cpp" />
+    <ExtraAppNativeSources Include="$(CrashReportSourceDir)inproccrashreportlifecycle.cpp" />
     <ExtraAppNativeSources Include="$(CrashReportSourceDir)inproccrashreporter.cpp" />
     <ExtraAppNativeSources Include="$(CrashReportSharedDir)inproccrashreportwatchdog_teststub.cpp" />
     <ExtraAppNativeSources Include="$(CrashReportSharedDir)inproccrashreport_test_driver.cpp" />

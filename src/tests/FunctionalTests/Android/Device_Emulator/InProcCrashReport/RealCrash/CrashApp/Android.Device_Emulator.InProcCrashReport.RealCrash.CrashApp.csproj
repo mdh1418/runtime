@@ -11,7 +11,7 @@
     then validates the pulled *.crashreport.json and the DOTNET_CRASH logcat output.
 
     No scenario state is baked into the APK; the host selects the scenario
-    (CRASH_SCENARIO), the report path (DOTNET_DbgMiniDumpName) and the reporter-enable
+    (CRASH_SCENARIO), the report root (DOTNET_CrashReportRootPath) and the reporter-enable
     flag (DOTNET_EnableCrashReport) at launch time.
   -->
   <PropertyGroup>

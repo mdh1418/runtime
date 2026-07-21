@@ -12,7 +12,8 @@ The CoreCLR **in-proc crash reporter** (`src/coreclr/debug/crashreport/`) runs
 only on **Android and iOS CoreCLR**. On a real fatal crash it emits two artifacts:
 
 1. a **compact console report** (Android: logcat, tag `DOTNET_CRASH`), and
-2. a **`*.crashreport.json`** file (path derived from `DOTNET_DbgMiniDumpName`).
+2. a lifecycle-managed **`*.crashreport.json`** file under
+   `DOTNET_CrashReportRootPath/.dotnet/crash-reports/`.
 
 We want **regression tests that validate the fidelity** of both outputs across a
 matrix of crash scenarios — *not* a byte-for-byte match (much of the report is
@@ -52,9 +53,8 @@ opposite ends.
 - The scenario is selected by an `INPROC_SCENARIO_*` **compile constant**
   (`InProcCrashReport.Common.props`); everything else (managed harness, native
   driver, PAL/minipal/watchdog shims, the real reporter `.cpp`s) is shared.
-- The real reporter sources (`signalsafeformatter.cpp`, `signalsafejsonwriter.cpp`,
-  `signalsafeconsolewriter.cpp`, `inproccrashreporter.cpp`) are compiled into the
-  app via `ExtraAppNativeSources`. The watchdog is **stubbed inert**
+- The real reporter sources (formatters, lifecycle manager, and reporter) are
+  compiled into the app via `ExtraAppNativeSources`. The watchdog is **stubbed inert**
   (`inproccrashreportwatchdog_teststub.cpp`) — it reuses the real *header* so the
   contract stays in sync, but avoids pulling in `pal/signal.hpp` and a live pthread.
 - Scenario projects present: `RichSigsegv/`, `Abort/`, `StackOverflow/`,
@@ -66,7 +66,7 @@ opposite ends.
 ### Layer 2 — real-crash host-driven harness (GREEN locally: 8/8 in ~41s)
 
 - **One** CoreCLR Android app (`RealCrash/CrashApp/`) triggers the crash. The
-  scenario, report path, and reporter-enable flag are supplied **at launch** as
+  scenario, report root, and reporter-enable flag are supplied **at launch** as
   environment variables, so a single APK serves the entire matrix. Marked
   `IgnoreForCI` (it is always-APP_CRASH; it must never be auto-run as a `/t:Test`).
 - A host **xUnit** project (`RealCrash/Host/`) installs the APK once, drives each
@@ -84,7 +84,7 @@ opposite ends.
 | `generics` | `abort()` through generic methods | generic frames render **without** type args (`Program.GenericCrash`) |
 | `stackoverflow` | deep self-recursion | **compact form** — see discoveries |
 | `interleaved` | `abort()` in an `UnmanagedCallersOnly` callback invoked by libc `qsort` | managed→native→managed unwind through the P/Invoke |
-| console-only | `abort()` with `DOTNET_DbgMiniDumpName` **unset** | console report emitted, **no** JSON file |
+| console-only | `abort()` with `DOTNET_CrashReportRootPath` **unset** | console report emitted, **no** JSON file |
 
 The first five share one `[Theory]`; the last three have dedicated test methods
 because their report shapes diverge.
@@ -94,8 +94,9 @@ because their report shapes diverge.
 - **Watchdog thread killing a stuck/hung reporter.** Layer 1 stubs the watchdog
   inert; Layer 2 has no way to force the reporter to hang. Needs investigation of
   a test seam (a hook/env knob to induce a hang) before it can be exercised.
-- **`*.crashreport.json` lifecycle / retention** (so devices don't bloat) — future
-  reporter feature; tests to follow once it exists.
+- **Lifecycle retention policy.** Both layers now exercise lifecycle-managed file
+  creation and unique-name discovery, but do not validate startup pruning,
+  `DOTNET_CrashReportMaxFileCount`, stale temp cleanup, or oldest-file replacement.
 - **Deferred-symbolication compact console form** — future reporter feature.
 - **CI / Helix wiring for Layer 2.** The host harness runs on the **build**
   machine, which has no device. In CI, device access is on **Helix agents**. The
@@ -124,22 +125,22 @@ most valuable thing to re-read before resuming.
 2. **One APK serves the whole matrix.** `MonoRunner` turns
    `am instrument -e env:KEY VALUE` extras into **environment variables set before
    runtime init**. So the host fully controls `CRASH_SCENARIO`,
-   `DOTNET_EnableCrashReport`, and `DOTNET_DbgMiniDumpName` at launch — no need to
+   `DOTNET_EnableCrashReport`, and `DOTNET_CrashReportRootPath` at launch — no need to
    bake scenarios into per-scenario APKs. (Layer 2 originally planned 4 APKs; this
    discovery collapsed it to one.)
 
 3. **SELinux blocks the obvious JSON path.** An installed app (`untrusted_app`
    domain) **cannot write under `/data/local/tmp`** (`shell_data_file`) even at
-   `0777` — DAC perms are irrelevant. ⇒ `DOTNET_DbgMiniDumpName` must point at the
-   app-internal dir `/data/data/<pkg>/files/...`, and the host pulls the file via
-   `adb exec-out run-as <pkg> cat files/<name>` (the app is debuggable). An earlier
+   `0777` — DAC perms are irrelevant. ⇒ `DOTNET_CrashReportRootPath` must point at
+   the app-internal dir `/data/data/<pkg>/files`, and the host discovers and pulls
+   the file under `files/.dotnet/crash-reports/` via `adb exec-out run-as` (the app
+   is debuggable). An earlier
    spike "worked" only because that file was written by the *shell* user.
 
-4. **Reporter enablement knobs (this tree).** `DOTNET_EnableCrashReport=1` (note:
-   **not** the `DOTNET_EnableInProcessCrashReport` name some branches use) plus
-   `DOTNET_DbgMiniDumpName=<path>`, both read at startup by `CrashReportConfigure`
-   during coreclr init (before `Main`). The JSON path is
-   `<DbgMiniDumpName>` + `.crashreport.json`.
+4. **Reporter enablement knobs (this tree).** `DOTNET_EnableCrashReport=1` plus
+   `DOTNET_CrashReportRootPath=<existing-directory>`, both read at startup by
+   `CrashReportConfigure` during coreclr init (before `Main`). The reporter creates
+   `.dotnet/crash-reports/report-<timestamp>-<pid>.crashreport.json` under the root.
 
 5. **Fidelity = shape, not bytes.** All volatile values (addresses, thread ids,
    timestamps, pid, commit hash) are asserted by **shape** (regex/structure) only,
@@ -166,8 +167,8 @@ most valuable thing to re-read before resuming.
    renders as bare `Program.GenericCrash`. Assertions match the bare name.
 
 9. **Console-only is the JSON-gating test.** Enabling the reporter **without**
-   `DOTNET_DbgMiniDumpName` leaves `m_reportPath` empty, so `CreateReport` sets
-   `jsonEnabled=false`: the console report is still emitted but **no** JSON file is
+   `DOTNET_CrashReportRootPath` leaves lifecycle-managed file output disabled:
+   the console report is still emitted but **no** JSON file is
    written. The test verifies absence via a **before/after snapshot** of the app's
    report files. Pitfall found the hard way: `run-as <pkg> sh -c "rm
    files/*.crashreport.json"` is a **no-op** — `adb shell` splits the args so the
@@ -217,7 +218,7 @@ From the repository root:
 $env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
 $env:ANDROID_NDK_ROOT = "$env:ANDROID_SDK_ROOT\ndk\27.2.12479018"
 $env:ADB_EXE_PATH = "$env:ANDROID_SDK_ROOT\platform-tools\adb.exe"
-$env:PATH = "$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
+$env:PATH = "C:\Program Files\Git\usr\bin;$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
 
 .\eng\common\dotnet.cmd --info
 .\build.cmd -s clr+libs -os android -arch x64 -c Release
@@ -225,7 +226,8 @@ $env:PATH = "$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env
 
 The single coherent baseline build is important. Split runtime and libraries
 builds can leave an incompatible `System.Private.CoreLib.dll` in the Android
-runtime pack.
+runtime pack. Current `main` also requires Git for Windows' `usr\bin` on `PATH`
+because the NativeAOT libunwind build invokes `sh` and GNU `sort`.
 
 With exactly one emulator attached, run every Layer 1 project:
 

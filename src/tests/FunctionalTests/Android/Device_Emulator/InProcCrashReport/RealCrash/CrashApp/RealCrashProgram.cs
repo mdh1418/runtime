@@ -14,11 +14,11 @@ using System.Threading;
 // With the reporter enabled (DOTNET_EnableCrashReport=1) the runtime's signal
 // path hands the fatal failure to the in-proc reporter, which writes its compact
 // console report to logcat (tag DOTNET_CRASH) and a *.crashreport.json file (path
-// derived from DOTNET_DbgMiniDumpName), and then the runtime aborts. The process
+// under DOTNET_CrashReportRootPath), and then the runtime aborts. The process
 // therefore always terminates via SIGABRT regardless of the original fault.
 //
 // This single app serves the whole scenario matrix: the host-driven test selects
-// the scenario, the report path, and the reporter-enable flag at launch time via
+// the scenario, the report root, and the reporter-enable flag at launch time via
 // `am instrument -e env:KEY VALUE` extras (MonoRunner turns those into environment
 // variables), so no scenario state is baked into the APK.
 public static class Program

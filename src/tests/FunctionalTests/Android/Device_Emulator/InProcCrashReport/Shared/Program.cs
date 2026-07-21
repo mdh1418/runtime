@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -50,21 +51,17 @@ public static class Program
 
     [DllImport(NativeLib)]
     private static extern int InProcCrashReportTest_DriveScenario(
-        int scenario, string reporterReportPath, string consoleCapturePath);
+        int scenario, string reporterRootPath, string consoleCapturePath);
 
     public static int Main()
     {
         string outputDir = GetWritableDirectory();
-        string reportPath = Path.Combine(outputDir, $"inproc_crashreport_scenario{ScenarioId}.dmp");
-        string jsonPath = reportPath + ".crashreport.json";
-        string consolePath = reportPath + ".console.txt";
+        string reportDir = Path.Combine(outputDir, ".dotnet", "crash-reports");
+        string consolePath = Path.Combine(outputDir, $"inproc_crashreport_scenario{ScenarioId}.console.txt");
+        string[] reportsBefore = ListReports(reportDir);
 
         try
         {
-            if (File.Exists(jsonPath))
-            {
-                File.Delete(jsonPath);
-            }
             if (File.Exists(consolePath))
             {
                 File.Delete(consolePath);
@@ -76,12 +73,12 @@ public static class Program
             return Failure;
         }
 
-        // In console-only mode the reporter is given an empty report path so the
-        // JSON file sink is disabled; the console capture path is always real.
-        string reporterReportPath = ExpectsJson ? reportPath : string.Empty;
+        // In console-only mode the reporter is given an empty root path so file
+        // output is disabled; the console capture path is always real.
+        string reporterRootPath = ExpectsJson ? outputDir : string.Empty;
 
         Console.WriteLine($"InProcCrashReport: driving scenario {ScenarioId} (expectsJson={ExpectsJson})");
-        int driveResult = InProcCrashReportTest_DriveScenario(ScenarioId, reporterReportPath, consolePath);
+        int driveResult = InProcCrashReportTest_DriveScenario(ScenarioId, reporterRootPath, consolePath);
         if (driveResult != 0)
         {
             Console.WriteLine($"FAIL: native driver returned {driveResult} for scenario {ScenarioId}");
@@ -90,19 +87,21 @@ public static class Program
 
 #if INPROC_SCENARIO_CONSOLEONLY
         // Compact-log-only mode: no JSON file must be produced.
-        if (File.Exists(jsonPath))
+        string[] unexpectedReports = ListReports(reportDir).Except(reportsBefore, StringComparer.Ordinal).ToArray();
+        if (unexpectedReports.Length != 0)
         {
-            Console.WriteLine($"FAIL: console-only mode unexpectedly produced '{jsonPath}'");
+            Console.WriteLine($"FAIL: console-only mode unexpectedly produced '{string.Join(", ", unexpectedReports)}'");
             return Failure;
         }
 #else
-        if (!File.Exists(jsonPath))
+        string[] newReports = ListReports(reportDir).Except(reportsBefore, StringComparer.Ordinal).ToArray();
+        if (newReports.Length != 1)
         {
-            Console.WriteLine($"FAIL: reporter did not produce '{jsonPath}'");
+            Console.WriteLine($"FAIL: expected one new lifecycle-managed report, found {newReports.Length}");
             return Failure;
         }
 
-        string json = File.ReadAllText(jsonPath);
+        string json = File.ReadAllText(newReports[0]);
         Console.WriteLine($"InProcCrashReport: report is {json.Length} bytes");
 
         if (!ValidateJson(json))
@@ -128,6 +127,11 @@ public static class Program
         Console.WriteLine($"PASS: scenario {ScenarioId} produced structurally valid crash report output");
         return Success;
     }
+
+    private static string[] ListReports(string reportDir) =>
+        Directory.Exists(reportDir)
+            ? Directory.GetFiles(reportDir, "report-*.crashreport.json")
+            : [];
 
     private static bool ValidateJson(string json) => ScenarioId switch
     {

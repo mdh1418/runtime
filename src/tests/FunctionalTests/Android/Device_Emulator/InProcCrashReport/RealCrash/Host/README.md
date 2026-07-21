@@ -25,7 +25,7 @@ out to `adb`. The host process's pass/fail is the verdict.
 
 | Path | Role |
 | --- | --- |
-| `../CrashApp/` | One CoreCLR Android app that triggers a real crash. The scenario, report path, and reporter-enable flag are supplied **at launch** via `am instrument -e env:KEY VALUE` (MonoRunner turns these into environment variables), so a single APK serves the whole matrix. Marked `IgnoreForCI` so it is never auto-run as a standalone (always-APP_CRASH) test. |
+| `../CrashApp/` | One CoreCLR Android app that triggers a real crash. The scenario, report root, and reporter-enable flag are supplied **at launch** via `am instrument -e env:KEY VALUE` (MonoRunner turns these into environment variables), so a single APK serves the whole matrix. Marked `IgnoreForCI` so it is never auto-run as a standalone (always-APP_CRASH) test. |
 | `Host/` | This xUnit harness. Installs the APK once, drives each scenario, validates both outputs. |
 
 ### Scenario matrix
@@ -39,7 +39,7 @@ out to `adb`. The host process's pass/fail is the verdict.
 | `generics` | `abort()` through generic methods | 6 (SIGABRT) | `Program.GenericCrash` / `GenericCrashInner` frames present (rendered without type args) |
 | `stackoverflow` | deep self-recursion | 6 (SIGABRT) | **compact form**: `System.StackOverflowException`, `stack_overflow_total_frames`, a single repeated `Program.StackOverflow` frame with `stack_overflow_repeat_count` (only the crashed thread is emitted) |
 | `interleaved` | `abort()` in an `UnmanagedCallersOnly` callback invoked by `libc qsort` | 6 (SIGABRT) | crashed stack unwinds the callback back through the P/Invoke: `CrashingComparer` → `qsort` → `InterleavedManaged` → `Main` |
-| console-only | `abort()` with `DOTNET_DbgMiniDumpName` **unset** | 6 (SIGABRT) | reporter emits the console report but writes **no** `*.crashreport.json` |
+| console-only | `abort()` with `DOTNET_CrashReportRootPath` **unset** | 6 (SIGABRT) | reporter emits the console report but writes **no** `*.crashreport.json` |
 
 The first five rows (`abort`, `sigsegv`, `unhandled`, `multithread`, `generics`) share one
 `[Theory]` and also assert: protocol version, architecture, process name, pid shape,
@@ -56,9 +56,10 @@ timestamps, pid, commit) are asserted by **shape only**, never pinned.
 The report is written to the app's **internal** data dir
 (`/data/data/<pkg>/files/...`). An installed app (domain `untrusted_app`) is
 blocked by **SELinux** from writing under `/data/local/tmp` (`shell_data_file`)
-even when DAC permissions look open, so `DOTNET_DbgMiniDumpName` must point at an
-app-owned location. The host pulls the file with
-`adb exec-out run-as <pkg> cat files/<name>` (the app is debuggable).
+even when DAC permissions look open, so `DOTNET_CrashReportRootPath` must point at
+the app-owned `/data/data/<pkg>/files` directory. The reporter writes uniquely
+named files under `.dotnet/crash-reports/`, and the host discovers and pulls them
+with `adb exec-out run-as <pkg>` (the app is debuggable).
 
 ## Running locally
 
@@ -68,7 +69,7 @@ app-owned location. The host pulls the file with
    ```pwsh
    $env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
    $env:ANDROID_NDK_ROOT = "$env:ANDROID_SDK_ROOT\ndk\27.2.12479018"
-   $env:PATH = "$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
+   $env:PATH = "C:\Program Files\Git\usr\bin;$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
 
    .\eng\common\dotnet.cmd --info
    .\build.cmd -s clr+libs -os android -arch x64 -c Release
@@ -79,8 +80,13 @@ app-owned location. The host pulls the file with
    ```pwsh
    .\.dotnet\dotnet.exe build -c Release `
      src\tests\FunctionalTests\Android\Device_Emulator\InProcCrashReport\RealCrash\CrashApp\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp.csproj `
-     /p:TargetOS=android /p:TargetArchitecture=x64 /p:RuntimeFlavor=coreclr /p:RuntimeConfiguration=Release
+     /p:TargetOS=android /p:TargetArchitecture=x64 /p:RuntimeFlavor=coreclr `
+     /p:RuntimeConfiguration=Release /p:IgnoreForCI=false
    ```
+
+   `IgnoreForCI=false` is required only for this explicit local APK build. The
+   project remains excluded from normal CI discovery, but current mobile build
+   targets otherwise skip app bundling for ignored projects.
 
 3. With an emulator running and `adb` on `PATH`, run the harness with a standalone
    .NET SDK:

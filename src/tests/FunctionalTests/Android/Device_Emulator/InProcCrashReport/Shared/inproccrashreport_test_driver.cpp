@@ -198,9 +198,10 @@ namespace
 
 // Drives one synthetic crash-report scenario.
 //
-// reporterReportPath is what the reporter is configured with: a real path enables
-// the JSON file sink (<path>.crashreport.json); an empty string disables it
-// (compact-log-only mode). consoleCapturePath is where the captured compact
+// reporterRootPath is what the reporter is configured with: an existing directory
+// enables lifecycle-managed JSON files under <root>/.dotnet/crash-reports; an
+// empty string disables file output (compact-log-only mode). consoleCapturePath
+// is where the captured compact
 // console report is written for the harness to read; it is always a real path so
 // console fidelity can be validated even in console-only mode. The compact report
 // is also emitted to logcat under the DOTNET_CRASH tag.
@@ -210,13 +211,14 @@ namespace
 // driven per process.
 extern "C" int InProcCrashReportTest_DriveScenario(
     int scenario,
-    const char* reporterReportPath,
+    const char* reporterRootPath,
     const char* consoleCapturePath)
 {
     InProcCrashReportTest_ResetConsoleCapture();
 
     InProcCrashReporterSettings settings = {};
-    settings.reportPath = reporterReportPath;
+    settings.reportRootPath = reporterRootPath;
+    settings.maxFileCount = 32;
     settings.timeoutSeconds = 30;
     settings.isManagedThreadCallback = &IsManagedThreadCallback;
     settings.walkStackCallback = nullptr;

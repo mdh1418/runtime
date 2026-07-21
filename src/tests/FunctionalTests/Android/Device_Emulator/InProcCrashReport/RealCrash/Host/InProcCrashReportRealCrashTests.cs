@@ -259,7 +259,7 @@ public sealed class InProcCrashReportRealCrashTests : IClassFixture<CrashAppDevi
     }
 
     /// <summary>
-    /// With the reporter enabled but no dump path configured (DOTNET_DbgMiniDumpName unset),
+    /// With the reporter enabled but no report root configured (DOTNET_CrashReportRootPath unset),
     /// the console report is still emitted but no *.crashreport.json file is written.
     /// </summary>
     [Fact]
