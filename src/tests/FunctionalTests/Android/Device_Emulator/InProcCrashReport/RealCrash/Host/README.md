@@ -62,7 +62,19 @@ app-owned location. The host pulls the file with
 
 ## Running locally
 
-1. Build the crash APK (from the repo root, with the Android build env set):
+1. For a fresh Windows worktree, initialize the repository SDK and produce one
+   coherent Android CoreCLR baseline:
+
+   ```pwsh
+   $env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
+   $env:ANDROID_NDK_ROOT = "$env:ANDROID_SDK_ROOT\ndk\27.2.12479018"
+   $env:PATH = "$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
+
+   .\eng\common\dotnet.cmd --info
+   .\build.cmd -s clr+libs -os android -arch x64 -c Release
+   ```
+
+2. Build the crash APK from the repo root:
 
    ```pwsh
    .\.dotnet\dotnet.exe build -c Release `
@@ -70,14 +82,18 @@ app-owned location. The host pulls the file with
      /p:TargetOS=android /p:TargetArchitecture=x64 /p:RuntimeFlavor=coreclr /p:RuntimeConfiguration=Release
    ```
 
-2. With an emulator running and `adb` on `PATH`, run the harness with a standalone
+3. With an emulator running and `adb` on `PATH`, run the harness with a standalone
    .NET SDK:
 
    ```pwsh
    cd src\tests\FunctionalTests\Android\Device_Emulator\InProcCrashReport\RealCrash\Host
    $env:INPROC_CRASH_DEVICE_ID = "emulator-5554"   # optional if exactly one device
+   $env:INPROC_CRASH_ADB = "$env:ANDROID_SDK_ROOT\platform-tools\adb.exe"
    dotnet test
    ```
+
+The complete host matrix was rerun from a fresh worktree on 2026-07-21 and
+passed 8 of 8 tests on an API 36 x64 emulator.
 
 ### Configuration (environment variables, all optional)
 

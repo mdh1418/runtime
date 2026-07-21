@@ -201,7 +201,58 @@ InProcCrashReport/
 
 ## How to run (quick reference)
 
-- **Layer 1:** standard functional test — `dotnet build /t:Test <scenario>.csproj`
+- **Layer 1:** standard functional test, `dotnet build /t:Test <scenario>.csproj`,
   with the Android build environment (expects exit 100 / XHarness green).
 - **Layer 2:** build the CrashApp APK, then run the host harness with the system
-  SDK — full steps in `RealCrash/Host/README.md`.
+  SDK. Full steps are in `RealCrash/Host/README.md`.
+
+### Fresh Windows worktree validation
+
+The complete suite was validated on 2026-07-21 from a fresh Windows worktree
+using an API 36 x64 emulator.
+
+From the repository root:
+
+```pwsh
+$env:ANDROID_SDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk"
+$env:ANDROID_NDK_ROOT = "$env:ANDROID_SDK_ROOT\ndk\27.2.12479018"
+$env:ADB_EXE_PATH = "$env:ANDROID_SDK_ROOT\platform-tools\adb.exe"
+$env:PATH = "$env:ANDROID_SDK_ROOT\platform-tools;$(Resolve-Path .\.dotnet);$env:PATH"
+
+.\eng\common\dotnet.cmd --info
+.\build.cmd -s clr+libs -os android -arch x64 -c Release
+```
+
+The single coherent baseline build is important. Split runtime and libraries
+builds can leave an incompatible `System.Private.CoreLib.dll` in the Android
+runtime pack.
+
+With exactly one emulator attached, run every Layer 1 project:
+
+```pwsh
+$projects = @(
+    "RichSigsegv\Android.Device_Emulator.InProcCrashReport.RichSigsegv.Test.csproj",
+    "Abort\Android.Device_Emulator.InProcCrashReport.Abort.Test.csproj",
+    "StackOverflow\Android.Device_Emulator.InProcCrashReport.StackOverflow.Test.csproj",
+    "ConsoleOnly\Android.Device_Emulator.InProcCrashReport.ConsoleOnly.Test.csproj"
+)
+
+foreach ($project in $projects) {
+    .\.dotnet\dotnet.exe build -c Release `
+        "src\tests\FunctionalTests\Android\Device_Emulator\InProcCrashReport\$project" `
+        /t:Test /p:TargetOS=android /p:TargetArchitecture=x64 `
+        /p:RuntimeFlavor=coreclr /p:RuntimeConfiguration=Release
+}
+```
+
+Do not set `AdditionalXHarnessArguments` as an MSBuild command-line property for
+these projects. A command-line global property cannot be appended to by
+`tests.mobile.targets`, which prevents it from adding
+`--expected-exit-code 100`. The app then passes and returns 100, but XHarness
+incorrectly reports a failure because it expects 0.
+
+Validated results:
+
+- Layer 1 synthetic suite: 4 of 4 passed.
+- Layer 2 real-crash host suite: 8 of 8 passed.
+- Emulator: Android 16, API 36, x86_64 (`emulator-5554`).
