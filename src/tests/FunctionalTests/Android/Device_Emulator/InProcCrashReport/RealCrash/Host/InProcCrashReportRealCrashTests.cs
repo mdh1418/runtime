@@ -7,7 +7,7 @@ using Xunit;
 namespace InProcCrashReport.RealCrash.Host;
 
 /// <summary>
-/// Layer-2 real-crash fidelity tests. Each theory case drives the CrashApp through a
+/// Real-crash integration tests. Each theory case drives the CrashApp through a
 /// real fatal crash handled by the real in-proc reporter inside libcoreclr, then asserts
 /// that both outputs (the *.crashreport.json file and the DOTNET_CRASH console report)
 /// have a STABLE structure. Volatile values (addresses, thread ids, timestamps, pid,

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Layer-2 real-crash app for the in-proc crash reporter integration tests.
+    Real-crash app for the in-proc crash reporter integration tests.
 
     This is a single CoreCLR Android app that triggers a REAL fatal crash handled
     by the REAL reporter in libcoreclr. It is NOT run as a standalone functional

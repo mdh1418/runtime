@@ -1,10 +1,10 @@
-# In-proc crash reporter — Layer 2 (real-crash) host-driven tests
+# In-proc crash reporter real-crash integration tests
 
-This directory contains **Layer 2** of the in-proc crash reporter tests: an
-integration check that a **real** fatal crash, handled by the **real** reporter
-inside `libcoreclr`, produces a high-fidelity crash report. It complements
-**Layer 1** (`../../` synthetic `/t:Test` apps that recompile the reporter and
-feed it fabricated data so the process survives and returns exit 100).
+This directory contains integration checks that a **real** fatal crash, handled
+by the **real** reporter inside `libcoreclr`, produces a high-fidelity crash
+report. They complement the synthetic fidelity tests (`../../` synthetic
+`/t:Test` apps that recompile the reporter and feed it fabricated data so the
+process survives and returns exit 100).
 
 ## Why this is host-driven (and not a `/t:Test` functional test)
 

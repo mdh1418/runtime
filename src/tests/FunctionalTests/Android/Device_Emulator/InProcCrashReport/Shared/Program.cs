@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 
 /// <summary>
-/// Layer 1 fidelity gate for the CoreCLR in-proc crash reporter.
+/// Synthetic fidelity gate for the CoreCLR in-proc crash reporter.
 ///
 /// The native driver (recompiled real reporter sources) is invoked with synthetic
 /// callback data to produce a *.crashreport.json file and a compact console report;

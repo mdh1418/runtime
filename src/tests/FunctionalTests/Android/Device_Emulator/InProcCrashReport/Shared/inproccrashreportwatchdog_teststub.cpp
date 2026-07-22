@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// Test-only replacement for inproccrashreportwatchdog.cpp. The Layer 1 fidelity
+// Test-only replacement for inproccrashreportwatchdog.cpp. The synthetic fidelity
 // test recompiles the real reporter sources but deliberately does NOT compile the
 // real watchdog implementation, because that pulls in CoreCLR's pal/signal.hpp
 // (BuildFatalSignalSet, SEHCleanupSignals, ...) and spins a pthread on a

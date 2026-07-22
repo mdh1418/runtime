@@ -5,9 +5,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-// Layer-2 real-crash integration harness for the in-proc crash reporter.
+// Real-crash integration harness for the in-proc crash reporter.
 //
-// Unlike the Layer-1 synthetic tests (which recompile the reporter and feed it
+// Unlike the synthetic fidelity tests (which recompile the reporter and feed it
 // fabricated callback data so the process survives and returns exit 100), this
 // drives a REAL fatal crash through the REAL reporter that lives in libcoreclr.
 //
@@ -65,7 +65,7 @@ public static class Program
                 break;
 
             case "unhandled":
-                Crash(static () => throw new InvalidOperationException("Layer-2 unhandled managed exception"));
+                Crash(static () => throw new InvalidOperationException("Real-crash integration test unhandled managed exception"));
                 break;
 
             case "multithread":

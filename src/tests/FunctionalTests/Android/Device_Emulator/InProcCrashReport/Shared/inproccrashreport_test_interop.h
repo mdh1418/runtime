@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// Shared declarations for the in-proc crash reporter Layer 1 test's console
+// Shared declarations for the in-proc crash reporter synthetic test's console
 // capture. The compact console report is written by the reporter via
 // __android_log_write (Android logcat); android_log_interpose.c intercepts those
 // writes so the report can be validated in-process alongside the JSON file.

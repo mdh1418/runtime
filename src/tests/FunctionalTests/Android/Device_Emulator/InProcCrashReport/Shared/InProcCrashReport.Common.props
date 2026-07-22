@@ -1,6 +1,6 @@
 <Project>
   <!--
-    Shared configuration for the in-proc crash reporter Layer-1 fidelity tests.
+    Shared configuration for the in-proc crash reporter synthetic fidelity tests.
 
     Each signal-path scenario is a separate functional-test project (its own app
     launch) because a fatal report is generated only once per process. A

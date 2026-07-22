@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // Test-only shim standing in for CoreCLR's pal.h when the in-proc crash reporter
-// sources are recompiled into the Android functional-test app (Layer 1 fidelity
+// sources are recompiled into the Android functional-test app (synthetic fidelity
 // gate). It provides the *entire* PAL surface that inproccrashreporter.cpp and
 // the watchdog header actually use: two integer typedefs, the Interlocked*
 // atomics, GetCurrentProcessId, and the crash-report callback setter. The setter

@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// Layer 1 fidelity-gate driver for the in-proc crash reporter.
+// Synthetic fidelity driver for the in-proc crash reporter.
 //
 // The real reporter sources (signalsafe*.cpp + inproccrashreporter.cpp) are
 // recompiled into this functional-test app and driven with purely synthetic,
@@ -14,7 +14,7 @@
 // report construction). It deliberately does NOT cover the product integration
 // path (real PAL signal dispatch, real ucontext, VM stack-walk callbacks, real
 // module lookup, watchdog timing, libcoreclr packaging) -- that is the job of the
-// host-driven Layer 2 integration test.
+// host-driven real-crash integration test.
 //
 // Each fatal-signal scenario runs in its OWN process (its own functional-test
 // project). The on-demand scenario exercises the reusable caller-sink API.

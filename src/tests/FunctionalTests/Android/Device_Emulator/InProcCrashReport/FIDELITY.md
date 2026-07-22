@@ -59,7 +59,7 @@ installed elsewhere.
 
 ## Two complementary fidelity layers
 
-### Layer 1: synthetic reporter tests
+### Synthetic fidelity tests
 
 Five Android functional-test apps compile the real reporter sources into the
 test app and feed deterministic callback data into them. The process survives,
@@ -78,7 +78,7 @@ The synthetic logs are retained because XHarness owns and removes each
 application after execution. The generated report contents are evaluated inside
 the application before the PASS result is emitted.
 
-### Layer 2: real fatal-crash tests
+### Real-crash integration tests
 
 The host xUnit harness launches a real CoreCLR Android app and expects the app to
 die. It then pulls the lifecycle-managed JSON through `adb run-as`, captures the

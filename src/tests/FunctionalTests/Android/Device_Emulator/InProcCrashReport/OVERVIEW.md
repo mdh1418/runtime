@@ -21,18 +21,18 @@ inherently run-time-dependent: addresses, thread ids, timestamps, pid, commit
 hash), but a check that the **structure is stable and does not regress**.
 
 The reporter also supports programmatic, on-demand reports through a
-caller-provided output callback. Layer 1 validates that API independently from
+caller-provided output callback. The synthetic fidelity suite validates that API independently from
 the fatal-signal services and lifecycle-managed file output.
 
 This effort currently targets **Android CoreCLR on an x64 emulator** (Windows
 host). iOS and other Android architectures are out of scope for now.
 
-## Two-layer strategy (the central design decision)
+## Two complementary test suites (the central design decision)
 
 A real fatal crash cannot be expressed as a normal green test, so the suite is
 split into two complementary layers:
 
-| | **Layer 1 — synthetic** | **Layer 2 — real crash** |
+| | **Synthetic fidelity tests** | **Real-crash integration tests** |
 | --- | --- | --- |
 | Location | `./` (`Shared/` + per-scenario projects) | `./RealCrash/` |
 | What crashes | nothing — the process **survives** | a **real** fatal signal |
@@ -41,14 +41,14 @@ split into two complementary layers:
 | Runs in CI as | a standard functional `/t:Test` | (designed) a Helix work item; **not yet wired** |
 | Strength | fast, deterministic, hermetic; can probe code paths hard to trigger for real | true end-to-end fidelity, real unwinder/signal path |
 
-Why both: Layer 1 gives cheap, deterministic, CI-ready coverage of the
-report-*formatting* code, while Layer 2 proves the whole real crash→report
+Why both: the synthetic suite gives cheap, deterministic, CI-ready coverage of the
+report-*formatting* code, while the real-crash suite proves the whole real crash→report
 pipeline actually works on a device. They validate the same reporter from
 opposite ends.
 
 ## What has been done
 
-### Layer 1 — synthetic fidelity suite (GREEN locally, CI-ready)
+### Synthetic fidelity suite (GREEN locally, CI-ready)
 
 - A shared-source multi-project suite under `Shared/` imported by five
   `.csproj`s. Each fatal-signal scenario is its **own** functional-test project,
@@ -72,7 +72,7 @@ opposite ends.
   changed to compile C++ `ExtraAppNativeSources` (previously C-only), which is
   what lets the app embed the reporter `.cpp`s.
 
-### Layer 2 — real-crash host-driven harness (GREEN locally: 8/8 in ~41s)
+### Real-crash integration suite (GREEN locally: 8/8 in ~41s)
 
 - **One** CoreCLR Android app (`RealCrash/CrashApp/`) triggers the crash. The
   scenario, report root, and reporter-enable flag are supplied **at launch** as
@@ -82,7 +82,7 @@ opposite ends.
   scenario over raw `adb`, pulls the JSON + the `DOTNET_CRASH` logcat, and asserts
   structural fidelity (shape only). See `RealCrash/Host/README.md` for run steps.
 
-#### Layer 2 scenario matrix (all signal 6 / SIGABRT unless noted)
+#### Real-crash scenario matrix (all signal 6 / SIGABRT unless noted)
 
 | Scenario | Fault | Notable shape |
 | --- | --- | --- |
@@ -100,14 +100,14 @@ because their report shapes diverge.
 
 ## What is still left to do
 
-- **Watchdog thread killing a stuck/hung reporter.** Layer 1 stubs the watchdog
-  inert; Layer 2 has no way to force the reporter to hang. Needs investigation of
+- **Watchdog thread killing a stuck/hung reporter.** The synthetic suite stubs the watchdog
+  inert; the real-crash suite has no way to force the reporter to hang. Needs investigation of
   a test seam (a hook/env knob to induce a hang) before it can be exercised.
 - **Lifecycle retention policy.** Both layers now exercise lifecycle-managed file
   creation and unique-name discovery, but do not validate startup pruning,
   `DOTNET_CrashReportMaxFileCount`, stale temp cleanup, or oldest-file replacement.
 - **Deferred-symbolication compact console form** — future reporter feature.
-- **CI / Helix wiring for Layer 2.** The host harness runs on the **build**
+- **CI / Helix wiring for the real-crash suite.** The host harness runs on the **build**
   machine, which has no device. In CI, device access is on **Helix agents**. The
   packaging is **designed but unvalidated** (see `RealCrash/Host/README.md`): ship
   the CrashApp APK + a self-contained host harness as a **single Helix work item**
@@ -127,15 +127,15 @@ most valuable thing to re-read before resuming.
 1. **A real crash can never be a green `/t:Test`.** A fatal signal in the Android
    *instrumentation* process makes `am instrument` report `shortMsg=Process
    crashed`, which XHarness classifies as **APP_CRASH** regardless of
-   `--expected-exit-code`. ⇒ Layer 2 must be **host-driven**: the host launches the
+   `--expected-exit-code`. ⇒ The real-crash suite must be **host-driven**: the host launches the
    app (expecting it to crash) and the *host's* pass/fail is the verdict. This is
-   the root reason Layer 2 exists separately from Layer 1.
+   the root reason the real-crash suite exists separately from the synthetic suite.
 
 2. **One APK serves the whole matrix.** `MonoRunner` turns
    `am instrument -e env:KEY VALUE` extras into **environment variables set before
    runtime init**. So the host fully controls `CRASH_SCENARIO`,
    `DOTNET_EnableCrashReport`, and `DOTNET_CrashReportRootPath` at launch — no need to
-   bake scenarios into per-scenario APKs. (Layer 2 originally planned 4 APKs; this
+   bake scenarios into per-scenario APKs. (The real-crash suite originally planned 4 APKs; this
    discovery collapsed it to one.)
 
 3. **SELinux blocks the obvious JSON path.** An installed app (`untrusted_app`
@@ -200,11 +200,11 @@ most valuable thing to re-read before resuming.
 ```
 InProcCrashReport/
 ├─ OVERVIEW.md                     ← this file
-├─ Shared/                         ← Layer 1: shared managed harness, native driver,
+├─ Shared/                         ← synthetic: shared managed harness, native driver,
 │                                     reporter-source imports, inert watchdog stub
 ├─ Abort/  ConsoleOnly/  OnDemand/  RichSigsegv/  StackOverflow/
-│                                  ← Layer 1 projects
-└─ RealCrash/                      ← Layer 2 (real crash, host-driven)
+│                                  ← synthetic fidelity projects
+└─ RealCrash/                      ← real-crash integration tests
    ├─ CrashApp/                    ← single on-device crash app (one APK, env-driven)
    └─ Host/                        ← desktop xUnit harness over adb (the verdict)
       └─ README.md                 ← run steps + CI/Helix design (unvalidated)
@@ -216,9 +216,9 @@ InProcCrashReport/
   [`Run-InProcCrashReportTests.ps1`](Run-InProcCrashReportTests.ps1). See
   [`FIDELITY.md`](FIDELITY.md) for the result layout, scenario coverage, and
   post-crash fidelity model.
-- **Layer 1:** standard functional test, `dotnet build /t:Test <scenario>.csproj`,
+- **Synthetic fidelity tests:** standard functional test, `dotnet build /t:Test <scenario>.csproj`,
   with the Android build environment (expects exit 100 / XHarness green).
-- **Layer 2:** build the CrashApp APK, then run the host harness with the system
+- **Real-crash integration tests:** build the CrashApp APK, then run the host harness with the system
   SDK. Full steps are in `RealCrash/Host/README.md`.
 
 ### Fresh Windows worktree validation
@@ -243,7 +243,7 @@ builds can leave an incompatible `System.Private.CoreLib.dll` in the Android
 runtime pack. Current `main` also requires Git for Windows' `usr\bin` on `PATH`
 because the NativeAOT libunwind build invokes `sh` and GNU `sort`.
 
-With exactly one emulator attached, run every Layer 1 project:
+With exactly one emulator attached, run every synthetic fidelity project:
 
 ```pwsh
 $projects = @(
@@ -270,7 +270,7 @@ incorrectly reports a failure because it expects 0.
 
 Validated results:
 
-- Layer 1 synthetic suite: 5 of 5 passed.
-- Layer 2 real-crash host suite: 8 of 8 passed.
+- Synthetic fidelity suite: 5 of 5 passed.
+- Real-crash integration suite: 8 of 8 passed.
 - Total: 13 of 13 passed.
 - Emulator: Android 16, API 36, x86_64 (`emulator-5554`).

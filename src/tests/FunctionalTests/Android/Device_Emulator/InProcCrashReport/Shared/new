@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// Minimal <new> shim for the Layer 1 in-proc crash reporter test.
+// Minimal <new> shim for the synthetic in-proc crash reporter test.
 //
 // The Android app builder configures the NDK toolchain with ANDROID_STL=none
 // (so -nostdinc++ is in effect and no C++ standard library headers are on the

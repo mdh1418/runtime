@@ -2,7 +2,7 @@
 
   <!--
     Host-driven xUnit harness for the in-proc crash reporter's REAL-crash output
-    fidelity (Layer 2). This is a DESKTOP test project: it runs on the host (or, in
+    fidelity. This is a DESKTOP test project: it runs on the host (or, in
     CI, on the Android Helix agent), shells out to `adb`, drives the CrashApp APK once
     per crash scenario, then validates the pulled *.crashreport.json and the
     DOTNET_CRASH logcat output for stable structure (never byte-for-byte).
