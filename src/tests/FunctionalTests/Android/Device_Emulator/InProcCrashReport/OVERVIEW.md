@@ -21,30 +21,28 @@ inherently run-time-dependent: addresses, thread ids, timestamps, pid, commit
 hash), but a check that the **structure is stable and does not regress**.
 
 The reporter also supports programmatic, on-demand reports through a
-caller-provided output callback. The synthetic fidelity suite validates that API independently from
-the fatal-signal services and lifecycle-managed file output.
+caller-provided output callback. The synthetic suite validates edge cases with
+deterministic callbacks, and a separate real-runtime test validates the API
+against CoreCLR's actual VM thread and stack-walk callbacks.
 
 This effort currently targets **Android CoreCLR on an x64 emulator** (Windows
 host). iOS and other Android architectures are out of scope for now.
 
-## Two complementary test suites (the central design decision)
+## Three complementary test suites
 
-A real fatal crash cannot be expressed as a normal green test, so the suite is
-split into two complementary layers:
+A real fatal crash cannot be expressed as a normal green test, so coverage is
+split into three complementary suites:
 
-| | **Synthetic fidelity tests** | **Real-crash integration tests** |
-| --- | --- | --- |
-| Location | `./` (`Shared/` + per-scenario projects) | `./RealCrash/` |
-| What crashes | nothing — the process **survives** | a **real** fatal signal |
-| How | recompiles the **real reporter sources** into a test app and feeds them **fabricated** callback data via a synthetic native driver | drives a **real** crash through the **real** reporter inside `libcoreclr` |
-| Verdict | app returns exit **100** → green XHarness `/t:Test` | a **host** process (xUnit over `adb`) inspects the pulled artifacts |
-| Runs in CI as | a standard functional `/t:Test` | (designed) a Helix work item; **not yet wired** |
-| Strength | fast, deterministic, hermetic; can probe code paths hard to trigger for real | true end-to-end fidelity, real unwinder/signal path |
+| | **Synthetic fidelity** | **Real-runtime on demand** | **Real-crash integration** |
+| --- | --- | --- | --- |
+| Location | `Shared/` plus per-scenario projects | `RealOnDemand/` | `RealCrash/` |
+| What crashes | nothing, the process survives | nothing, the process survives | a real fatal signal |
+| How | recompiles reporter sources and feeds fabricated callback data | statically links actual CoreCLR and invokes its reporter singleton through a test wrapper | drives a real crash through the reporter inside `libcoreclr` |
+| Verdict | app returns exit 100 | app returns exit 100, then the host reconstructs and parses retained output | a host xUnit process over `adb` inspects pulled artifacts |
+| Strength | deterministic format and error-path coverage | actual API, singleton, VM thread enumeration, and stack walking | full signal-to-artifact pipeline |
 
-Why both: the synthetic suite gives cheap, deterministic, CI-ready coverage of the
-report-*formatting* code, while the real-crash suite proves the whole real crash→report
-pipeline actually works on a device. They validate the same reporter from
-opposite ends.
+Together they separate deterministic formatter checks, live on-demand API
+checks, and destructive fatal-crash checks.
 
 ## What has been done
 
@@ -81,6 +79,20 @@ opposite ends.
 - A host **xUnit** project (`RealCrash/Host/`) installs the APK once, drives each
   scenario over raw `adb`, pulls the JSON + the `DOTNET_CRASH` logcat, and asserts
   structural fidelity (shape only). See `RealCrash/Host/README.md` for run steps.
+
+### Real-runtime on-demand integration (GREEN locally)
+
+- `RealOnDemand/` statically links the actual CoreCLR runtime.
+- A test-only native wrapper in the same image calls the internal C++ API without
+  exporting it from production `libcoreclr`.
+- Reporter initialization uses the normal startup configuration and real VM
+  callbacks.
+- Two JSON reports and one compact log are generated in a live managed process.
+- The requesting managed thread and a parked managed worker are present in both
+  formats.
+- The exact report bytes are retained by the durable runner after XHarness
+  removes the app.
+- The on-demand calls leave the lifecycle-managed report count unchanged.
 
 #### Real-crash scenario matrix (all signal 6 / SIGABRT unless noted)
 
@@ -204,6 +216,7 @@ InProcCrashReport/
 │                                     reporter-source imports, inert watchdog stub
 ├─ Abort/  ConsoleOnly/  OnDemand/  RichSigsegv/  StackOverflow/
 │                                  ← synthetic fidelity projects
+├─ RealOnDemand/                   ← actual CoreCLR on-demand API and VM callbacks
 └─ RealCrash/                      ← real-crash integration tests
    ├─ CrashApp/                    ← single on-device crash app (one APK, env-driven)
    └─ Host/                        ← desktop xUnit harness over adb (the verdict)
@@ -218,6 +231,9 @@ InProcCrashReport/
   post-crash fidelity model.
 - **Synthetic fidelity tests:** standard functional test, `dotnet build /t:Test <scenario>.csproj`,
   with the Android build environment (expects exit 100 / XHarness green).
+- **Real-runtime on-demand test:** standard functional test,
+  `dotnet build /t:Test RealOnDemand/<project>.csproj`, with static CoreCLR
+  linking and embedded reporter enablement.
 - **Real-crash integration tests:** build the CrashApp APK, then run the host harness with the system
   SDK. Full steps are in `RealCrash/Host/README.md`.
 

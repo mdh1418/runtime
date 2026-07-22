@@ -29,6 +29,7 @@ else
 }
 
 $syntheticDirectory = Join-Path $ResultsDirectory "synthetic"
+$realOnDemandDirectory = Join-Path $ResultsDirectory "real-on-demand"
 $realCrashDirectory = Join-Path $ResultsDirectory "real-crash"
 if (Test-Path $ResultsDirectory -PathType Container)
 {
@@ -38,7 +39,7 @@ if (Test-Path $ResultsDirectory -PathType Container)
     }
 }
 
-New-Item -ItemType Directory -Force $syntheticDirectory, $realCrashDirectory | Out-Null
+New-Item -ItemType Directory -Force $syntheticDirectory, $realOnDemandDirectory, $realCrashDirectory | Out-Null
 
 $repoDotnet = Join-Path $repoRoot ".dotnet\dotnet.exe"
 $installedDotnet = Join-Path $env:ProgramFiles "dotnet\dotnet.exe"
@@ -105,6 +106,59 @@ function Get-RealCrashScenarioName
     return $null
 }
 
+function Export-EmbeddedArtifacts
+{
+    param(
+        [string] $LogPath,
+        [string] $OutputDirectory
+    )
+
+    $artifacts = @{}
+    foreach ($line in Get-Content $LogPath)
+    {
+        if ($line -match 'INPROC_ARTIFACT:([^:]+):(\d+):(\d+):([A-Za-z0-9+/=]+)')
+        {
+            $name = $Matches[1]
+            if (!$artifacts.ContainsKey($name))
+            {
+                $artifacts[$name] = [Collections.Generic.List[object]]::new()
+            }
+
+            $artifacts[$name].Add([pscustomobject]@{
+                Index = [int]$Matches[2]
+                Count = [int]$Matches[3]
+                Data = $Matches[4]
+            })
+        }
+    }
+
+    foreach ($name in @("first-report.json", "second-report.json", "report.log"))
+    {
+        if (!$artifacts.ContainsKey($name))
+        {
+            throw "Test output did not contain embedded artifact '$name'."
+        }
+
+        $chunks = @($artifacts[$name] | Sort-Object Index)
+        $expectedCount = $chunks[0].Count
+        if ($chunks.Count -ne $expectedCount -or
+            $chunks.Where({ $_.Count -ne $expectedCount }).Count -ne 0)
+        {
+            throw "Embedded artifact '$name' has an incomplete chunk set."
+        }
+        for ($index = 0; $index -lt $chunks.Count; $index++)
+        {
+            if ($chunks[$index].Index -ne $index)
+            {
+                throw "Embedded artifact '$name' is missing chunk $index."
+            }
+        }
+
+        $bytes = [Convert]::FromBase64String(($chunks.Data -join ""))
+        [IO.File]::WriteAllBytes((Join-Path $OutputDirectory $name), $bytes)
+    }
+}
+
 $syntheticProjects = [ordered]@{
     "rich-sigsegv" = "RichSigsegv\Android.Device_Emulator.InProcCrashReport.RichSigsegv.Test.csproj"
     "abort" = "Abort\Android.Device_Emulator.InProcCrashReport.Abort.Test.csproj"
@@ -125,6 +179,84 @@ foreach ($entry in $syntheticProjects.GetEnumerator())
             /p:TargetOS=android /p:TargetArchitecture=x64 `
             /p:RuntimeFlavor=coreclr /p:RuntimeConfiguration=Release --nologo
     } | Out-Null
+}
+
+$realOnDemandProject = Join-Path $testRoot "RealOnDemand\Android.Device_Emulator.InProcCrashReport.RealOnDemand.Test.csproj"
+$realOnDemandLog = Join-Path $realOnDemandDirectory "test.log"
+$realOnDemandExitCode = Invoke-TestCommand "real-runtime-on-demand" "real-on-demand" $realOnDemandLog {
+    & $repoDotnet build -c Release $realOnDemandProject /t:Test `
+        /p:TargetOS=android /p:TargetArchitecture=x64 `
+        /p:RuntimeFlavor=coreclr /p:RuntimeConfiguration=Release `
+        /p:ArchiveTests=false --nologo
+}
+
+if ($realOnDemandExitCode -eq 0)
+{
+    try
+    {
+        Export-EmbeddedArtifacts $realOnDemandLog $realOnDemandDirectory
+        $firstReport = Get-Content -Raw (Join-Path $realOnDemandDirectory "first-report.json") | ConvertFrom-Json
+        $secondReport = Get-Content -Raw (Join-Path $realOnDemandDirectory "second-report.json") | ConvertFrom-Json
+        $compactLog = Get-Content -Raw (Join-Path $realOnDemandDirectory "report.log")
+        $firstThreads = @($firstReport.payload.threads)
+        $secondThreads = @($secondReport.payload.threads)
+        $firstMethods = @($firstThreads.stack_frames.method_name)
+        $secondMethods = @($secondThreads.stack_frames.method_name)
+        $validation = [ordered]@{
+            firstProtocol = $firstReport.payload.protocol_version
+            secondProtocol = $secondReport.payload.protocol_version
+            firstSignal = $firstReport.parameters.signal
+            secondSignal = $secondReport.parameters.signal
+            firstThreadCount = $firstThreads.Count
+            secondThreadCount = $secondThreads.Count
+            firstCrashedThreadCount = @($firstThreads.Where({ $_.crashed -eq "true" })).Count
+            secondCrashedThreadCount = @($secondThreads.Where({ $_.crashed -eq "true" })).Count
+            firstHasRequestingFrame = $firstMethods.Where({ $_ -like "*CaptureReports*" }).Count -ne 0
+            secondHasRequestingFrame = $secondMethods.Where({ $_ -like "*CaptureReports*" }).Count -ne 0
+            firstHasParkedWorker = $firstMethods.Where({ $_ -like "*ParkedWorker*" }).Count -ne 0
+            secondHasParkedWorker = $secondMethods.Where({ $_ -like "*ParkedWorker*" }).Count -ne 0
+            logHasSignal = $compactLog.Contains("signal 6 (SIGABRT)", [StringComparison]::Ordinal)
+            logHasCrashedThread = $compactLog.Contains("(crashed) ---", [StringComparison]::Ordinal)
+            logHasRequestingFrame = $compactLog.Contains("Program.CaptureReports", [StringComparison]::Ordinal)
+            logHasParkedWorker = $compactLog.Contains("Program.ParkedWorker", [StringComparison]::Ordinal)
+            deviceValidatedLifecycleReportCountUnchanged = $true
+        }
+
+        $validation |
+            ConvertTo-Json |
+            Set-Content -Encoding utf8NoBOM (Join-Path $realOnDemandDirectory "validation.json")
+
+        $invalid = $validation.GetEnumerator().Where({
+            ($_.Value -is [bool] -and !$_.Value) -or
+            ($_.Key -in @("firstProtocol", "secondProtocol") -and $_.Value -ne "1.0.0") -or
+            ($_.Key -in @("firstSignal", "secondSignal") -and $_.Value -ne "6") -or
+            ($_.Key -in @("firstThreadCount", "secondThreadCount") -and [int]$_.Value -lt 1) -or
+            ($_.Key -in @("firstCrashedThreadCount", "secondCrashedThreadCount") -and [int]$_.Value -ne 1)
+        })
+        if ($invalid.Count -ne 0)
+        {
+            throw "Retained real on-demand artifacts failed host-side validation."
+        }
+
+        $results.Add([pscustomobject]@{
+            Name = "real-runtime-on-demand-artifacts"
+            Kind = "artifact-validation"
+            Status = "PASS"
+            ExitCode = $null
+            Log = [IO.Path]::GetRelativePath($ResultsDirectory, (Join-Path $realOnDemandDirectory "validation.json"))
+        })
+    }
+    catch
+    {
+        $_ | Out-String | Add-Content $realOnDemandLog
+        $results.Add([pscustomobject]@{
+            Name = "real-runtime-on-demand-artifacts"
+            Kind = "artifact-validation"
+            Status = "FAIL"
+            ExitCode = $null
+            Log = [IO.Path]::GetRelativePath($ResultsDirectory, $realOnDemandLog)
+        })
+    }
 }
 
 $crashAppProject = Join-Path $testRoot "RealCrash\CrashApp\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp.csproj"
@@ -219,7 +351,7 @@ $summary.Add("# In-proc crash reporter test results")
 $summary.Add("")
 $summary.Add("Generated at $([DateTime]::UtcNow.ToString("O")).")
 $summary.Add("")
-$summary.Add("| Test | Layer | Status | Exit code | Log |")
+$summary.Add("| Test | Suite | Status | Exit code | Log |")
 $summary.Add("| --- | --- | --- | ---: | --- |")
 foreach ($result in $results)
 {
@@ -228,7 +360,7 @@ foreach ($result in $results)
     $summary.Add("| $($result.Name) | $($result.Kind) | $($result.Status) | $exitCode | $logLink |")
 }
 $summary.Add("")
-$summary.Add('When capture succeeds, real-crash scenario directories contain the exact `report.json` and `console.txt` inputs evaluated by the host assertions. Failed capture attempts still retain their `validation.json` result.')
+$summary.Add('When capture succeeds, the real on-demand directory contains both exact JSON reports and the compact log, and real-crash scenario directories contain the exact `report.json` and `console.txt` inputs evaluated by the assertions. Failed capture attempts still retain their validation records.')
 $summary |
     Set-Content -Encoding utf8NoBOM (Join-Path $ResultsDirectory "README.md")
 

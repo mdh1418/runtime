@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Invokes the on-demand reporter inside the actual statically linked CoreCLR
+       runtime, using the runtime's real VM thread and stack-walk callbacks. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <TestRuntime>true</TestRuntime>
+    <TargetFramework>$(NetCoreAppCurrent)</TargetFramework>
+    <ExpectedExitCode>100</ExpectedExitCode>
+    <StaticLinkedRuntime>true</StaticLinkedRuntime>
+
+    <AssemblyName>Android.Device_Emulator.InProcCrashReport.RealOnDemand.Test</AssemblyName>
+    <MainLibraryFileName>Android.Device_Emulator.InProcCrashReport.RealOnDemand.Test.dll</MainLibraryFileName>
+
+    <CrashReportSourceDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', '..', '..', '..', '..', 'coreclr', 'debug', 'crashreport'))</CrashReportSourceDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Embed the setting in the Android host so it is applied before CoreCLR
+         starts and initializes the reporter with real VM callbacks. -->
+    <AndroidEnv Include="DOTNET_EnableCrashReport">
+      <Value>1</Value>
+    </AndroidEnv>
+    <Compile Include="RealOnDemandProgram.cs" />
+    <ExtraAppNativeSources Include="real_ondemand_driver.cpp" />
+    <RuntimeHeaders Include="$(CrashReportSourceDir.TrimEnd('\').TrimEnd('/'))" />
+  </ItemGroup>
+</Project>
