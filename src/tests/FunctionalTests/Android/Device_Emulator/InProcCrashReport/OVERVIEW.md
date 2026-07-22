@@ -20,6 +20,10 @@ matrix of crash scenarios — *not* a byte-for-byte match (much of the report is
 inherently run-time-dependent: addresses, thread ids, timestamps, pid, commit
 hash), but a check that the **structure is stable and does not regress**.
 
+The reporter also supports programmatic, on-demand reports through a
+caller-provided output callback. Layer 1 validates that API independently from
+the fatal-signal services and lifecycle-managed file output.
+
 This effort currently targets **Android CoreCLR on an x64 emulator** (Windows
 host). iOS and other Android architectures are out of scope for now.
 
@@ -46,10 +50,10 @@ opposite ends.
 
 ### Layer 1 — synthetic fidelity suite (GREEN locally, CI-ready)
 
-- A shared-source multi-project suite under `Shared/` imported by per-scenario
-  `.csproj`s. Each scenario is its **own** functional-test project because the
-  reporter generates **exactly one report per process** (a one-shot, never-reset
-  `s_generating` guard in `CreateReport`), so one scenario == one app launch.
+- A shared-source multi-project suite under `Shared/` imported by five
+  `.csproj`s. Each fatal-signal scenario is its **own** functional-test project,
+  so one scenario == one app launch. The on-demand project generates multiple
+  reports in one process to validate repeatability.
 - The scenario is selected by an `INPROC_SCENARIO_*` **compile constant**
   (`InProcCrashReport.Common.props`); everything else (managed harness, native
   driver, PAL/minipal/watchdog shims, the real reporter `.cpp`s) is shared.
@@ -57,8 +61,13 @@ opposite ends.
   compiled into the app via `ExtraAppNativeSources`. The watchdog is **stubbed inert**
   (`inproccrashreportwatchdog_teststub.cpp`) — it reuses the real *header* so the
   contract stays in sync, but avoids pulling in `pal/signal.hpp` and a live pthread.
-- Scenario projects present: `RichSigsegv/`, `Abort/`, `StackOverflow/`,
-  `ConsoleOnly/`. Validate both the JSON and the compact console report.
+- Fatal-signal scenario projects: `RichSigsegv/`, `Abort/`, `StackOverflow/`,
+  and `ConsoleOnly/`. They validate both JSON and the compact console report.
+- The `OnDemand/` project generates JSON twice and compact log output once
+  through caller-provided sinks. It validates both formats, repeatability,
+  null-callback rejection, nested in-flight rejection,
+  and isolation from lifecycle-managed files without initializing signal-path
+  services.
 - Build-task enabler: `CMakeLists-android.txt` (AndroidAppBuilder template) was
   changed to compile C++ `ExtraAppNativeSources` (previously C-only), which is
   what lets the app embed the reporter `.cpp`s.
@@ -193,7 +202,8 @@ InProcCrashReport/
 ├─ OVERVIEW.md                     ← this file
 ├─ Shared/                         ← Layer 1: shared managed harness, native driver,
 │                                     reporter-source imports, inert watchdog stub
-├─ Abort/  ConsoleOnly/  RichSigsegv/  StackOverflow/   ← Layer 1 per-scenario projects
+├─ Abort/  ConsoleOnly/  OnDemand/  RichSigsegv/  StackOverflow/
+│                                  ← Layer 1 projects
 └─ RealCrash/                      ← Layer 2 (real crash, host-driven)
    ├─ CrashApp/                    ← single on-device crash app (one APK, env-driven)
    └─ Host/                        ← desktop xUnit harness over adb (the verdict)
@@ -236,7 +246,8 @@ $projects = @(
     "RichSigsegv\Android.Device_Emulator.InProcCrashReport.RichSigsegv.Test.csproj",
     "Abort\Android.Device_Emulator.InProcCrashReport.Abort.Test.csproj",
     "StackOverflow\Android.Device_Emulator.InProcCrashReport.StackOverflow.Test.csproj",
-    "ConsoleOnly\Android.Device_Emulator.InProcCrashReport.ConsoleOnly.Test.csproj"
+    "ConsoleOnly\Android.Device_Emulator.InProcCrashReport.ConsoleOnly.Test.csproj",
+    "OnDemand\Android.Device_Emulator.InProcCrashReport.OnDemand.Test.csproj"
 )
 
 foreach ($project in $projects) {
@@ -255,6 +266,7 @@ incorrectly reports a failure because it expects 0.
 
 Validated results:
 
-- Layer 1 synthetic suite: 4 of 4 passed.
+- Layer 1 synthetic suite: 5 of 5 passed.
 - Layer 2 real-crash host suite: 8 of 8 passed.
+- Total: 13 of 13 passed.
 - Emulator: Android 16, API 36, x86_64 (`emulator-5554`).

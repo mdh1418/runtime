@@ -10,6 +10,7 @@
 // an operator delete for class cleanup paths.
 
 #include <new>
+#include <stdint.h>
 #include <stdlib.h>
 
 namespace std
@@ -26,3 +27,20 @@ void operator delete(void* ptr) noexcept { free(ptr); }
 void operator delete[](void* ptr) noexcept { free(ptr); }
 void operator delete(void* ptr, size_t) noexcept { free(ptr); }
 void operator delete[](void* ptr, size_t) noexcept { free(ptr); }
+
+// Function-local static initialization normally comes from libc++abi, which is
+// unavailable with ANDROID_STL=none. Report generation is serialized before any
+// of the reporter's local output-sink statics are accessed.
+extern "C" int __cxa_guard_acquire(uint64_t* guard)
+{
+    return __atomic_load_n(reinterpret_cast<uint8_t*>(guard), __ATOMIC_ACQUIRE) == 0;
+}
+
+extern "C" void __cxa_guard_release(uint64_t* guard)
+{
+    __atomic_store_n(reinterpret_cast<uint8_t*>(guard), 1, __ATOMIC_RELEASE);
+}
+
+extern "C" void __cxa_guard_abort(uint64_t* /*guard*/)
+{
+}

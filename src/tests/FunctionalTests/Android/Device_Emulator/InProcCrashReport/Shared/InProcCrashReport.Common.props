@@ -2,11 +2,11 @@
   <!--
     Shared configuration for the in-proc crash reporter Layer-1 fidelity tests.
 
-    Each scenario is a separate functional-test project (its own app launch),
-    because the reporter generates exactly one report per process (CreateReport
-    has a one-shot, never-reset s_generating guard). A per-scenario project picks
-    its scenario by adding an INPROC_SCENARIO_* compile constant; everything else
-    (managed harness, native driver, shims, reporter sources) is shared from this
+    Each signal-path scenario is a separate functional-test project (its own app
+    launch) because a fatal report is generated only once per process. A
+    per-scenario project picks its scenario by adding an INPROC_SCENARIO_* compile
+    constant. The on-demand project instead selects its dedicated managed harness.
+    Everything else (native driver, shims, reporter sources) is shared from this
     Shared/ directory by this props file.
   -->
   <PropertyGroup>
@@ -30,7 +30,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(CrashReportSharedDir)Program.cs" />
+    <Compile Include="$(CrashReportSharedDir)OnDemandProgram.cs"
+             Condition="'$(InProcCrashReportOnDemandTest)' == 'true'" />
+    <Compile Include="$(CrashReportSharedDir)Program.cs"
+             Condition="'$(InProcCrashReportOnDemandTest)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>

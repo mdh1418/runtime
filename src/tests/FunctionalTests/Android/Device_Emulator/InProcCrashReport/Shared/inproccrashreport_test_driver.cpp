@@ -16,9 +16,8 @@
 // module lookup, watchdog timing, libcoreclr packaging) -- that is the job of the
 // host-driven Layer 2 integration test.
 //
-// Each scenario runs in its OWN process (its own functional-test project),
-// because the reporter generates exactly one report per process (CreateReport
-// has a one-shot, never-reset s_generating guard).
+// Each fatal-signal scenario runs in its OWN process (its own functional-test
+// project). The on-demand scenario exercises the reusable caller-sink API.
 
 #include "inproccrashreporter.h"
 #include "inproccrashreport_test_interop.h"
@@ -194,6 +193,68 @@ namespace
             fclose(file);
         }
     }
+
+    struct OnDemandOutputContext
+    {
+        FILE* file;
+        ucontext_t* signalContext;
+        bool attemptReentrantReport;
+        bool reentrantAttempted;
+        bool reentrantResult;
+    };
+
+    bool WriteOnDemandOutput(const char* buffer, size_t length, void* context)
+    {
+        OnDemandOutputContext* output = static_cast<OnDemandOutputContext*>(context);
+        if (output->attemptReentrantReport && !output->reentrantAttempted)
+        {
+            output->reentrantAttempted = true;
+            output->reentrantResult = InProcCrashReportCreateReport(
+                InProcCrashReportOutputFormat::Json,
+                SIGSEGV,
+                output->signalContext,
+                &WriteOnDemandOutput,
+                output);
+        }
+
+        return fwrite(buffer, 1, length, output->file) == length;
+    }
+
+    bool WriteOnDemandReport(
+        InProcCrashReportOutputFormat outputFormat,
+        const char* outputPath,
+        ucontext_t* signalContext,
+        bool attemptReentrantReport,
+        bool* reentrantResult)
+    {
+        FILE* file = fopen(outputPath, "wb");
+        if (file == nullptr)
+        {
+            return false;
+        }
+
+        OnDemandOutputContext output = {};
+        output.file = file;
+        output.signalContext = signalContext;
+        output.attemptReentrantReport = attemptReentrantReport;
+
+        bool generated = InProcCrashReportCreateReport(
+            outputFormat,
+            SIGSEGV,
+            signalContext,
+            &WriteOnDemandOutput,
+            &output);
+
+        bool closed = fclose(file) == 0;
+        if (reentrantResult != nullptr)
+        {
+            *reentrantResult = output.reentrantResult;
+        }
+
+        return generated &&
+            closed &&
+            (!attemptReentrantReport || output.reentrantAttempted);
+    }
 }
 
 // Drives one synthetic crash-report scenario.
@@ -217,9 +278,6 @@ extern "C" int InProcCrashReportTest_DriveScenario(
     InProcCrashReportTest_ResetConsoleCapture();
 
     InProcCrashReporterSettings settings = {};
-    settings.reportRootPath = reporterRootPath;
-    settings.maxFileCount = 32;
-    settings.timeoutSeconds = 30;
     settings.isManagedThreadCallback = &IsManagedThreadCallback;
     settings.walkStackCallback = nullptr;
     settings.moduleInfoCallback = &ModuleInfoCallback;
@@ -247,6 +305,14 @@ extern "C" int InProcCrashReportTest_DriveScenario(
 
     InProcCrashReportInitialize(settings);
 
+    InProcCrashReporterServicesSettings services = {};
+    services.enableCreateCrashDump = true;
+    services.enableWatchdog = false;
+    services.enableLifecycle = reporterRootPath != nullptr && reporterRootPath[0] != '\0';
+    services.reportRootPath = reporterRootPath;
+    services.maxFileCount = 32;
+    InProcCrashReportInitializeServices(services);
+
     if (scenario == kScenarioStackOverflow)
     {
         // Drive the captured-stack-overflow-trace path: the runtime SO helper
@@ -270,5 +336,72 @@ extern "C" int InProcCrashReportTest_DriveScenario(
     InProcCrashReportSignalDispatcher(signalNumber, &si, &uc);
 
     WriteConsoleCapture(consoleCapturePath);
+    return 0;
+}
+
+// Exercises the on-demand entry point without enabling signal-path services.
+// Returns 0 when both formats are generated repeatedly, a null callback is
+// rejected, and a nested report is rejected while the outer report is in flight.
+extern "C" int InProcCrashReportTest_DriveOnDemand(
+    const char* firstJsonPath,
+    const char* secondJsonPath,
+    const char* logPath)
+{
+    InProcCrashReporterSettings settings = {};
+    settings.isManagedThreadCallback = &IsManagedThreadCallback;
+    settings.walkStackCallback = nullptr;
+    settings.enumerateThreadsCallback = &EnumerateThreadsRichSigsegv;
+    settings.moduleInfoCallback = &ModuleInfoCallback;
+    settings.frameLimitPerThread = 0;
+    InProcCrashReportInitialize(settings);
+
+    ucontext_t signalContext;
+    FillSyntheticContext(&signalContext);
+
+    if (InProcCrashReportCreateReport(
+            InProcCrashReportOutputFormat::Json,
+            SIGSEGV,
+            &signalContext,
+            nullptr,
+            nullptr))
+    {
+        return -1;
+    }
+
+    bool reentrantResult = true;
+    if (!WriteOnDemandReport(
+            InProcCrashReportOutputFormat::Json,
+            firstJsonPath,
+            &signalContext,
+            /*attemptReentrantReport*/ true,
+            &reentrantResult))
+    {
+        return -2;
+    }
+    if (reentrantResult)
+    {
+        return -3;
+    }
+
+    if (!WriteOnDemandReport(
+            InProcCrashReportOutputFormat::Json,
+            secondJsonPath,
+            &signalContext,
+            /*attemptReentrantReport*/ false,
+            nullptr))
+    {
+        return -4;
+    }
+
+    if (!WriteOnDemandReport(
+            InProcCrashReportOutputFormat::Log,
+            logPath,
+            &signalContext,
+            /*attemptReentrantReport*/ false,
+            nullptr))
+    {
+        return -5;
+    }
+
     return 0;
 }

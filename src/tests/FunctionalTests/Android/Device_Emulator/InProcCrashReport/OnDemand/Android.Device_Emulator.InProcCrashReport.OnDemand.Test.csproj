@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- On-demand: generates JSON twice and compact log output once through the
+       caller-supplied sink without enabling signal-path services. -->
+  <PropertyGroup>
+    <AssemblyName>Android.Device_Emulator.InProcCrashReport.OnDemand.Test</AssemblyName>
+    <MainLibraryFileName>Android.Device_Emulator.InProcCrashReport.OnDemand.Test.dll</MainLibraryFileName>
+    <InProcCrashReportOnDemandTest>true</InProcCrashReportOnDemandTest>
+  </PropertyGroup>
+
+  <Import Project="../Shared/InProcCrashReport.Common.props" />
+</Project>
