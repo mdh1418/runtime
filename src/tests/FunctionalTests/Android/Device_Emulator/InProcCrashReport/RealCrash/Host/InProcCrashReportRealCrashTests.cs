@@ -265,7 +265,10 @@ public sealed class InProcCrashReportRealCrashTests : IClassFixture<CrashAppDevi
     [Fact]
     public void ConsoleOnly_EmitsReportButWritesNoJson()
     {
-        CrashOutputs outputs = _device.RunScenario("abort", collectJson: false);
+        CrashOutputs outputs = _device.RunScenario(
+            "abort",
+            collectJson: false,
+            artifactName: "console-only");
 
         // The absence of any JSON report is enforced by the fixture; Json is empty here.
         Assert.Equal(string.Empty, outputs.Json);

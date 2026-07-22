@@ -212,6 +212,10 @@ InProcCrashReport/
 
 ## How to run (quick reference)
 
+- **Complete suite with durable artifacts:** use
+  [`Run-InProcCrashReportTests.ps1`](Run-InProcCrashReportTests.ps1). See
+  [`FIDELITY.md`](FIDELITY.md) for the result layout, scenario coverage, and
+  post-crash fidelity model.
 - **Layer 1:** standard functional test, `dotnet build /t:Test <scenario>.csproj`,
   with the Android build environment (expects exit 100 / XHarness green).
 - **Layer 2:** build the CrashApp APK, then run the host harness with the system

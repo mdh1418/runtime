@@ -18,6 +18,8 @@
       INPROC_CRASH_APK        path to the CrashApp .apk. Default: the repo artifacts
                               path baked in as assembly metadata at build time.
       INPROC_CRASH_ADB        path to the adb executable. Default: "adb" on PATH.
+      INPROC_CRASH_RESULTS_DIR host directory for captured JSON and console reports.
+                              Default: a timestamped directory under artifacts.
   -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -30,12 +32,14 @@
 
     <_RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\..\..\..\..\..\'))</_RepoRoot>
     <DefaultApkPath>$(_RepoRoot)artifacts\bin\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp\Release\net11.0\android-x64\AppBundle\bin\Android.Device_Emulator.InProcCrashReport.RealCrash.CrashApp.apk</DefaultApkPath>
+    <DefaultResultsRoot>$(_RepoRoot)artifacts\test-results\InProcCrashReport</DefaultResultsRoot>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- The default APK location, resolved at build time, so a local `dotnet test`
          works with no environment setup after building the CrashApp. -->
     <AssemblyMetadata Include="DefaultApkPath" Value="$(DefaultApkPath)" />
+    <AssemblyMetadata Include="DefaultResultsRoot" Value="$(DefaultResultsRoot)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -52,7 +52,7 @@ public sealed class CrashAppDevice : IDisposable
     /// without a report root, so it must emit the console report but write no JSON file; the
     /// returned <see cref="CrashOutputs.Json"/> is empty and the absence of a file is verified.
     /// </summary>
-    public CrashOutputs RunScenario(string scenario, bool collectJson = true)
+    public CrashOutputs RunScenario(string scenario, bool collectJson = true, string? artifactName = null)
     {
         string[] reportsBefore = ListReportFiles();
 
@@ -77,7 +77,9 @@ public sealed class CrashAppDevice : IDisposable
 
         string json = collectJson ? PollForReport(reportsBefore) : VerifyNoNewReport(reportsBefore);
         string console = CaptureConsoleReport();
-        return new CrashOutputs(json, console);
+        var outputs = new CrashOutputs(json, console);
+        CrashArtifactWriter.Write(artifactName ?? scenario, scenario, collectJson, outputs);
+        return outputs;
     }
 
     private string PollForReport(string[] reportsBefore)

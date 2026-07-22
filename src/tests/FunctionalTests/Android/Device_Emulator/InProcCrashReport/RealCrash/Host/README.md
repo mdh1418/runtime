@@ -108,6 +108,15 @@ passed 8 of 8 tests on an API 36 x64 emulator.
 | `INPROC_CRASH_DEVICE_ID` | the only attached device (else required) |
 | `INPROC_CRASH_APK` | the repo artifacts path baked in at build time |
 | `INPROC_CRASH_ADB` | `adb` on `PATH` |
+| `INPROC_CRASH_RESULTS_DIR` | timestamped run under `artifacts/test-results/InProcCrashReport` |
+
+When capture succeeds, every scenario writes the exact `report.json` and
+`console.txt` values evaluated by the assertions. The console-only scenario
+writes only `console.txt`, plus capture metadata, because absence of JSON is part
+of its contract. Failed capture attempts are recorded in the TRX and
+`validation.json`. For the complete synthetic and real-crash run with logs and
+TRX output, use
+`../../Run-InProcCrashReportTests.ps1` and see `../../FIDELITY.md`.
 
 This project is deliberately isolated from the dotnet/runtime build (empty
 `Directory.Build.*`, local `NuGet.config`, local `global.json`) so it restores
