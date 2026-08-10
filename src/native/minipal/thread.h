@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <minipal/utils.h>
 
 #if defined(__linux__)
 #include <unistd.h>
@@ -41,12 +42,18 @@
 extern "C" {
 #endif
 
+#if defined(MINIPAL_THREAD_SOURCE)
+#define MINIPAL_THREAD_INLINE
+#else
+#define MINIPAL_THREAD_INLINE inline
+#endif
+
 /**
  * Get the current thread ID without caching in a TLS variable.
  *
  * @return The current thread ID as a size_t value.
  */
-static inline size_t minipal_get_current_thread_id_no_cache(void)
+MINIPAL_THREAD_INLINE size_t minipal_get_current_thread_id_no_cache(void)
 {
     size_t tid;
 #if defined(__wasm) && !defined(_REENTRANT)
@@ -79,31 +86,27 @@ static inline size_t minipal_get_current_thread_id_no_cache(void)
     return tid;
 }
 
+#if !defined(__wasm) || defined(_REENTRANT)
+extern PLATFORM_THREAD_LOCAL size_t minipal_cached_thread_id;
+#endif
+
 /**
  * Get the current thread ID.
  *
  * @return The current thread ID as a size_t value.
  */
-static inline size_t minipal_get_current_thread_id(void)
+MINIPAL_THREAD_INLINE size_t minipal_get_current_thread_id(void)
 {
 #if defined(__wasm) && !defined(_REENTRANT)
     return minipal_get_current_thread_id_no_cache();
 
 #else // !__wasm || _REENTRANT
-#if defined(__GNUC__) && !defined(__clang__) && defined(__cplusplus)
-    // gcc doesn't like _Thread_local when __cplusplus is defined.
-    // although thread_local is C2x, which other compilers don't allow with C11.
-    static thread_local size_t tid = 0;
-#else
-    static _Thread_local size_t tid = 0;
-#endif
-
-    if (!tid)
+    if (!minipal_cached_thread_id)
     {
-        tid = minipal_get_current_thread_id_no_cache();
+        minipal_cached_thread_id = minipal_get_current_thread_id_no_cache();
     }
 
-    return tid;
+    return minipal_cached_thread_id;
 #endif // __wasm && !_REENTRANT
 }
 
@@ -114,7 +117,7 @@ static inline size_t minipal_get_current_thread_id(void)
  * @param name The desired name for the thread.
  * @return 0 on success, or an error code if the operation fails.
  */
-static inline int minipal_set_thread_name(pthread_t thread, const char* name)
+MINIPAL_THREAD_INLINE int minipal_set_thread_name(pthread_t thread, const char* name)
 {
 #ifdef __wasm
     // WASM does not support pthread_setname_np yet: https://github.com/emscripten-core/emscripten/pull/18751
@@ -146,6 +149,7 @@ static inline int minipal_set_thread_name(pthread_t thread, const char* name)
 #endif
 }
 
+#undef MINIPAL_THREAD_INLINE
 
 #ifdef __cplusplus
 }

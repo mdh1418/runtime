@@ -35,6 +35,12 @@
 extern "C" {
 #endif
 
+#if defined(MINIPAL_GETEXEPATH_SOURCE)
+#define MINIPAL_GETEXEPATH_INLINE
+#else
+#define MINIPAL_GETEXEPATH_INLINE inline
+#endif
+
 /**
  * Get the full path to the executable for the current process.
  * Resolves symbolic links. The caller is responsible for releasing the buffer.
@@ -42,7 +48,7 @@ extern "C" {
  * @return A pointer to a null-terminated string containing the executable path, 
  *         or NULL if an error occurs.
  */
-static inline char* minipal_getexepath(void)
+MINIPAL_GETEXEPATH_INLINE char* minipal_getexepath(void)
 {
 #if defined(__APPLE__)
     uint32_t len = PATH_MAX;
@@ -141,7 +147,7 @@ static inline char* minipal_getexepath(void)
         return NULL;
     }
 
-    return strdup(path);
+    return _strdup(path);
 #elif defined(TARGET_BROWSER)
     const char *browserVirtualAppBase = "/"; // keep in sync other places that define browserVirtualAppBase
     return strdup(browserVirtualAppBase);
@@ -193,6 +199,8 @@ static inline char* minipal_getexepath(void)
     return NULL;
 #endif // defined(__APPLE__)
 }
+
+#undef MINIPAL_GETEXEPATH_INLINE
 
 #ifdef __cplusplus
 }
