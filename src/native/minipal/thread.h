@@ -42,106 +42,17 @@
 extern "C" {
 #endif
 
-/**
- * Get the current thread ID without caching in a TLS variable.
- *
- * @return The current thread ID as a size_t value.
- */
-static inline size_t minipal_get_current_thread_id_no_cache(void)
-{
-    size_t tid;
-#if defined(__wasm) && !defined(_REENTRANT)
-    tid = 1; // In non-reentrant WASM builds, we define a single thread with ID 1.
-#else // !__wasm || _REENTRANT
+/* Function implementations moved to thread.c to preserve a single external definition and call-stack visibility. */
 
-#if defined(__linux__)
-    tid = (size_t)syscall(SYS_gettid);
-#elif defined(__APPLE__)
-    uint64_t thread_id;
-    pthread_threadid_np(pthread_self(), &thread_id);
-    tid = (size_t)thread_id;  // Cast the uint64_t thread ID to size_t
-#elif defined(__FreeBSD__)
-    tid = (size_t)pthread_getthreadid_np();
-#elif defined(__NetBSD__)
-    tid = (size_t)_lwp_self();
-#elif defined(__OpenBSD__)
-    tid = (size_t)getthrid();
-#elif defined(__HAIKU__)
-    tid = (size_t)find_thread(NULL);
-#elif defined(__sun)
-    tid = (size_t)pthread_self();
-#elif defined(__wasm)
-    tid = (size_t)(void*)pthread_self();
-#else
-#error "Unsupported platform"
-#endif
-
-#endif // __wasm && !_REENTRANT
-    return tid;
-}
+/* Prototypes: implementations live in thread.c */
+size_t minipal_get_current_thread_id_no_cache(void);
 
 #if !defined(__wasm) || defined(_REENTRANT)
 extern PLATFORM_THREAD_LOCAL size_t minipal_cached_thread_id;
 #endif
 
-/**
- * Get the current thread ID.
- *
- * @return The current thread ID as a size_t value.
- */
-static inline size_t minipal_get_current_thread_id(void)
-{
-#if defined(__wasm) && !defined(_REENTRANT)
-    return minipal_get_current_thread_id_no_cache();
-
-#else // !__wasm || _REENTRANT
-    if (!minipal_cached_thread_id)
-    {
-        minipal_cached_thread_id = minipal_get_current_thread_id_no_cache();
-    }
-
-    return minipal_cached_thread_id;
-#endif // __wasm && !_REENTRANT
-}
-
-/**
- * Set the name of the specified thread.
- *
- * @param thread The thread for which to set the name.
- * @param name The desired name for the thread.
- * @return 0 on success, or an error code if the operation fails.
- */
-static inline int minipal_set_thread_name(pthread_t thread, const char* name)
-{
-#ifdef __wasm
-    // WASM does not support pthread_setname_np yet: https://github.com/emscripten-core/emscripten/pull/18751
-    return 0;
-#else
-    const char* threadName = name;
-    char truncatedName[MINIPAL_MAX_THREAD_NAME_LENGTH + 1];
-
-    if (strlen(name) > MINIPAL_MAX_THREAD_NAME_LENGTH)
-    {
-        strncpy(truncatedName, name, MINIPAL_MAX_THREAD_NAME_LENGTH);
-        truncatedName[MINIPAL_MAX_THREAD_NAME_LENGTH] = '\0';
-        threadName = truncatedName;
-    }
-
-#if defined(__APPLE__)
-    // On Apple OSes, pthread_setname_np only works for the calling thread.
-    if (thread != pthread_self()) return 0;
-
-    return pthread_setname_np(threadName);
-#elif defined(__OpenBSD__)
-    pthread_set_name_np(thread, threadName);
-    return 0;
-#elif defined(__HAIKU__)
-    return rename_thread(get_pthread_thread_id(thread), threadName);
-#else
-    return pthread_setname_np(thread, threadName);
-#endif
-#endif
-}
+size_t minipal_get_current_thread_id(void);
+int minipal_set_thread_name(pthread_t thread, const char* name);
 
 
 #ifdef __cplusplus

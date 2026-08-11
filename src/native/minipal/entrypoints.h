@@ -18,17 +18,9 @@ typedef struct
 #define DllImportEntry(impl) \
     {#impl, (void*)&impl},
 
-static const void* minipal_resolve_dllimport(const Entry* resolutionTable, size_t tableLength, const char* name)
-{
-    for (size_t i = 0; i < tableLength; i++)
-    {
-        if (strcmp(name, resolutionTable[i].name) == 0)
-        {
-            return resolutionTable[i].method;
-        }
-    }
+/* Implementation moved to entrypoints.c to preserve a single external definition and call-stack visibility. */
 
-    return NULL;
-}
+/* Prototype: implementation in entrypoints.c */
+const void* minipal_resolve_dllimport(const Entry* resolutionTable, size_t tableLength, const char* name);
 
 #endif // HAVE_MINIPAL_ENTRYPOINTS_H
