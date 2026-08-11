@@ -24,7 +24,6 @@ set(SOURCES
 if(CLR_CMAKE_HOST_UNIX)
     list(APPEND SOURCES
         cpucount.c
-        cpuid.c
         thread.c
     )
 endif()

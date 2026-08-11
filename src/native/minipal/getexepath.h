@@ -38,8 +38,7 @@ extern "C" {
 /* Implementation moved to getexepath.c to preserve a single external definition and call-stack visibility. */
 
 /* Prototype: implementation in getexepath.c */
-char* minipal_getexepath(void);
-
+inline char* minipal_getexepath(void);
 
 #ifdef __cplusplus
 }

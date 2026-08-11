@@ -16,19 +16,13 @@
 
 #include <minipal/utils.h>
 
-#if defined(MINIPAL_CPUID_SOURCE)
-#define MINIPAL_CPUID_INLINE
-#else
-#define MINIPAL_CPUID_INLINE inline
-#endif
-
 // MSVC directly defines intrinsics for __cpuid and __cpuidex matching the below signatures
 // We define matching signatures for use on Unix platforms.
 //
 // IMPORTANT: Unlike MSVC, Unix does not explicitly zero ECX for __cpuid
 
 #if !__has_builtin(__cpuid)
-MINIPAL_CPUID_INLINE void __cpuid(int cpuInfo[4], int function_id)
+inline void __cpuid(int cpuInfo[4], int function_id)
 {
     // Based on the Clang implementation provided in cpuid.h:
     // https://github.com/llvm/llvm-project/blob/main/clang/lib/Headers/cpuid.h
@@ -39,11 +33,11 @@ MINIPAL_CPUID_INLINE void __cpuid(int cpuInfo[4], int function_id)
         );
 }
 #else
-void __cpuid(int cpuInfo[4], int function_id);
+inline void __cpuid(int cpuInfo[4], int function_id);
 #endif
 
 #if !__has_builtin(__cpuidex)
-MINIPAL_CPUID_INLINE void __cpuidex(int cpuInfo[4], int function_id, int subFunction_id)
+inline void __cpuidex(int cpuInfo[4], int function_id, int subFunction_id)
 {
     // Based on the Clang implementation provided in cpuid.h:
     // https://github.com/llvm/llvm-project/blob/main/clang/lib/Headers/cpuid.h
@@ -54,10 +48,8 @@ MINIPAL_CPUID_INLINE void __cpuidex(int cpuInfo[4], int function_id, int subFunc
         );
 }
 #else
-void __cpuidex(int cpuInfo[4], int function_id, int subFunction_id);
+inline void __cpuidex(int cpuInfo[4], int function_id, int subFunction_id);
 #endif
-
-#undef MINIPAL_CPUID_INLINE
 
 #endif // HOST_UNIX
 #endif // defined(HOST_X86) || defined(HOST_AMD64)

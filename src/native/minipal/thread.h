@@ -45,14 +45,14 @@ extern "C" {
 /* Function implementations moved to thread.c to preserve a single external definition and call-stack visibility. */
 
 /* Prototypes: implementations live in thread.c */
-size_t minipal_get_current_thread_id_no_cache(void);
+inline size_t minipal_get_current_thread_id_no_cache(void);
 
 #if !defined(__wasm) || defined(_REENTRANT)
 extern PLATFORM_THREAD_LOCAL size_t minipal_cached_thread_id;
 #endif
 
-size_t minipal_get_current_thread_id(void);
-int minipal_set_thread_name(pthread_t thread, const char* name);
+inline size_t minipal_get_current_thread_id(void);
+inline int minipal_set_thread_name(pthread_t thread, const char* name);
 
 
 #ifdef __cplusplus

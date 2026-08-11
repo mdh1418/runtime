@@ -21,6 +21,6 @@ typedef struct
 /* Implementation moved to entrypoints.c to preserve a single external definition and call-stack visibility. */
 
 /* Prototype: implementation in entrypoints.c */
-const void* minipal_resolve_dllimport(const Entry* resolutionTable, size_t tableLength, const char* name);
+inline const void* minipal_resolve_dllimport(const Entry* resolutionTable, size_t tableLength, const char* name);
 
 #endif // HAVE_MINIPAL_ENTRYPOINTS_H
