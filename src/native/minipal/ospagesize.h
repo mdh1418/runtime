@@ -33,7 +33,7 @@ inline uint32_t minipal_getpagesize(void)
     return 4 * 1024;
 }
 #else
-inline uint32_t minipal_getpagesize(void);
+uint32_t minipal_getpagesize(void);
 #endif
 
 #ifdef __cplusplus

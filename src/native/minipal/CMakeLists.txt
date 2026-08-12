@@ -5,8 +5,6 @@ include(configure.cmake)
 set(SOURCES
     cpufeatures.c
     descriptorlimit.c
-    entrypoints.c
-    getexepath.c
     memorybarrierprocesswide.c
     mutex.c
     ospagesize.c
